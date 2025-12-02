@@ -15,6 +15,25 @@
             <el-icon><Grid /></el-icon>
           </el-button>
         </el-button-group>
+        <el-dropdown @command="handleExport" trigger="click">
+          <el-button>
+            <el-icon><Download /></el-icon>
+            导出
+            <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="excel">
+                <el-icon><Document /></el-icon>
+                导出 Excel
+              </el-dropdown-item>
+              <el-dropdown-item command="csv">
+                <el-icon><DocumentCopy /></el-icon>
+                导出 CSV
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
         <el-button type="primary" @click="openCreateDialog">
           <el-icon><Plus /></el-icon>
           新增人才
@@ -369,8 +388,9 @@ import type { Talent } from '@/types'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import {
   Search, Plus, List, Grid, MoreFilled, Edit, Delete, Money,
-  Message, Phone, MagicStick
+  Message, Phone, MagicStick, Download, ArrowDown, Document, DocumentCopy
 } from '@element-plus/icons-vue'
+import { exportToExcel, exportToCsv, talentExportColumns } from '@/utils/export'
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -597,6 +617,37 @@ const getStatusText = (status: string) => {
     pending: '待处理'
   }
   return map[status] || status
+}
+
+// 导出数据
+const handleExport = (format: 'excel' | 'csv') => {
+  if (talents.value.length === 0) {
+    ElMessage.warning('暂无数据可导出')
+    return
+  }
+
+  const exportData = talents.value.map(t => ({
+    ...t,
+    currentCompany: t.summary?.split('，')[0] || '',
+    currentPosition: '',
+    expectedSalary: t.salary,
+    createTime: t.created_at
+  }))
+
+  const options = {
+    filename: '人才列表',
+    sheetName: '人才数据',
+    columns: talentExportColumns,
+    data: exportData
+  }
+
+  if (format === 'excel') {
+    exportToExcel(options)
+    ElMessage.success('Excel 导出成功')
+  } else {
+    exportToCsv(options)
+    ElMessage.success('CSV 导出成功')
+  }
 }
 
 onMounted(() => {

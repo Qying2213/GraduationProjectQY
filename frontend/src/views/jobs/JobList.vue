@@ -7,6 +7,25 @@
         <p class="subtitle">共 {{ total }} 个职位</p>
       </div>
       <div class="header-actions">
+        <el-dropdown @command="handleExport" trigger="click">
+          <el-button>
+            <el-icon><Download /></el-icon>
+            导出
+            <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="excel">
+                <el-icon><Document /></el-icon>
+                导出 Excel
+              </el-dropdown-item>
+              <el-dropdown-item command="csv">
+                <el-icon><DocumentCopy /></el-icon>
+                导出 CSV
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
         <el-button type="primary" @click="openCreateDialog">
           <el-icon><Plus /></el-icon>
           发布职位
@@ -378,8 +397,10 @@ import type { Job } from '@/types'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import {
   Search, Plus, MoreFilled, Edit, Delete, Location, OfficeBuilding,
-  Timer, User, Switch, MagicStick, Suitcase, CircleCheck, CircleClose, Clock
+  Timer, User, Switch, MagicStick, Suitcase, CircleCheck, CircleClose, Clock,
+  Download, ArrowDown, Document, DocumentCopy
 } from '@element-plus/icons-vue'
+import { exportToExcel, exportToCsv, jobExportColumns } from '@/utils/export'
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -625,6 +646,41 @@ const getJobType = (type: string) => {
     'internship': '实习'
   }
   return map[type] || type
+}
+
+// 导出数据
+const handleExport = (format: 'excel' | 'csv') => {
+  if (jobs.value.length === 0) {
+    ElMessage.warning('暂无数据可导出')
+    return
+  }
+
+  const exportData = jobs.value.map(j => ({
+    ...j,
+    salaryMin: j.salary?.split('-')[0] || '',
+    salaryMax: j.salary?.split('-')[1]?.replace('K', '') || '',
+    experience: j.level === 'junior' ? '1-3年' : j.level === 'senior' ? '5年以上' : '3-5年',
+    education: '本科',
+    headcount: Math.floor(Math.random() * 5) + 1,
+    urgent: Math.random() > 0.7,
+    publishDate: j.created_at,
+    deadline: ''
+  }))
+
+  const options = {
+    filename: '职位列表',
+    sheetName: '职位数据',
+    columns: jobExportColumns,
+    data: exportData
+  }
+
+  if (format === 'excel') {
+    exportToExcel(options)
+    ElMessage.success('Excel 导出成功')
+  } else {
+    exportToCsv(options)
+    ElMessage.success('CSV 导出成功')
+  }
 }
 
 onMounted(() => {

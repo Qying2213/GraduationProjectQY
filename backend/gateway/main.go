@@ -17,6 +17,7 @@ var serviceRegistry = map[string]string{
 	"resume":         "http://localhost:8084",
 	"recommendation": "http://localhost:8085",
 	"message":        "http://localhost:8086",
+	"interview":      "http://localhost:8087",
 }
 
 // ReverseProxy 反向代理处理器
@@ -99,6 +100,10 @@ func main() {
 	// 消息服务路由
 	api.Any("/messages", ReverseProxy(serviceRegistry["message"]))
 	api.Any("/messages/*path", ReverseProxy(serviceRegistry["message"]))
+
+	// 面试服务路由
+	api.Any("/interviews", ReverseProxy(serviceRegistry["interview"]))
+	api.Any("/interviews/*path", ReverseProxy(serviceRegistry["interview"]))
 
 	log.Println("API Gateway is running on :8080")
 	log.Println("Registered services:", serviceRegistry)

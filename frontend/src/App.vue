@@ -3,9 +3,17 @@
 </template>
 
 <script setup lang="ts">
-// App root component
+import { onMounted } from 'vue'
+import { useThemeStore } from '@/store/theme'
+
+const themeStore = useThemeStore()
+
+// 全局初始化主题
+onMounted(() => {
+  themeStore.init()
+})
 </script>
 
-<style scoped>
-/* App styles */
+<style>
+/* Global app styles handled in global.scss */
 </style>

@@ -195,7 +195,7 @@ import { useUserStore } from '@/store/user'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import {
   User, Lock, Message, UserFilled, OfficeBuilding, Check,
-  ArrowRight, ArrowLeft, Phone, Briefcase, TrendCharts, Shield
+  ArrowRight, ArrowLeft, Phone, Briefcase, TrendCharts
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -208,7 +208,7 @@ const registerFormRef = ref<FormInstance>()
 const benefits = [
   { icon: Briefcase, title: '海量职位', desc: '覆盖各行业优质岗位' },
   { icon: TrendCharts, title: '智能匹配', desc: 'AI算法精准推荐' },
-  { icon: Shield, title: '安全可靠', desc: '信息加密保护隐私' }
+  { icon: Lock, title: '安全可靠', desc: '信息加密保护隐私' }
 ]
 
 const registerForm = reactive({

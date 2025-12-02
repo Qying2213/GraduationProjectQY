@@ -66,6 +66,18 @@ const routes: RouteRecordRaw[] = [
                 meta: { title: '智能推荐' }
             },
             {
+                path: 'kanban',
+                name: 'Kanban',
+                component: () => import('@/views/kanban/RecruitmentKanban.vue'),
+                meta: { title: '招聘看板' }
+            },
+            {
+                path: 'calendar',
+                name: 'Calendar',
+                component: () => import('@/views/calendar/InterviewCalendar.vue'),
+                meta: { title: '面试日历' }
+            },
+            {
                 path: 'messages',
                 name: 'Messages',
                 component: () => import('@/views/messages/MessageCenter.vue'),
@@ -76,6 +88,12 @@ const routes: RouteRecordRaw[] = [
                 name: 'Profile',
                 component: () => import('@/views/profile/UserProfile.vue'),
                 meta: { title: '个人中心' }
+            },
+            {
+                path: 'roles',
+                name: 'RoleManagement',
+                component: () => import('@/views/system/RoleManagement.vue'),
+                meta: { title: '权限管理', permission: 'role:view' }
             }
         ]
     },
