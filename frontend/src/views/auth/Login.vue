@@ -1,38 +1,57 @@
 <template>
   <div class="login-page">
-    <div class="login-container">
+    <!-- 背景动画粒子 -->
+    <div class="bg-particles">
+      <div v-for="i in 20" :key="i" class="particle" :style="getParticleStyle(i)"></div>
+    </div>
+
+    <div class="login-container" :class="{ 'animate-in': isLoaded }">
       <div class="login-left">
         <div class="gradient-overlay"></div>
         <div class="content">
+          <div class="logo-icon">
+            <el-icon :size="48"><Connection /></el-icon>
+          </div>
           <h1 class="title">智能人才运营平台</h1>
           <p class="subtitle">高效管理人才，智能匹配职位</p>
           <div class="features">
-            <div class="feature-item">
+            <div v-for="(feature, index) in features" :key="index"
+                 class="feature-item"
+                 :style="{ animationDelay: `${index * 0.2}s` }">
               <el-icon><Check /></el-icon>
-              <span>智能推荐算法</span>
+              <span>{{ feature }}</span>
             </div>
-            <div class="feature-item">
-              <el-icon><Check /></el-icon>
-              <span>简历智能解析</span>
+          </div>
+          <div class="stats">
+            <div class="stat-item">
+              <span class="stat-number">10K+</span>
+              <span class="stat-label">人才库</span>
             </div>
-            <div class="feature-item">
-              <el-icon><Check /></el-icon>
-              <span>数据可视化分析</span>
+            <div class="stat-item">
+              <span class="stat-number">500+</span>
+              <span class="stat-label">企业入驻</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">98%</span>
+              <span class="stat-label">匹配成功</span>
             </div>
           </div>
         </div>
       </div>
-      
+
       <div class="login-right">
         <div class="login-form-wrapper">
-          <h2>欢迎登录</h2>
-          <p class="desc">请输入您的账号和密码</p>
-          
+          <div class="form-header">
+            <h2>欢迎回来</h2>
+            <p class="desc">请输入您的账号和密码登录系统</p>
+          </div>
+
           <el-form
             ref="loginFormRef"
             :model="loginForm"
             :rules="rules"
             class="login-form"
+            @submit.prevent="handleLogin"
           >
             <el-form-item prop="username">
               <el-input
@@ -40,9 +59,10 @@
                 placeholder="用户名 / 邮箱"
                 size="large"
                 :prefix-icon="User"
+                class="custom-input"
               />
             </el-form-item>
-            
+
             <el-form-item prop="password">
               <el-input
                 v-model="loginForm.password"
@@ -51,10 +71,16 @@
                 size="large"
                 :prefix-icon="Lock"
                 show-password
+                class="custom-input"
                 @keyup.enter="handleLogin"
               />
             </el-form-item>
-            
+
+            <div class="form-options">
+              <el-checkbox v-model="loginForm.remember">记住密码</el-checkbox>
+              <a href="#" class="forgot-link">忘记密码？</a>
+            </div>
+
             <el-button
               type="primary"
               size="large"
@@ -62,10 +88,33 @@
               :loading="loading"
               @click="handleLogin"
             >
-              登录
+              <span v-if="!loading">登录</span>
+              <span v-else>登录中...</span>
             </el-button>
           </el-form>
-          
+
+          <div class="divider">
+            <span>或</span>
+          </div>
+
+          <div class="social-login">
+            <el-tooltip content="微信登录" placement="top">
+              <div class="social-btn wechat">
+                <el-icon><ChatDotRound /></el-icon>
+              </div>
+            </el-tooltip>
+            <el-tooltip content="钉钉登录" placement="top">
+              <div class="social-btn dingtalk">
+                <el-icon><Message /></el-icon>
+              </div>
+            </el-tooltip>
+            <el-tooltip content="企业微信" placement="top">
+              <div class="social-btn wecom">
+                <el-icon><OfficeBuilding /></el-icon>
+              </div>
+            </el-tooltip>
+          </div>
+
           <div class="footer-links">
             <span>还没有账号？</span>
             <router-link to="/register">立即注册</router-link>
@@ -77,20 +126,24 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { User, Lock, Check } from '@element-plus/icons-vue'
+import { User, Lock, Check, Connection, ChatDotRound, Message, OfficeBuilding } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 const loading = ref(false)
+const isLoaded = ref(false)
 const loginFormRef = ref<FormInstance>()
+
+const features = ['智能推荐算法', '简历智能解析', '数据可视化分析', '多角色权限管理']
 
 const loginForm = reactive({
   username: '',
-  password: ''
+  password: '',
+  remember: false
 })
 
 const rules: FormRules = {
@@ -103,24 +156,71 @@ const rules: FormRules = {
   ]
 }
 
+// 生成随机粒子样式
+const getParticleStyle = (_index: number) => {
+  const size = Math.random() * 10 + 5
+  return {
+    width: `${size}px`,
+    height: `${size}px`,
+    left: `${Math.random() * 100}%`,
+    top: `${Math.random() * 100}%`,
+    animationDelay: `${Math.random() * 5}s`,
+    animationDuration: `${Math.random() * 10 + 10}s`
+  }
+}
+
+// 加载记住的密码
+const loadRememberedCredentials = () => {
+  const remembered = localStorage.getItem('rememberedLogin')
+  if (remembered) {
+    try {
+      const data = JSON.parse(remembered)
+      loginForm.username = data.username || ''
+      loginForm.password = data.password || ''
+      loginForm.remember = true
+    } catch (e) {
+      localStorage.removeItem('rememberedLogin')
+    }
+  }
+}
+
 const handleLogin = async () => {
   if (!loginFormRef.value) return
-  
+
   await loginFormRef.value.validate(async (valid) => {
     if (valid) {
       loading.value = true
       try {
         await userStore.login(loginForm.username, loginForm.password)
-        ElMessage.success('登录成功')
+
+        // 处理记住密码
+        if (loginForm.remember) {
+          localStorage.setItem('rememberedLogin', JSON.stringify({
+            username: loginForm.username,
+            password: loginForm.password
+          }))
+        } else {
+          localStorage.removeItem('rememberedLogin')
+        }
+
+        ElMessage.success('登录成功，欢迎回来！')
         router.push('/dashboard')
       } catch (error: any) {
-        ElMessage.error(error.message || '登录失败')
+        ElMessage.error(error.message || '登录失败，请检查账号密码')
       } finally {
         loading.value = false
       }
     }
   })
 }
+
+onMounted(() => {
+  loadRememberedCredentials()
+  // 触发入场动画
+  setTimeout(() => {
+    isLoaded.value = true
+  }, 100)
+})
 </script>
 
 <style scoped lang="scss">
@@ -130,122 +230,367 @@ const handleLogin = async () => {
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+// 背景粒子动画
+.bg-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+
+  .particle {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    animation: float linear infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) rotate(720deg);
+    opacity: 0;
+  }
 }
 
 .login-container {
   display: flex;
-  width: 900px;
-  height: 550px;
+  width: 1000px;
+  min-height: 600px;
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border-radius: 24px;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
   overflow: hidden;
+  opacity: 0;
+  transform: translateY(30px) scale(0.95);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.animate-in {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .login-left {
-  flex: 1;
+  flex: 1.1;
   position: relative;
-  background: url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800') center/cover;
-  
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
   .gradient-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   }
-  
+
   .content {
     position: relative;
     z-index: 1;
-    padding: 60px 40px;
+    padding: 60px 50px;
     color: white;
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    
+
+    .logo-icon {
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      backdrop-filter: blur(10px);
+    }
+
     .title {
       font-size: 36px;
       font-weight: 700;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
+      letter-spacing: 2px;
     }
-    
+
     .subtitle {
       font-size: 18px;
       opacity: 0.9;
-      margin-bottom: 48px;
+      margin-bottom: 40px;
     }
-    
+
     .features {
       display: flex;
       flex-direction: column;
       gap: 16px;
-      
+      margin-bottom: 40px;
+
       .feature-item {
         display: flex;
         align-items: center;
         gap: 12px;
         font-size: 16px;
-        
+        opacity: 0;
+        animation: slideInFeature 0.5s ease forwards;
+
         .el-icon {
           font-size: 20px;
+          background: rgba(255, 255, 255, 0.2);
+          padding: 6px;
+          border-radius: 50%;
+        }
+      }
+    }
+
+    .stats {
+      display: flex;
+      gap: 32px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+
+      .stat-item {
+        display: flex;
+        flex-direction: column;
+
+        .stat-number {
+          font-size: 28px;
+          font-weight: 700;
+        }
+
+        .stat-label {
+          font-size: 14px;
+          opacity: 0.8;
         }
       }
     }
   }
 }
 
+@keyframes slideInFeature {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .login-right {
-  flex: 1;
+  flex: 0.9;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: 50px;
+  background: #fafbfc;
 }
 
 .login-form-wrapper {
   width: 100%;
-  max-width: 360px;
-  
-  h2 {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 8px;
-  }
-  
-  .desc {
-    color: var(--text-secondary);
+  max-width: 380px;
+
+  .form-header {
     margin-bottom: 32px;
+
+    h2 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+
+    .desc {
+      color: #6b7280;
+      font-size: 15px;
+    }
   }
-  
+
   .login-form {
+    .custom-input {
+      :deep(.el-input__wrapper) {
+        border-radius: 12px;
+        padding: 4px 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        border: 2px solid transparent;
+        transition: all 0.3s;
+
+        &:hover {
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+
+        &.is-focus {
+          border-color: #667eea;
+          box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+        }
+      }
+    }
+
+    .form-options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+
+      .forgot-link {
+        color: #667eea;
+        font-size: 14px;
+        text-decoration: none;
+        transition: color 0.3s;
+
+        &:hover {
+          color: #764ba2;
+        }
+      }
+    }
+
     .login-btn {
       width: 100%;
-      margin-top: 8px;
+      height: 52px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border: none;
-      
+      transition: all 0.3s;
+
       &:hover {
-        opacity: 0.9;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      }
+
+      &:active {
+        transform: translateY(0);
       }
     }
   }
-  
-  .footer-links {
-    margin-top: 24px;
-    text-align: center;
-    color: var(--text-secondary);
-    
-    a {
-      color: var(--primary-color);
-      text-decoration: none;
-      margin-left: 8px;
-      font-weight: 500;
-      
+
+  .divider {
+    display: flex;
+    align-items: center;
+    margin: 28px 0;
+
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e5e7eb;
+    }
+
+    span {
+      padding: 0 16px;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+  }
+
+  .social-login {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 28px;
+
+    .social-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 22px;
+
       &:hover {
-        text-decoration: underline;
+        transform: translateY(-3px);
+      }
+
+      &.wechat {
+        background: #f0fff4;
+        color: #07c160;
+
+        &:hover {
+          box-shadow: 0 8px 20px rgba(7, 193, 96, 0.3);
+        }
+      }
+
+      &.dingtalk {
+        background: #eff6ff;
+        color: #3370ff;
+
+        &:hover {
+          box-shadow: 0 8px 20px rgba(51, 112, 255, 0.3);
+        }
+      }
+
+      &.wecom {
+        background: #fef3f2;
+        color: #f04438;
+
+        &:hover {
+          box-shadow: 0 8px 20px rgba(240, 68, 56, 0.3);
+        }
       }
     }
+  }
+
+  .footer-links {
+    text-align: center;
+    color: #6b7280;
+    font-size: 15px;
+
+    a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+      margin-left: 6px;
+      transition: color 0.3s;
+
+      &:hover {
+        color: #764ba2;
+      }
+    }
+  }
+}
+
+// 响应式适配
+@media (max-width: 900px) {
+  .login-container {
+    flex-direction: column;
+    width: 95%;
+    max-width: 450px;
+    min-height: auto;
+  }
+
+  .login-left {
+    padding: 40px 30px;
+
+    .content {
+      padding: 30px;
+
+      .title {
+        font-size: 28px;
+      }
+
+      .stats {
+        display: none;
+      }
+    }
+  }
+
+  .login-right {
+    padding: 30px;
   }
 }
 </style>

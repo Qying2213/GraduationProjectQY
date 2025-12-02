@@ -78,6 +78,12 @@ const routes: RouteRecordRaw[] = [
                 meta: { title: '个人中心' }
             }
         ]
+    },
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'NotFound',
+        component: () => import('@/views/NotFound.vue'),
+        meta: { requiresAuth: false }
     }
 ]
 

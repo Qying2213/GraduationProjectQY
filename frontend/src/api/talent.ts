@@ -1,4 +1,4 @@
-mport request from '@/utils/request'
+import request from '@/utils/request'
 import type { Talent, ApiResponse } from '@/types'
 
 export const talentApi = {
