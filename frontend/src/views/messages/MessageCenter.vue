@@ -287,8 +287,7 @@ import { ref, computed, onMounted, markRaw, type Component } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Message, Bell, Calendar, Setting, Check, User, Clock,
-  ChatDotRound, Promotion, Document, Close, View, Delete,
-  InfoFilled
+  Promotion, Document, Close, View, Delete, InfoFilled
 } from '@element-plus/icons-vue'
 
 // 类型定义

@@ -405,8 +405,9 @@ const handleDelete = async (id: number) => {
     await ElMessageBox.confirm('确定要删除这份简历吗？', '确认删除', {
       type: 'warning'
     })
+    // 从列表中移除
+    resumeList.value = resumeList.value.filter(r => r.id !== id)
     ElMessage.success('删除成功')
-    fetchResumes()
   } catch {
     // 取消
   }
