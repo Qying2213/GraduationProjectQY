@@ -149,17 +149,17 @@ INSERT INTO talents (name, email, phone, skills, experience, education, status, 
 
 ('林小红', 'linxiaohong@email.com', '13912345012', ARRAY['招聘', 'HRBP', '员工关系', '培训'], 4, '本科', 'active', ARRAY['沟通能力强'], 3, '北京', '15-25K', '4年HR经验，擅长招聘和员工关系管理。', '女', 28, '滴滴', 'HRBP', NOW() - INTERVAL '12 days', NOW()),
 
-('马云飞', 'mayunfei@email.com', '13912345013', ARRAY['React', 'TypeScript', 'Next.js', 'GraphQL'], 4, '本科', 'pending', ARRAY[], 4, '深圳', '28-38K', '4年前端经验，专注React技术栈。', '男', 27, '腾讯', '前端开发工程师', NOW() - INTERVAL '10 days', NOW()),
+('马云飞', 'mayunfei@email.com', '13912345013', ARRAY['React', 'TypeScript', 'Next.js', 'GraphQL'], 4, '本科', 'pending', ARRAY[]::text[], 4, '深圳', '28-38K', '4年前端经验，专注React技术栈。', '男', 27, '腾讯', '前端开发工程师', NOW() - INTERVAL '10 days', NOW()),
 
-('杨丽', 'yangli@email.com', '13912345014', ARRAY['Python', 'Django', 'FastAPI', 'PostgreSQL'], 3, '本科', 'active', ARRAY[], 3, '上海', '22-32K', '3年Python开发经验，有Web开发和数据处理经验。', '女', 26, '携程', 'Python开发工程师', NOW() - INTERVAL '8 days', NOW()),
+('杨丽', 'yangli@email.com', '13912345014', ARRAY['Python', 'Django', 'FastAPI', 'PostgreSQL'], 3, '本科', 'active', ARRAY[]::text[], 3, '上海', '22-32K', '3年Python开发经验，有Web开发和数据处理经验。', '女', 26, '携程', 'Python开发工程师', NOW() - INTERVAL '8 days', NOW()),
 
 ('徐明', 'xuming@email.com', '13912345015', ARRAY['iOS', 'Swift', 'Objective-C', 'Flutter'], 5, '本科', 'active', ARRAY['移动端专家'], 4, '杭州', '35-50K', '5年iOS开发经验，有多款App Store上架产品。', '男', 29, '网易', 'iOS开发工程师', NOW() - INTERVAL '6 days', NOW()),
 
-('何芳', 'hefang@email.com', '13912345016', ARRAY['Android', 'Kotlin', 'Java', 'Flutter'], 4, '本科', 'active', ARRAY[], 3, '广州', '25-35K', '4年Android开发经验。', '女', 27, 'OPPO', 'Android开发工程师', NOW() - INTERVAL '5 days', NOW()),
+('何芳', 'hefang@email.com', '13912345016', ARRAY['Android', 'Kotlin', 'Java', 'Flutter'], 4, '本科', 'active', ARRAY[]::text[], 3, '广州', '25-35K', '4年Android开发经验。', '女', 27, 'OPPO', 'Android开发工程师', NOW() - INTERVAL '5 days', NOW()),
 
 ('谢伟', 'xiewei@email.com', '13912345017', ARRAY['Vue', 'JavaScript', 'CSS', 'HTML'], 1, '本科', 'active', ARRAY['应届生'], 4, '北京', '12-18K', '1年前端经验，基础扎实，学习能力强。', '男', 23, '', '前端开发实习生', NOW() - INTERVAL '3 days', NOW()),
 
-('罗琳', 'luolin@email.com', '13912345018', ARRAY['产品运营', '数据分析', '用户增长'], 2, '本科', 'rejected', ARRAY[], 3, '上海', '12-18K', '2年运营经验。', '女', 25, '拼多多', '运营专员', NOW() - INTERVAL '30 days', NOW() - INTERVAL '20 days'),
+('罗琳', 'luolin@email.com', '13912345018', ARRAY['产品运营', '数据分析', '用户增长'], 2, '本科', 'rejected', ARRAY[]::text[], 3, '上海', '12-18K', '2年运营经验。', '女', 25, '拼多多', '运营专员', NOW() - INTERVAL '30 days', NOW() - INTERVAL '20 days'),
 
 ('高强', 'gaoqiang@email.com', '13912345019', ARRAY['Node.js', 'Express', 'MongoDB', 'AWS'], 3, '硕士', 'active', ARRAY['全栈'], 4, '深圳', '25-38K', '3年全栈开发经验。', '男', 27, '华为', '全栈工程师', NOW() - INTERVAL '2 days', NOW()),
 
