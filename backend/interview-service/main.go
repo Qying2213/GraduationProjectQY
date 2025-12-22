@@ -16,8 +16,8 @@ func main() {
 	// 数据库配置
 	dbHost := getEnv("DB_HOST", "localhost")
 	dbPort := getEnv("DB_PORT", "5432")
-	dbUser := getEnv("DB_USER", "postgres")
-	dbPassword := getEnv("DB_PASSWORD", "postgres")
+	dbUser := getEnv("DB_USER", "qinyang")
+	dbPassword := getEnv("DB_PASSWORD", "")
 	dbName := getEnv("DB_NAME", "talent_platform")
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
@@ -69,11 +69,15 @@ func main() {
 			interviews.GET("/stats", interviewHandler.GetInterviewStats)
 			interviews.GET("/today", interviewHandler.GetTodayInterviews)
 			interviews.GET("/interviewer/:interviewer_id", interviewHandler.GetInterviewerSchedule)
+			interviews.GET("/candidate/:candidate_id", interviewHandler.GetCandidateInterviews)
 			interviews.GET("/:id", interviewHandler.GetInterview)
 			interviews.PUT("/:id", interviewHandler.UpdateInterview)
 			interviews.DELETE("/:id", interviewHandler.DeleteInterview)
 			interviews.POST("/:id/cancel", interviewHandler.CancelInterview)
 			interviews.POST("/:id/complete", interviewHandler.CompleteInterview)
+			interviews.POST("/:id/feedback", interviewHandler.SubmitFeedback)
+			interviews.GET("/:id/feedback", interviewHandler.GetFeedback)
+			interviews.POST("/:id/reschedule", interviewHandler.RescheduleInterview)
 		}
 	}
 

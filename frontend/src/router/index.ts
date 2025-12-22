@@ -78,6 +78,12 @@ const routes: RouteRecordRaw[] = [
                 meta: { title: '面试日历' }
             },
             {
+                path: 'interviews/:id',
+                name: 'InterviewDetail',
+                component: () => import('@/views/interviews/InterviewDetail.vue'),
+                meta: { title: '面试详情' }
+            },
+            {
                 path: 'messages',
                 name: 'Messages',
                 component: () => import('@/views/messages/MessageCenter.vue'),
@@ -94,6 +100,24 @@ const routes: RouteRecordRaw[] = [
                 name: 'RoleManagement',
                 component: () => import('@/views/system/RoleManagement.vue'),
                 meta: { title: '权限管理', permission: 'role:view' }
+            },
+            {
+                path: 'reports',
+                name: 'Reports',
+                component: () => import('@/views/reports/ReportsPage.vue'),
+                meta: { title: '数据报表' }
+            },
+            {
+                path: 'settings',
+                name: 'Settings',
+                component: () => import('@/views/system/SettingsPage.vue'),
+                meta: { title: '系统设置' }
+            },
+            {
+                path: 'logs',
+                name: 'OperationLogs',
+                component: () => import('@/views/system/OperationLogs.vue'),
+                meta: { title: '操作日志', permission: 'log:view' }
             }
         ]
     },

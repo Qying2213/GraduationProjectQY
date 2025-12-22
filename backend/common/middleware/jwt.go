@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -9,7 +10,14 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtSecret = []byte("talent-platform-secret-key-2024")
+var jwtSecret = []byte(getJWTSecret())
+
+func getJWTSecret() string {
+	if secret := os.Getenv("JWT_SECRET"); secret != "" {
+		return secret
+	}
+	return "talent-platform-secret-key-change-in-production"
+}
 
 type Claims struct {
 	UserID   uint   `json:"user_id"`

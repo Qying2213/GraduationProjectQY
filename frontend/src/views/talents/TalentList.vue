@@ -579,9 +579,9 @@ const handleDelete = async (id: number) => {
   }
 }
 
-// 获取头像颜色
+// 获取头像颜色 - 青蓝色系
 const getAvatarColor = (id: number) => {
-  const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#f5576c', '#ffa502']
+  const colors = ['#00b8d4', '#26c6da', '#4dd0e1', '#00c853', '#0097a7']
   return colors[id % colors.length]
 }
 
@@ -677,12 +677,12 @@ onMounted(() => {
     h1 {
       font-size: 24px;
       font-weight: 700;
-      color: #1a1a2e;
+      color: var(--text-primary);
       margin: 0 0 4px 0;
     }
 
     .subtitle {
-      color: #6b7280;
+      color: var(--text-secondary);
       font-size: 14px;
       margin: 0;
     }
@@ -695,10 +695,11 @@ onMounted(() => {
 }
 
 .card {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-light);
 }
 
 .search-card {
@@ -723,12 +724,12 @@ onMounted(() => {
 
       .name {
         font-weight: 600;
-        color: #1a1a2e;
+        color: var(--text-primary);
       }
 
       .email {
         font-size: 12px;
-        color: #9ca3af;
+        color: var(--text-muted);
       }
     }
   }
@@ -749,17 +750,19 @@ onMounted(() => {
 // 卡片视图
 .card-view {
   .talent-card {
-    background: white;
+    background: var(--bg-primary);
     border-radius: 16px;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-light);
     cursor: pointer;
     transition: all 0.3s ease;
 
     &:hover {
       transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary-color);
     }
 
     .card-header {
@@ -773,13 +776,13 @@ onMounted(() => {
       .talent-name {
         font-size: 18px;
         font-weight: 600;
-        color: #1a1a2e;
+        color: var(--text-primary);
         margin: 0 0 4px 0;
       }
 
       .talent-title {
         font-size: 14px;
-        color: #6b7280;
+        color: var(--text-secondary);
         margin: 0 0 12px 0;
       }
 
@@ -796,13 +799,13 @@ onMounted(() => {
       align-items: center;
       margin-top: 16px;
       padding-top: 16px;
-      border-top: 1px solid #f3f4f6;
+      border-top: 1px solid var(--border-light);
 
       .salary {
         display: flex;
         align-items: center;
         gap: 6px;
-        color: #667eea;
+        color: var(--primary-color);
         font-weight: 600;
       }
     }
@@ -820,12 +823,12 @@ onMounted(() => {
       h2 {
         font-size: 22px;
         font-weight: 700;
-        color: #1a1a2e;
+        color: var(--text-primary);
         margin: 0 0 4px 0;
       }
 
       p {
-        color: #6b7280;
+        color: var(--text-secondary);
         font-size: 14px;
         margin: 0 0 8px 0;
       }
@@ -838,7 +841,7 @@ onMounted(() => {
     h4 {
       font-size: 14px;
       font-weight: 600;
-      color: #374151;
+      color: var(--text-primary);
       margin: 0 0 12px 0;
     }
 
@@ -846,14 +849,14 @@ onMounted(() => {
       display: flex;
       align-items: center;
       gap: 8px;
-      color: #6b7280;
+      color: var(--text-secondary);
       margin-bottom: 8px;
     }
 
     .salary-display {
       font-size: 20px;
       font-weight: 700;
-      color: #667eea;
+      color: var(--primary-color);
     }
 
     .skills-display {
@@ -863,7 +866,7 @@ onMounted(() => {
     }
 
     .summary {
-      color: #6b7280;
+      color: var(--text-secondary);
       line-height: 1.6;
     }
   }

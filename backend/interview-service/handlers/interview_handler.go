@@ -389,3 +389,170 @@ func (h *InterviewHandler) GetInterviewerSchedule(c *gin.Context) {
 		"data":    interviews,
 	})
 }
+
+// SubmitFeedback 提交面试反馈
+func (h *InterviewHandler) SubmitFeedback(c *gin.Context) {
+	id := c.Param("id")
+	var interview models.Interview
+
+	if err := h.DB.First(&interview, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"code":    1,
+			"message": "Interview not found",
+		})
+		return
+	}
+
+	var req struct {
+		Rating         int    `json:"rating" binding:"required,min=1,max=5"`
+		Strengths      string `json:"strengths"`
+		Weaknesses     string `json:"weaknesses"`
+		Comments       string `json:"comments"`
+		Recommendation string `json:"recommendation"` // pass, fail, pending
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    1,
+			"message": "Invalid request: " + err.Error(),
+		})
+		return
+	}
+
+	// 获取面试官ID
+	var interviewerID uint
+	if userID, exists := c.Get("user_id"); exists {
+		interviewerID = userID.(uint)
+	} else {
+		interviewerID = interview.InterviewerID
+	}
+
+	// 创建反馈记录
+	feedback := models.InterviewFeedback{
+		InterviewID:    interview.ID,
+		InterviewerID:  interviewerID,
+		Rating:         req.Rating,
+		Strengths:      req.Strengths,
+		Weaknesses:     req.Weaknesses,
+		Comments:       req.Comments,
+		Recommendation: req.Recommendation,
+	}
+
+	if err := h.DB.Create(&feedback).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    1,
+			"message": "Failed to submit feedback: " + err.Error(),
+		})
+		return
+	}
+
+	// 更新面试记录
+	updates := map[string]interface{}{
+		"status":   models.InterviewStatusCompleted,
+		"rating":   req.Rating,
+		"feedback": req.Comments,
+	}
+	h.DB.Model(&interview).Updates(updates)
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "Feedback submitted successfully",
+		"data":    feedback,
+	})
+}
+
+// GetFeedback 获取面试反馈
+func (h *InterviewHandler) GetFeedback(c *gin.Context) {
+	id := c.Param("id")
+
+	var feedbacks []models.InterviewFeedback
+	if err := h.DB.Where("interview_id = ?", id).Find(&feedbacks).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    1,
+			"message": "Failed to fetch feedback: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data":    feedbacks,
+	})
+}
+
+// GetCandidateInterviews 获取候选人的所有面试
+func (h *InterviewHandler) GetCandidateInterviews(c *gin.Context) {
+	candidateID := c.Param("candidate_id")
+
+	var interviews []models.Interview
+	if err := h.DB.Where("candidate_id = ?", candidateID).
+		Order("date DESC, time DESC").
+		Find(&interviews).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    1,
+			"message": "Failed to fetch candidate interviews: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data":    interviews,
+	})
+}
+
+// RescheduleInterview 重新安排面试
+func (h *InterviewHandler) RescheduleInterview(c *gin.Context) {
+	id := c.Param("id")
+	var interview models.Interview
+
+	if err := h.DB.First(&interview, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"code":    1,
+			"message": "Interview not found",
+		})
+		return
+	}
+
+	var req struct {
+		Date   string `json:"date" binding:"required"`
+		Time   string `json:"time" binding:"required"`
+		Reason string `json:"reason"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    1,
+			"message": "Invalid request: " + err.Error(),
+		})
+		return
+	}
+
+	oldDate := interview.Date
+	oldTime := interview.Time
+
+	updates := map[string]interface{}{
+		"date":   req.Date,
+		"time":   req.Time,
+		"status": models.InterviewStatusScheduled,
+		"notes":  interview.Notes + "\n[改期] 从 " + oldDate + " " + oldTime + " 改至 " + req.Date + " " + req.Time + "。原因: " + req.Reason,
+	}
+
+	if err := h.DB.Model(&interview).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    1,
+			"message": "Failed to reschedule interview: " + err.Error(),
+		})
+		return
+	}
+
+	h.DB.First(&interview, id)
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "Interview rescheduled successfully",
+		"data":    interview,
+	})
+}

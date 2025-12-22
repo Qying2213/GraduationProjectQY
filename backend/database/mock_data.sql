@@ -10,15 +10,15 @@ TRUNCATE TABLE interview_feedbacks, interviews, applications, resumes, messages,
 -- =====================================================
 INSERT INTO users (username, email, password, role, avatar, phone, department, position, status, created_at, updated_at) VALUES
 -- 密码都是 'password123' 的 bcrypt 加密
-('admin', 'admin@company.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.IjqQBrkHPOK8ENm9EKLnGtxZ7sGTHi', 'admin', 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin', '13800000001', '技术部', '系统管理员', 'active', NOW() - INTERVAL '180 days', NOW()),
-('hr_zhang', 'zhang.hr@company.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.IjqQBrkHPOK8ENm9EKLnGtxZ7sGTHi', 'hr_manager', 'https://api.dicebear.com/7.x/avataaars/svg?seed=zhang', '13800000002', '人力资源部', 'HR总监', 'active', NOW() - INTERVAL '150 days', NOW()),
-('hr_li', 'li.hr@company.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.IjqQBrkHPOK8ENm9EKLnGtxZ7sGTHi', 'recruiter', 'https://api.dicebear.com/7.x/avataaars/svg?seed=li', '13800000003', '人力资源部', '招聘专员', 'active', NOW() - INTERVAL '120 days', NOW()),
-('hr_wang', 'wang.hr@company.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.IjqQBrkHPOK8ENm9EKLnGtxZ7sGTHi', 'recruiter', 'https://api.dicebear.com/7.x/avataaars/svg?seed=wang', '13800000004', '人力资源部', '招聘专员', 'active', NOW() - INTERVAL '90 days', NOW()),
-('tech_chen', 'chen.tech@company.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.IjqQBrkHPOK8ENm9EKLnGtxZ7sGTHi', 'interviewer', 'https://api.dicebear.com/7.x/avataaars/svg?seed=chen', '13800000005', '技术部', '技术总监', 'active', NOW() - INTERVAL '200 days', NOW()),
-('tech_liu', 'liu.tech@company.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.IjqQBrkHPOK8ENm9EKLnGtxZ7sGTHi', 'interviewer', 'https://api.dicebear.com/7.x/avataaars/svg?seed=liu', '13800000006', '技术部', '前端负责人', 'active', NOW() - INTERVAL '180 days', NOW()),
-('tech_zhao', 'zhao.tech@company.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.IjqQBrkHPOK8ENm9EKLnGtxZ7sGTHi', 'interviewer', 'https://api.dicebear.com/7.x/avataaars/svg?seed=zhao', '13800000007', '技术部', '后端负责人', 'active', NOW() - INTERVAL '160 days', NOW()),
-('product_sun', 'sun.product@company.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.IjqQBrkHPOK8ENm9EKLnGtxZ7sGTHi', 'interviewer', 'https://api.dicebear.com/7.x/avataaars/svg?seed=sun', '13800000008', '产品部', '产品总监', 'active', NOW() - INTERVAL '140 days', NOW()),
-('viewer_test', 'viewer@company.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye.IjqQBrkHPOK8ENm9EKLnGtxZ7sGTHi', 'viewer', 'https://api.dicebear.com/7.x/avataaars/svg?seed=viewer', '13800000009', '运营部', '运营专员', 'active', NOW() - INTERVAL '30 days', NOW());
+('admin', 'admin@company.com', '$2a$10$yGMtPeEFpcTrNiGsIEWXueRkbPEp5zJQZNX4kHuuh9W9sqKHxG2qa', 'admin', 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin', '13800000001', '技术部', '系统管理员', 'active', NOW() - INTERVAL '180 days', NOW()),
+('hr_zhang', 'zhang.hr@company.com', '$2a$10$yGMtPeEFpcTrNiGsIEWXueRkbPEp5zJQZNX4kHuuh9W9sqKHxG2qa', 'hr_manager', 'https://api.dicebear.com/7.x/avataaars/svg?seed=zhang', '13800000002', '人力资源部', 'HR总监', 'active', NOW() - INTERVAL '150 days', NOW()),
+('hr_li', 'li.hr@company.com', '$2a$10$yGMtPeEFpcTrNiGsIEWXueRkbPEp5zJQZNX4kHuuh9W9sqKHxG2qa', 'recruiter', 'https://api.dicebear.com/7.x/avataaars/svg?seed=li', '13800000003', '人力资源部', '招聘专员', 'active', NOW() - INTERVAL '120 days', NOW()),
+('hr_wang', 'wang.hr@company.com', '$2a$10$yGMtPeEFpcTrNiGsIEWXueRkbPEp5zJQZNX4kHuuh9W9sqKHxG2qa', 'recruiter', 'https://api.dicebear.com/7.x/avataaars/svg?seed=wang', '13800000004', '人力资源部', '招聘专员', 'active', NOW() - INTERVAL '90 days', NOW()),
+('tech_chen', 'chen.tech@company.com', '$2a$10$yGMtPeEFpcTrNiGsIEWXueRkbPEp5zJQZNX4kHuuh9W9sqKHxG2qa', 'interviewer', 'https://api.dicebear.com/7.x/avataaars/svg?seed=chen', '13800000005', '技术部', '技术总监', 'active', NOW() - INTERVAL '200 days', NOW()),
+('tech_liu', 'liu.tech@company.com', '$2a$10$yGMtPeEFpcTrNiGsIEWXueRkbPEp5zJQZNX4kHuuh9W9sqKHxG2qa', 'interviewer', 'https://api.dicebear.com/7.x/avataaars/svg?seed=liu', '13800000006', '技术部', '前端负责人', 'active', NOW() - INTERVAL '180 days', NOW()),
+('tech_zhao', 'zhao.tech@company.com', '$2a$10$yGMtPeEFpcTrNiGsIEWXueRkbPEp5zJQZNX4kHuuh9W9sqKHxG2qa', 'interviewer', 'https://api.dicebear.com/7.x/avataaars/svg?seed=zhao', '13800000007', '技术部', '后端负责人', 'active', NOW() - INTERVAL '160 days', NOW()),
+('product_sun', 'sun.product@company.com', '$2a$10$yGMtPeEFpcTrNiGsIEWXueRkbPEp5zJQZNX4kHuuh9W9sqKHxG2qa', 'interviewer', 'https://api.dicebear.com/7.x/avataaars/svg?seed=sun', '13800000008', '产品部', '产品总监', 'active', NOW() - INTERVAL '140 days', NOW()),
+('viewer_test', 'viewer@company.com', '$2a$10$yGMtPeEFpcTrNiGsIEWXueRkbPEp5zJQZNX4kHuuh9W9sqKHxG2qa', 'viewer', 'https://api.dicebear.com/7.x/avataaars/svg?seed=viewer', '13800000009', '运营部', '运营专员', 'active', NOW() - INTERVAL '30 days', NOW());
 
 -- =====================================================
 -- 2. 职位表 (jobs)

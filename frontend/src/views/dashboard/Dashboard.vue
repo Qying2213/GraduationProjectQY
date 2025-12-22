@@ -111,7 +111,7 @@
         <div class="card recent-activities-card">
           <div class="card-header">
             <h3>最近活动</h3>
-            <el-button text type="primary" @click="$router.push('/messages')">查看全部</el-button>
+            <el-button type="primary" size="small" @click="$router.push('/messages')">查看全部</el-button>
           </div>
           <div class="activities-list">
             <div class="activity-item" v-for="(activity, index) in recentActivities" :key="index">
@@ -135,7 +135,7 @@
         <div class="card data-card">
           <div class="card-header">
             <h3>热门人才</h3>
-            <el-button text type="primary" @click="$router.push('/talents')">查看更多</el-button>
+            <el-button type="primary" size="small" @click="$router.push('/talents')">查看更多</el-button>
           </div>
           <div class="talent-list">
             <div class="talent-item" v-for="(talent, index) in topTalents" :key="index">
@@ -164,7 +164,7 @@
         <div class="card data-card">
           <div class="card-header">
             <h3>热门职位</h3>
-            <el-button text type="primary" @click="$router.push('/jobs')">查看更多</el-button>
+            <el-button type="primary" size="small" @click="$router.push('/jobs')">查看更多</el-button>
           </div>
           <div class="job-list">
             <div class="job-item" v-for="(job, index) in hotJobs" :key="index">
@@ -220,7 +220,7 @@ const statsCards = ref([
     displayValue: 0,
     suffix: '',
     icon: markRaw(User),
-    colorClass: 'purple',
+    colorClass: 'cyan',
     trend: 12.5
   },
   {
@@ -229,7 +229,7 @@ const statsCards = ref([
     displayValue: 0,
     suffix: '个',
     icon: markRaw(Suitcase),
-    colorClass: 'pink',
+    colorClass: 'teal',
     trend: 8.2
   },
   {
@@ -252,74 +252,74 @@ const statsCards = ref([
   }
 ])
 
-// 快捷操作
+// 快捷操作 - 青蓝色系
 const quickActions = [
   {
     title: '发布新职位',
     desc: '创建并发布招聘职位',
     icon: markRaw(Plus),
-    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    gradient: 'linear-gradient(135deg, #00b8d4 0%, #0097a7 100%)',
     route: '/jobs'
   },
   {
     title: '搜索人才',
     desc: '在人才库中搜索匹配候选人',
     icon: markRaw(Search),
-    gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    gradient: 'linear-gradient(135deg, #26c6da 0%, #00acc1 100%)',
     route: '/talents'
   },
   {
     title: '上传简历',
     desc: '批量导入候选人简历',
     icon: markRaw(Upload),
-    gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    gradient: 'linear-gradient(135deg, #4dd0e1 0%, #00bcd4 100%)',
     route: '/resumes'
   },
   {
     title: '智能推荐',
     desc: '查看AI推荐的匹配结果',
     icon: markRaw(MagicStick),
-    gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+    gradient: 'linear-gradient(135deg, #00c853 0%, #00e676 100%)',
     route: '/recommend'
   }
 ]
 
-// 最近活动
+// 最近活动 - 青蓝色系
 const recentActivities = ref([
   {
     title: '新增候选人',
     description: '张三已加入人才库',
     time: '5分钟前',
     icon: markRaw(UserFilled),
-    color: '#667eea'
+    color: '#00b8d4'
   },
   {
     title: '职位发布',
     description: '高级Go开发工程师职位已上线',
     time: '15分钟前',
     icon: markRaw(Briefcase),
-    color: '#f093fb'
+    color: '#26c6da'
   },
   {
     title: '简历审核',
     description: '李四的简历已通过初审',
     time: '1小时前',
     icon: markRaw(Document),
-    color: '#4facfe'
+    color: '#4dd0e1'
   },
   {
     title: '智能匹配',
     description: '为前端开发岗位推荐了5位候选人',
     time: '2小时前',
     icon: markRaw(TrendCharts),
-    color: '#43e97b'
+    color: '#00c853'
   },
   {
     title: '面试安排',
     description: '王五的面试已安排在明天下午3点',
     time: '3小时前',
     icon: markRaw(ChatDotRound),
-    color: '#f5576c'
+    color: '#0097a7'
   }
 ])
 
@@ -332,18 +332,18 @@ const topTalents = ref([
   { name: '钱七', skills: ['Vue', 'Element Plus', 'Vite'], score: 82 }
 ])
 
-// 热门职位
+// 热门职位 - 青蓝色系
 const hotJobs = ref([
-  { title: '高级Go开发工程师', location: '北京', salary: '30-50K', applicants: 128, color: '#667eea' },
-  { title: '前端架构师', location: '上海', salary: '40-60K', applicants: 96, color: '#f093fb' },
-  { title: 'AI算法工程师', location: '深圳', salary: '50-80K', applicants: 87, color: '#4facfe' },
-  { title: '产品经理', location: '杭州', salary: '25-40K', applicants: 156, color: '#43e97b' },
-  { title: 'DevOps工程师', location: '广州', salary: '30-45K', applicants: 64, color: '#f5576c' }
+  { title: '高级Go开发工程师', location: '北京', salary: '30-50K', applicants: 128, color: '#00b8d4' },
+  { title: '前端架构师', location: '上海', salary: '40-60K', applicants: 96, color: '#26c6da' },
+  { title: 'AI算法工程师', location: '深圳', salary: '50-80K', applicants: 87, color: '#4dd0e1' },
+  { title: '产品经理', location: '杭州', salary: '25-40K', applicants: 156, color: '#00c853' },
+  { title: 'DevOps工程师', location: '广州', salary: '30-45K', applicants: 64, color: '#0097a7' }
 ])
 
-// 获取头像颜色
+// 获取头像颜色 - 青蓝色系
 const getAvatarColor = (index: number) => {
-  const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#f5576c']
+  const colors = ['#00b8d4', '#26c6da', '#4dd0e1', '#00c853', '#0097a7']
   return colors[index % colors.length]
 }
 
@@ -370,7 +370,7 @@ const animateNumbers = () => {
   })
 }
 
-// 初始化趋势图表
+// 初始化趋势图表 - 青蓝色系
 const initTrendChart = () => {
   if (!trendChartRef.value) return
 
@@ -380,7 +380,7 @@ const initTrendChart = () => {
       trigger: 'axis',
       axisPointer: {
         type: 'cross',
-        label: { backgroundColor: '#6a7985' }
+        label: { backgroundColor: '#0097a7' }
       }
     },
     legend: {
@@ -413,42 +413,42 @@ const initTrendChart = () => {
         name: '新增人才',
         type: 'line',
         smooth: true,
-        lineStyle: { width: 3, color: '#667eea' },
+        lineStyle: { width: 3, color: '#00b8d4' },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(102, 126, 234, 0.3)' },
-            { offset: 1, color: 'rgba(102, 126, 234, 0.05)' }
+            { offset: 0, color: 'rgba(0, 184, 212, 0.3)' },
+            { offset: 1, color: 'rgba(0, 184, 212, 0.05)' }
           ])
         },
-        itemStyle: { color: '#667eea' },
+        itemStyle: { color: '#00b8d4' },
         data: [12, 19, 15, 25, 22, 18, 28]
       },
       {
         name: '职位申请',
         type: 'line',
         smooth: true,
-        lineStyle: { width: 3, color: '#f093fb' },
+        lineStyle: { width: 3, color: '#26c6da' },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(240, 147, 251, 0.3)' },
-            { offset: 1, color: 'rgba(240, 147, 251, 0.05)' }
+            { offset: 0, color: 'rgba(38, 198, 218, 0.3)' },
+            { offset: 1, color: 'rgba(38, 198, 218, 0.05)' }
           ])
         },
-        itemStyle: { color: '#f093fb' },
+        itemStyle: { color: '#26c6da' },
         data: [20, 32, 28, 45, 38, 30, 42]
       },
       {
         name: '成功匹配',
         type: 'line',
         smooth: true,
-        lineStyle: { width: 3, color: '#43e97b' },
+        lineStyle: { width: 3, color: '#00c853' },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(67, 233, 123, 0.3)' },
-            { offset: 1, color: 'rgba(67, 233, 123, 0.05)' }
+            { offset: 0, color: 'rgba(0, 200, 83, 0.3)' },
+            { offset: 1, color: 'rgba(0, 200, 83, 0.05)' }
           ])
         },
-        itemStyle: { color: '#43e97b' },
+        itemStyle: { color: '#00c853' },
         data: [5, 8, 6, 12, 10, 8, 15]
       }
     ]
@@ -456,7 +456,7 @@ const initTrendChart = () => {
   trendChart.setOption(option)
 }
 
-// 初始化职位图表
+// 初始化职位图表 - 青蓝色系
 const initJobChart = () => {
   if (!jobChartRef.value) return
 
@@ -502,10 +502,10 @@ const initJobChart = () => {
         },
         labelLine: { show: false },
         data: [
-          { value: 48, name: '招聘中', itemStyle: { color: '#667eea' } },
-          { value: 23, name: '已暂停', itemStyle: { color: '#f093fb' } },
+          { value: 48, name: '招聘中', itemStyle: { color: '#00b8d4' } },
+          { value: 23, name: '已暂停', itemStyle: { color: '#26c6da' } },
           { value: 15, name: '已关闭', itemStyle: { color: '#9ca3af' } },
-          { value: 32, name: '已完成', itemStyle: { color: '#43e97b' } }
+          { value: 32, name: '已完成', itemStyle: { color: '#00c853' } }
         ]
       }
     ]
@@ -580,12 +580,12 @@ onUnmounted(() => {
     .page-title {
       font-size: 28px;
       font-weight: 700;
-      color: #1a1a2e;
+      color: var(--text-primary);
       margin: 0 0 4px 0;
     }
 
     .page-subtitle {
-      color: #6b7280;
+      color: var(--text-secondary);
       font-size: 14px;
       margin: 0;
     }
@@ -615,20 +615,22 @@ onUnmounted(() => {
       position: relative;
       padding: 24px;
       border-radius: 16px;
-      background: white;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      background: var(--bg-primary);
+      box-shadow: var(--shadow-card);
+      border: 1px solid var(--border-light);
       overflow: hidden;
       transition: all 0.3s ease;
 
       &:hover {
         transform: translateY(-4px);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-lg);
       }
 
-      &.purple { border-left: 4px solid #667eea; }
-      &.pink { border-left: 4px solid #f093fb; }
-      &.blue { border-left: 4px solid #4facfe; }
-      &.green { border-left: 4px solid #43e97b; }
+      /* 青蓝色系 */
+      &.cyan { border-left: 4px solid #00b8d4; }
+      &.teal { border-left: 4px solid #26c6da; }
+      &.blue { border-left: 4px solid #4dd0e1; }
+      &.green { border-left: 4px solid #00c853; }
 
       .stat-icon-wrapper {
         display: flex;
@@ -656,21 +658,22 @@ onUnmounted(() => {
           border-radius: 20px;
 
           &.up {
-            color: #10b981;
-            background: rgba(16, 185, 129, 0.1);
+            color: #00c853;
+            background: rgba(0, 200, 83, 0.1);
           }
 
           &.down {
-            color: #ef4444;
-            background: rgba(239, 68, 68, 0.1);
+            color: #ff5252;
+            background: rgba(255, 82, 82, 0.1);
           }
         }
       }
 
-      &.purple .stat-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-      &.pink .stat-icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-      &.blue .stat-icon { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-      &.green .stat-icon { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+      /* 青蓝色系图标背景 */
+      &.cyan .stat-icon { background: linear-gradient(135deg, #00b8d4 0%, #0097a7 100%); }
+      &.teal .stat-icon { background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%); }
+      &.blue .stat-icon { background: linear-gradient(135deg, #4dd0e1 0%, #00bcd4 100%); }
+      &.green .stat-icon { background: linear-gradient(135deg, #00c853 0%, #00e676 100%); }
 
       .stat-content {
         position: relative;
@@ -684,19 +687,19 @@ onUnmounted(() => {
           .number {
             font-size: 32px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: var(--text-primary);
             line-height: 1;
           }
 
           .suffix {
             font-size: 16px;
-            color: #6b7280;
+            color: var(--text-secondary);
           }
         }
 
         .stat-label {
           font-size: 14px;
-          color: #6b7280;
+          color: var(--text-secondary);
           margin-top: 8px;
         }
       }
@@ -713,10 +716,11 @@ onUnmounted(() => {
 }
 
 .card {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-light);
 
   .card-header {
     display: flex;
@@ -727,7 +731,7 @@ onUnmounted(() => {
     h3 {
       font-size: 18px;
       font-weight: 600;
-      color: #1a1a2e;
+      color: var(--text-primary);
       margin: 0;
     }
   }
@@ -759,12 +763,12 @@ onUnmounted(() => {
         gap: 16px;
         padding: 16px;
         border-radius: 12px;
-        background: #f9fafb;
+        background: var(--bg-secondary);
         cursor: pointer;
         transition: all 0.3s ease;
 
         &:hover {
-          background: #f3f4f6;
+          background: var(--bg-tertiary);
           transform: translateX(4px);
 
           .action-arrow {
@@ -791,19 +795,19 @@ onUnmounted(() => {
             display: block;
             font-size: 15px;
             font-weight: 600;
-            color: #1a1a2e;
+            color: var(--text-primary);
             margin-bottom: 2px;
           }
 
           .action-desc {
             display: block;
             font-size: 13px;
-            color: #6b7280;
+            color: var(--text-secondary);
           }
         }
 
         .action-arrow {
-          color: #9ca3af;
+          color: var(--text-muted);
           opacity: 0;
           transform: translateX(-10px);
           transition: all 0.3s ease;
@@ -825,7 +829,7 @@ onUnmounted(() => {
         align-items: center;
         gap: 16px;
         padding-bottom: 16px;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid var(--border-light);
 
         &:last-child {
           padding-bottom: 0;
@@ -849,19 +853,19 @@ onUnmounted(() => {
           .activity-title {
             font-size: 14px;
             font-weight: 600;
-            color: #1a1a2e;
+            color: var(--text-primary);
             margin-bottom: 2px;
           }
 
           .activity-desc {
             font-size: 13px;
-            color: #6b7280;
+            color: var(--text-secondary);
           }
         }
 
         .activity-time {
           font-size: 12px;
-          color: #9ca3af;
+          color: var(--text-muted);
           white-space: nowrap;
         }
       }
@@ -886,19 +890,19 @@ onUnmounted(() => {
       gap: 12px;
       padding: 12px;
       border-radius: 12px;
-      background: #f9fafb;
+      background: var(--bg-secondary);
       transition: all 0.3s ease;
 
       &:hover {
-        background: #f3f4f6;
+        background: var(--bg-tertiary);
       }
 
       .talent-rank {
         width: 28px;
         height: 28px;
         border-radius: 8px;
-        background: #e5e7eb;
-        color: #6b7280;
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -906,7 +910,7 @@ onUnmounted(() => {
         font-weight: 600;
 
         &.top {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #00b8d4 0%, #0097a7 100%);
           color: white;
         }
       }
@@ -917,7 +921,7 @@ onUnmounted(() => {
         .talent-name {
           font-size: 14px;
           font-weight: 600;
-          color: #1a1a2e;
+          color: var(--text-primary);
           margin-bottom: 4px;
         }
 
@@ -934,12 +938,12 @@ onUnmounted(() => {
           display: block;
           font-size: 18px;
           font-weight: 700;
-          color: #667eea;
+          color: #00b8d4;
         }
 
         .label {
           font-size: 12px;
-          color: #9ca3af;
+          color: var(--text-muted);
         }
       }
     }
@@ -950,11 +954,11 @@ onUnmounted(() => {
       gap: 12px;
       padding: 12px;
       border-radius: 12px;
-      background: #f9fafb;
+      background: var(--bg-secondary);
       transition: all 0.3s ease;
 
       &:hover {
-        background: #f3f4f6;
+        background: var(--bg-tertiary);
       }
 
       .job-icon {
@@ -974,7 +978,7 @@ onUnmounted(() => {
         .job-title {
           font-size: 14px;
           font-weight: 600;
-          color: #1a1a2e;
+          color: var(--text-primary);
           margin-bottom: 4px;
         }
 
@@ -982,7 +986,7 @@ onUnmounted(() => {
           display: flex;
           gap: 16px;
           font-size: 12px;
-          color: #6b7280;
+          color: var(--text-secondary);
 
           span {
             display: flex;
@@ -999,12 +1003,12 @@ onUnmounted(() => {
           display: block;
           font-size: 18px;
           font-weight: 700;
-          color: #f093fb;
+          color: #26c6da;
         }
 
         .label {
           font-size: 12px;
-          color: #9ca3af;
+          color: var(--text-muted);
         }
       }
     }

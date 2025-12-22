@@ -267,10 +267,10 @@ const showPreviewDrawer = ref(false)
 const currentResume = ref<Resume | null>(null)
 const fileList = ref<UploadFile[]>([])
 
-// 统计数据
+// 统计数据 - 青蓝色系
 const resumeStats = ref([
-  { label: '总简历', value: 156, icon: markRaw(FolderOpened), colorClass: 'purple' },
-  { label: '待解析', value: 23, icon: markRaw(Clock), colorClass: 'orange' },
+  { label: '总简历', value: 156, icon: markRaw(FolderOpened), colorClass: 'cyan' },
+  { label: '待解析', value: 23, icon: markRaw(Clock), colorClass: 'teal' },
   { label: '已解析', value: 125, icon: markRaw(CircleCheck), colorClass: 'green' },
   { label: '解析失败', value: 8, icon: markRaw(CircleClose), colorClass: 'red' }
 ])
@@ -440,9 +440,9 @@ const formatDate = (dateStr: string) => {
   })
 }
 
-// 获取头像颜色
+// 获取头像颜色 - 青蓝色系
 const getAvatarColor = (id: number) => {
-  const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#f5576c']
+  const colors = ['#00b8d4', '#26c6da', '#4dd0e1', '#00c853', '#0097a7']
   return colors[id % colors.length]
 }
 
@@ -491,12 +491,12 @@ onMounted(() => {
     h1 {
       font-size: 24px;
       font-weight: 700;
-      color: #1a1a2e;
+      color: var(--text-primary);
       margin: 0 0 4px 0;
     }
 
     .subtitle {
-      color: #6b7280;
+      color: var(--text-secondary);
       font-size: 14px;
       margin: 0;
     }
@@ -512,8 +512,9 @@ onMounted(() => {
     gap: 16px;
     padding: 20px;
     border-radius: 12px;
-    background: white;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    background: var(--bg-primary);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-light);
 
     .stat-icon {
       width: 48px;
@@ -530,27 +531,29 @@ onMounted(() => {
         display: block;
         font-size: 24px;
         font-weight: 700;
-        color: #1a1a2e;
+        color: var(--text-primary);
       }
 
       .stat-label {
         font-size: 14px;
-        color: #6b7280;
+        color: var(--text-secondary);
       }
     }
 
-    &.purple .stat-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    &.orange .stat-icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-    &.green .stat-icon { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    /* 青蓝色系 */
+    &.cyan .stat-icon { background: linear-gradient(135deg, #00b8d4 0%, #0097a7 100%); }
+    &.teal .stat-icon { background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%); }
+    &.green .stat-icon { background: linear-gradient(135deg, #00c853 0%, #00e676 100%); }
     &.red .stat-icon { background: #ef4444; }
   }
 }
 
 .card {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-light);
 }
 
 .search-card {
@@ -579,7 +582,7 @@ onMounted(() => {
       color: white;
 
       &.pdf { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
-      &.word { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+      &.word { background: linear-gradient(135deg, #00b8d4 0%, #0097a7 100%); }
       &.other { background: #9ca3af; }
     }
 
@@ -589,12 +592,12 @@ onMounted(() => {
 
       .file-name {
         font-weight: 500;
-        color: #1a1a2e;
+        color: var(--text-primary);
       }
 
       .file-size {
         font-size: 12px;
-        color: #9ca3af;
+        color: var(--text-muted);
       }
     }
   }
@@ -616,36 +619,36 @@ onMounted(() => {
 .upload-area {
   :deep(.el-upload-dragger) {
     border-radius: 12px;
-    border: 2px dashed #e5e7eb;
+    border: 2px dashed var(--border-color);
     padding: 40px;
     transition: all 0.3s;
 
     &:hover {
-      border-color: #667eea;
+      border-color: var(--primary-color);
     }
   }
 
   .upload-content {
     .upload-icon {
       font-size: 48px;
-      color: #667eea;
+      color: var(--primary-color);
       margin-bottom: 16px;
     }
 
     .upload-text {
       p {
         margin: 0;
-        color: #6b7280;
+        color: var(--text-secondary);
 
         em {
-          color: #667eea;
+          color: var(--primary-color);
           font-style: normal;
         }
       }
 
       .upload-tip {
         font-size: 12px;
-        color: #9ca3af;
+        color: var(--text-muted);
         margin-top: 8px;
       }
     }
@@ -669,20 +672,20 @@ onMounted(() => {
       color: white;
 
       &.pdf { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
-      &.word { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+      &.word { background: linear-gradient(135deg, #00b8d4 0%, #0097a7 100%); }
     }
 
     .preview-info {
       h3 {
         font-size: 18px;
         font-weight: 600;
-        color: #1a1a2e;
+        color: var(--text-primary);
         margin: 0 0 8px 0;
       }
 
       p {
         font-size: 14px;
-        color: #6b7280;
+        color: var(--text-secondary);
         margin: 0 0 8px 0;
       }
     }
@@ -692,7 +695,7 @@ onMounted(() => {
     h4 {
       font-size: 16px;
       font-weight: 600;
-      color: #374151;
+      color: var(--text-primary);
       margin: 0 0 16px 0;
     }
 
@@ -704,13 +707,13 @@ onMounted(() => {
         label {
           width: 80px;
           font-size: 14px;
-          color: #6b7280;
+          color: var(--text-secondary);
           flex-shrink: 0;
         }
 
         span {
           font-size: 14px;
-          color: #1a1a2e;
+          color: var(--text-primary);
         }
 
         .skills-tags {

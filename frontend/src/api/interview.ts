@@ -1,4 +1,4 @@
-import request from './request'
+import request from '@/utils/request'
 
 export interface Interview {
   id: number
@@ -14,12 +14,24 @@ export interface Interview {
   interviewer: string
   method: 'onsite' | 'video' | 'phone'
   location: string
-  status: 'scheduled' | 'completed' | 'cancelled'
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show'
   notes: string
   feedback?: string
   rating?: number
   created_at: string
   updated_at: string
+}
+
+export interface InterviewFeedback {
+  id: number
+  interview_id: number
+  interviewer_id: number
+  rating: number
+  strengths: string
+  weaknesses: string
+  comments: string
+  recommendation: 'pass' | 'fail' | 'pending'
+  created_at: string
 }
 
 export interface InterviewListResponse {
@@ -69,6 +81,20 @@ export interface UpdateInterviewRequest {
   rating?: number
 }
 
+export interface SubmitFeedbackRequest {
+  rating: number
+  strengths?: string
+  weaknesses?: string
+  comments?: string
+  recommendation: 'pass' | 'fail' | 'pending'
+}
+
+export interface RescheduleRequest {
+  date: string
+  time: string
+  reason?: string
+}
+
 export interface InterviewListParams {
   page?: number
   page_size?: number
@@ -114,6 +140,26 @@ export const interviewApi = {
   // 完成面试
   complete(id: number, feedback?: { feedback?: string; rating?: number }) {
     return request.post<{ code: number; message: string }>(`/interviews/${id}/complete`, feedback)
+  },
+
+  // 提交面试反馈
+  submitFeedback(id: number, data: SubmitFeedbackRequest) {
+    return request.post<{ code: number; message: string; data: InterviewFeedback }>(`/interviews/${id}/feedback`, data)
+  },
+
+  // 获取面试反馈
+  getFeedback(id: number) {
+    return request.get<{ code: number; message: string; data: InterviewFeedback[] }>(`/interviews/${id}/feedback`)
+  },
+
+  // 重新安排面试
+  reschedule(id: number, data: RescheduleRequest) {
+    return request.post<{ code: number; message: string; data: Interview }>(`/interviews/${id}/reschedule`, data)
+  },
+
+  // 获取候选人的所有面试
+  getCandidateInterviews(candidateId: number) {
+    return request.get<{ code: number; message: string; data: Interview[] }>(`/interviews/candidate/${candidateId}`)
   },
 
   // 获取面试统计

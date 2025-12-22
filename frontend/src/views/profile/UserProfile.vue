@@ -330,7 +330,7 @@
           </el-timeline>
 
           <div class="load-more">
-            <el-button text type="primary">加载更多</el-button>
+            <el-button type="primary" size="small">加载更多</el-button>
           </div>
         </div>
       </div>

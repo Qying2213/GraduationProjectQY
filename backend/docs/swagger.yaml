@@ -1,0 +1,687 @@
+openapi: 3.0.3
+info:
+  title: 智能人才运营平台 API
+  description: |
+    智能人才运营平台的 RESTful API 文档。
+    
+    ## 认证
+    大部分 API 需要 JWT Token 认证，请在请求头中添加：
+    ```
+    Authorization: Bearer <token>
+    ```
+    
+    ## 错误码
+    - 0: 成功
+    - 1: 通用错误
+    - 401: 未授权
+    - 403: 禁止访问
+    - 404: 资源不存在
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: 开发环境
+  - url: https://api.talent-platform.com/api/v1
+    description: 生产环境
+
+tags:
+  - name: 认证
+    description: 用户认证相关接口
+  - name: 用户
+    description: 用户管理接口
+  - name: 人才
+    description: 人才库管理接口
+  - name: 职位
+    description: 职位管理接口
+  - name: 简历
+    description: 简历管理接口
+  - name: 面试
+    description: 面试管理接口
+  - name: 推荐
+    description: 智能推荐接口
+  - name: 消息
+    description: 消息通知接口
+  - name: 统计
+    description: 数据统计接口
+
+paths:
+  /login:
+    post:
+      tags: [认证]
+      summary: 用户登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                  example: admin
+                password:
+                  type: string
+                  example: password123
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+
+  /register:
+    post:
+      tags: [认证]
+      summary: 用户注册
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: 注册成功
+
+  /talents:
+    get:
+      tags: [人才]
+      summary: 获取人才列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, hired, pending, rejected]
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: skills
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalentListResponse'
+
+    post:
+      tags: [人才]
+      summary: 创建人才
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TalentRequest'
+      responses:
+        '201':
+          description: 创建成功
+
+  /talents/{id}:
+    get:
+      tags: [人才]
+      summary: 获取人才详情
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Talent'
+
+    put:
+      tags: [人才]
+      summary: 更新人才信息
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TalentRequest'
+      responses:
+        '200':
+          description: 更新成功
+
+    delete:
+      tags: [人才]
+      summary: 删除人才
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /jobs:
+    get:
+      tags: [职位]
+      summary: 获取职位列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, closed, filled, paused]
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [full-time, part-time, contract, internship]
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobListResponse'
+
+    post:
+      tags: [职位]
+      summary: 创建职位
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobRequest'
+      responses:
+        '201':
+          description: 创建成功
+
+  /interviews:
+    get:
+      tags: [面试]
+      summary: 获取面试列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [scheduled, completed, cancelled, no_show]
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功
+
+    post:
+      tags: [面试]
+      summary: 创建面试安排
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterviewRequest'
+      responses:
+        '201':
+          description: 创建成功
+
+  /interviews/{id}/feedback:
+    post:
+      tags: [面试]
+      summary: 提交面试反馈
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterviewFeedback'
+      responses:
+        '200':
+          description: 提交成功
+
+  /recommendations/jobs-for-talent:
+    post:
+      tags: [推荐]
+      summary: 为人才推荐职位
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                talent_id:
+                  type: integer
+                limit:
+                  type: integer
+                  default: 10
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationResponse'
+
+  /recommendations/talents-for-job:
+    post:
+      tags: [推荐]
+      summary: 为职位推荐人才
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                job_id:
+                  type: integer
+                limit:
+                  type: integer
+                  default: 10
+      responses:
+        '200':
+          description: 成功
+
+  /messages:
+    get:
+      tags: [消息]
+      summary: 获取消息列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: is_read
+          in: query
+          schema:
+            type: boolean
+        - name: type
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+
+    post:
+      tags: [消息]
+      summary: 发送消息
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+      responses:
+        '201':
+          description: 发送成功
+
+  /stats/dashboard:
+    get:
+      tags: [统计]
+      summary: 获取仪表板统计数据
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardStats'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LoginResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+            user:
+              $ref: '#/components/schemas/User'
+
+    RegisterRequest:
+      type: object
+      required: [username, email, password]
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        role:
+          type: string
+          enum: [admin, hr_manager, recruiter, interviewer, viewer]
+        real_name:
+          type: string
+        phone:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        avatar:
+          type: string
+        department:
+          type: string
+        position:
+          type: string
+
+    Talent:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        experience:
+          type: integer
+        education:
+          type: string
+        status:
+          type: string
+        location:
+          type: string
+        salary:
+          type: string
+
+    TalentRequest:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        experience:
+          type: integer
+        education:
+          type: string
+        location:
+          type: string
+        salary:
+          type: string
+
+    TalentListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        data:
+          type: object
+          properties:
+            talents:
+              type: array
+              items:
+                $ref: '#/components/schemas/Talent'
+            total:
+              type: integer
+            page:
+              type: integer
+            page_size:
+              type: integer
+
+    JobRequest:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        requirements:
+          type: array
+          items:
+            type: string
+        salary:
+          type: string
+        location:
+          type: string
+        type:
+          type: string
+          enum: [full-time, part-time, contract, internship]
+        skills:
+          type: array
+          items:
+            type: string
+        department:
+          type: string
+        level:
+          type: string
+
+    JobListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        data:
+          type: object
+          properties:
+            jobs:
+              type: array
+              items:
+                type: object
+            total:
+              type: integer
+
+    InterviewRequest:
+      type: object
+      required: [candidate_id, position_id, date, time, interviewer_id]
+      properties:
+        candidate_id:
+          type: integer
+        candidate_name:
+          type: string
+        position_id:
+          type: integer
+        position:
+          type: string
+        type:
+          type: string
+          enum: [initial, second, final, hr]
+        date:
+          type: string
+          format: date
+        time:
+          type: string
+        duration:
+          type: integer
+          default: 60
+        interviewer_id:
+          type: integer
+        interviewer:
+          type: string
+        method:
+          type: string
+          enum: [onsite, video, phone]
+        location:
+          type: string
+        notes:
+          type: string
+
+    InterviewFeedback:
+      type: object
+      required: [rating]
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        strengths:
+          type: string
+        weaknesses:
+          type: string
+        comments:
+          type: string
+        recommendation:
+          type: string
+          enum: [pass, fail, pending]
+
+    MessageRequest:
+      type: object
+      required: [receiver_id, title, content]
+      properties:
+        receiver_id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        type:
+          type: string
+          enum: [system, interview, feedback, offer, reminder, chat]
+
+    RecommendationResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              title:
+                type: string
+              match_score:
+                type: number
+              match_reasons:
+                type: array
+                items:
+                  type: string
+
+    DashboardStats:
+      type: object
+      properties:
+        code:
+          type: integer
+        data:
+          type: object
+          properties:
+            total_talents:
+              type: integer
+            total_jobs:
+              type: integer
+            total_applications:
+              type: integer
+            total_interviews:
+              type: integer
+            match_rate:
+              type: number

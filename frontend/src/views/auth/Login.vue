@@ -98,21 +98,18 @@
           </div>
 
           <div class="social-login">
-            <el-tooltip content="微信登录" placement="top">
-              <div class="social-btn wechat">
-                <el-icon><ChatDotRound /></el-icon>
-              </div>
-            </el-tooltip>
-            <el-tooltip content="钉钉登录" placement="top">
-              <div class="social-btn dingtalk">
-                <el-icon><Message /></el-icon>
-              </div>
-            </el-tooltip>
-            <el-tooltip content="企业微信" placement="top">
-              <div class="social-btn wecom">
-                <el-icon><OfficeBuilding /></el-icon>
-              </div>
-            </el-tooltip>
+            <div class="social-btn wechat" title="微信登录">
+              <el-icon><ChatDotRound /></el-icon>
+              <span class="social-label">微信</span>
+            </div>
+            <div class="social-btn dingtalk" title="钉钉登录">
+              <el-icon><Message /></el-icon>
+              <span class="social-label">钉钉</span>
+            </div>
+            <div class="social-btn wecom" title="企业微信">
+              <el-icon><OfficeBuilding /></el-icon>
+              <span class="social-label">企微</span>
+            </div>
           </div>
 
           <div class="footer-links">
@@ -229,7 +226,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #00b8d4 0%, #0097a7 100%);
   position: relative;
   overflow: hidden;
 }
@@ -286,7 +283,7 @@ onMounted(() => {
 .login-left {
   flex: 1.1;
   position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #00b8d4 0%, #0097a7 100%);
 
   .gradient-overlay {
     position: absolute;
@@ -393,7 +390,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 50px;
-  background: #fafbfc;
+  background: #f0f9fa;
 }
 
 .login-form-wrapper {
@@ -406,12 +403,12 @@ onMounted(() => {
     h2 {
       font-size: 32px;
       font-weight: 700;
-      color: #1a1a2e;
+      color: #263238;
       margin-bottom: 8px;
     }
 
     .desc {
-      color: #6b7280;
+      color: #546e7a;
       font-size: 15px;
     }
   }
@@ -426,12 +423,12 @@ onMounted(() => {
         transition: all 0.3s;
 
         &:hover {
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+          box-shadow: 0 4px 12px rgba(0, 184, 212, 0.1);
         }
 
         &.is-focus {
-          border-color: #667eea;
-          box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+          border-color: #00b8d4;
+          box-shadow: 0 4px 16px rgba(0, 184, 212, 0.2);
         }
       }
     }
@@ -443,13 +440,13 @@ onMounted(() => {
       margin-bottom: 24px;
 
       .forgot-link {
-        color: #667eea;
+        color: #00b8d4;
         font-size: 14px;
         text-decoration: none;
         transition: color 0.3s;
 
         &:hover {
-          color: #764ba2;
+          color: #0097a7;
         }
       }
     }
@@ -460,13 +457,13 @@ onMounted(() => {
       border-radius: 12px;
       font-size: 16px;
       font-weight: 600;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #00b8d4 0%, #0097a7 100%);
       border: none;
       transition: all 0.3s;
 
       &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 8px 25px rgba(0, 184, 212, 0.4);
       }
 
       &:active {
@@ -485,12 +482,12 @@ onMounted(() => {
       content: '';
       flex: 1;
       height: 1px;
-      background: #e5e7eb;
+      background: #b2ebf2;
     }
 
     span {
       padding: 0 16px;
-      color: #9ca3af;
+      color: #90a4ae;
       font-size: 14px;
     }
   }
@@ -502,44 +499,51 @@ onMounted(() => {
     margin-bottom: 28px;
 
     .social-btn {
-      width: 50px;
-      height: 50px;
+      width: 80px;
+      height: 60px;
       border-radius: 12px;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 4px;
       cursor: pointer;
       transition: all 0.3s;
       font-size: 22px;
+
+      .social-label {
+        font-size: 12px;
+        font-weight: 500;
+      }
 
       &:hover {
         transform: translateY(-3px);
       }
 
       &.wechat {
-        background: #f0fff4;
-        color: #07c160;
+        background: #e0f7fa;
+        color: #00b8d4;
 
         &:hover {
-          box-shadow: 0 8px 20px rgba(7, 193, 96, 0.3);
+          box-shadow: 0 8px 20px rgba(0, 184, 212, 0.3);
         }
       }
 
       &.dingtalk {
-        background: #eff6ff;
-        color: #3370ff;
+        background: #e0f7fa;
+        color: #0097a7;
 
         &:hover {
-          box-shadow: 0 8px 20px rgba(51, 112, 255, 0.3);
+          box-shadow: 0 8px 20px rgba(0, 151, 167, 0.3);
         }
       }
 
       &.wecom {
-        background: #fef3f2;
-        color: #f04438;
+        background: #e0f7fa;
+        color: #26c6da;
 
         &:hover {
-          box-shadow: 0 8px 20px rgba(240, 68, 56, 0.3);
+          box-shadow: 0 8px 20px rgba(38, 198, 218, 0.3);
         }
       }
     }
@@ -547,18 +551,18 @@ onMounted(() => {
 
   .footer-links {
     text-align: center;
-    color: #6b7280;
+    color: #546e7a;
     font-size: 15px;
 
     a {
-      color: #667eea;
+      color: #00b8d4;
       text-decoration: none;
       font-weight: 600;
       margin-left: 6px;
       transition: color 0.3s;
 
       &:hover {
-        color: #764ba2;
+        color: #0097a7;
       }
     }
   }

@@ -2,12 +2,49 @@ package handlers
 
 import (
 	"net/http"
+	"os"
 	"strconv"
+	"time"
 	"user-service/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 )
+
+// JWT Claims
+type Claims struct {
+	UserID   uint   `json:"user_id"`
+	Username string `json:"username"`
+	Role     string `json:"role"`
+	jwt.RegisteredClaims
+}
+
+// 获取JWT密钥
+func getJWTSecret() []byte {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		secret = "talent-platform-secret-key-change-in-production"
+	}
+	return []byte(secret)
+}
+
+// 生成JWT token
+func generateToken(userID uint, username, role string) (string, error) {
+	claims := Claims{
+		UserID:   userID,
+		Username: username,
+		Role:     role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(getJWTSecret())
+}
 
 type UserHandler struct {
 	DB *gorm.DB
@@ -112,8 +149,12 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// 这里需要调用common包的JWT生成函数，暂时返回模拟token
-	token := "jwt_token_placeholder" // 在main.go中实现实际的JWT生成
+	// 生成JWT token
+	token, err := generateToken(user.ID, user.Username, user.Role)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
@@ -190,10 +231,10 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 // ListUsers 获取用户列表（管理员）
 func (h *UserHandler) ListUsers(c *gin.Context) {
 	var users []models.User
-	
+
 	page := 1
 	pageSize := 10
-	
+
 	if p, ok := c.GetQuery("page"); ok {
 		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
 			page = parsed

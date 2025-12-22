@@ -414,12 +414,12 @@ const isEdit = ref(false)
 const currentJob = ref<Job | null>(null)
 const formRef = ref<FormInstance>()
 
-// 统计数据
+// 统计数据 - 青蓝色系
 const jobStats = ref([
-  { label: '招聘中', value: 24, icon: markRaw(Suitcase), colorClass: 'purple' },
+  { label: '招聘中', value: 24, icon: markRaw(Suitcase), colorClass: 'cyan' },
   { label: '已关闭', value: 12, icon: markRaw(CircleClose), colorClass: 'gray' },
   { label: '已满员', value: 8, icon: markRaw(CircleCheck), colorClass: 'green' },
-  { label: '待审核', value: 3, icon: markRaw(Clock), colorClass: 'orange' }
+  { label: '待审核', value: 3, icon: markRaw(Clock), colorClass: 'teal' }
 ])
 
 const searchParams = reactive({
@@ -708,12 +708,12 @@ onMounted(() => {
     h1 {
       font-size: 24px;
       font-weight: 700;
-      color: #1a1a2e;
+      color: var(--text-primary);
       margin: 0 0 4px 0;
     }
 
     .subtitle {
-      color: #6b7280;
+      color: var(--text-secondary);
       font-size: 14px;
       margin: 0;
     }
@@ -729,13 +729,14 @@ onMounted(() => {
     gap: 16px;
     padding: 20px;
     border-radius: 12px;
-    background: white;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    background: var(--bg-primary);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-light);
     transition: all 0.3s ease;
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      box-shadow: var(--shadow-lg);
     }
 
     .stat-icon {
@@ -753,27 +754,29 @@ onMounted(() => {
         display: block;
         font-size: 24px;
         font-weight: 700;
-        color: #1a1a2e;
+        color: var(--text-primary);
       }
 
       .stat-label {
         font-size: 14px;
-        color: #6b7280;
+        color: var(--text-secondary);
       }
     }
 
-    &.purple .stat-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    /* 青蓝色系 */
+    &.cyan .stat-icon { background: linear-gradient(135deg, #00b8d4 0%, #0097a7 100%); }
     &.gray .stat-icon { background: #9ca3af; }
-    &.green .stat-icon { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
-    &.orange .stat-icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    &.green .stat-icon { background: linear-gradient(135deg, #00c853 0%, #00e676 100%); }
+    &.teal .stat-icon { background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%); }
   }
 }
 
 .card {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-light);
 }
 
 .search-card {
@@ -792,18 +795,18 @@ onMounted(() => {
   gap: 20px;
 
   .job-card {
-    background: white;
+    background: var(--bg-primary);
     border-radius: 16px;
     padding: 24px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    box-shadow: var(--shadow-card);
     cursor: pointer;
     transition: all 0.3s ease;
-    border: 1px solid transparent;
+    border: 1px solid var(--border-light);
 
     &:hover {
       transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-      border-color: #667eea;
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary-color);
     }
 
     .job-card-header {
@@ -816,7 +819,7 @@ onMounted(() => {
         .job-title {
           font-size: 18px;
           font-weight: 600;
-          color: #1a1a2e;
+          color: var(--text-primary);
           margin: 0 0 8px 0;
         }
 
@@ -828,7 +831,7 @@ onMounted(() => {
           .salary {
             font-size: 16px;
             font-weight: 700;
-            color: #667eea;
+            color: var(--primary-color);
           }
         }
       }
@@ -844,7 +847,7 @@ onMounted(() => {
 
       .job-desc {
         font-size: 14px;
-        color: #6b7280;
+        color: var(--text-secondary);
         line-height: 1.6;
         margin: 0;
         display: -webkit-box;
@@ -860,7 +863,7 @@ onMounted(() => {
       align-items: center;
       margin-top: 16px;
       padding-top: 16px;
-      border-top: 1px solid #f3f4f6;
+      border-top: 1px solid var(--border-light);
 
       .job-info-items {
         display: flex;
@@ -872,7 +875,7 @@ onMounted(() => {
           align-items: center;
           gap: 4px;
           font-size: 13px;
-          color: #6b7280;
+          color: var(--text-secondary);
         }
       }
 
@@ -881,7 +884,7 @@ onMounted(() => {
         align-items: center;
         gap: 4px;
         font-size: 13px;
-        color: #f093fb;
+        color: #26c6da;
         font-weight: 500;
       }
     }
@@ -902,14 +905,14 @@ onMounted(() => {
     h2 {
       font-size: 24px;
       font-weight: 700;
-      color: #1a1a2e;
+      color: var(--text-primary);
       margin: 0 0 8px 0;
     }
 
     .salary-tag {
       font-size: 20px;
       font-weight: 700;
-      color: #667eea;
+      color: var(--primary-color);
     }
   }
 
@@ -925,7 +928,7 @@ onMounted(() => {
       align-items: center;
       gap: 4px;
       font-size: 14px;
-      color: #6b7280;
+      color: var(--text-secondary);
     }
   }
 
@@ -935,7 +938,7 @@ onMounted(() => {
     h4 {
       font-size: 15px;
       font-weight: 600;
-      color: #374151;
+      color: var(--text-primary);
       margin: 0 0 12px 0;
     }
 
@@ -947,7 +950,7 @@ onMounted(() => {
 
     .description {
       font-size: 14px;
-      color: #6b7280;
+      color: var(--text-secondary);
       line-height: 1.8;
       margin: 0;
     }
@@ -958,7 +961,7 @@ onMounted(() => {
 
       li {
         font-size: 14px;
-        color: #6b7280;
+        color: var(--text-secondary);
         line-height: 1.8;
       }
     }

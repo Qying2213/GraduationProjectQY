@@ -57,10 +57,29 @@
             <el-badge v-if="unreadCount > 0" :value="unreadCount" class="badge" />
           </el-menu-item>
 
-          <el-menu-item index="/roles">
-            <el-icon><Key /></el-icon>
-            <span>权限管理</span>
+          <el-menu-item index="/reports">
+            <el-icon><DataLine /></el-icon>
+            <span>数据报表</span>
           </el-menu-item>
+
+          <el-sub-menu index="system">
+            <template #title>
+              <el-icon><Setting /></el-icon>
+              <span>系统管理</span>
+            </template>
+            <el-menu-item index="/roles">
+              <el-icon><Key /></el-icon>
+              <span>权限管理</span>
+            </el-menu-item>
+            <el-menu-item index="/logs">
+              <el-icon><Document /></el-icon>
+              <span>操作日志</span>
+            </el-menu-item>
+            <el-menu-item index="/settings">
+              <el-icon><Setting /></el-icon>
+              <span>系统设置</span>
+            </el-menu-item>
+          </el-sub-menu>
         </el-menu>
       </el-aside>
 
@@ -149,7 +168,7 @@ import { ElMessage } from 'element-plus'
 import {
   DataAnalysis, User, Suitcase, Document, TrendCharts,
   ChatDotRound, Fold, Expand, Bell, SwitchButton, MagicStick,
-  Sunny, Moon, Monitor, Operation, Calendar, Key
+  Sunny, Moon, Monitor, Operation, Calendar, Key, Setting, DataLine
 } from '@element-plus/icons-vue'
 
 const router = useRouter()

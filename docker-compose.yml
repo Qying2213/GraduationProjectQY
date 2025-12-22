@@ -1,0 +1,209 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:14-alpine
+    container_name: talent-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: talent_platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./backend/database/mock_data.sql:/docker-entrypoint-initdb.d/02-mock_data.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: talent-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API 网关
+  gateway:
+    build:
+      context: ./backend/gateway
+      dockerfile: Dockerfile
+    container_name: talent-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - GIN_MODE=release
+    depends_on:
+      - user-service
+      - talent-service
+      - job-service
+      - resume-service
+      - recommendation-service
+      - message-service
+      - interview-service
+    networks:
+      - talent-network
+
+  # 用户服务
+  user-service:
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+    container_name: talent-user-service
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=talent_platform
+      - JWT_SECRET=talent-platform-secret-key
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - talent-network
+
+  # 人才服务
+  talent-service:
+    build:
+      context: ./backend/talent-service
+      dockerfile: Dockerfile
+    container_name: talent-talent-service
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=talent_platform
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - talent-network
+
+  # 职位服务
+  job-service:
+    build:
+      context: ./backend/job-service
+      dockerfile: Dockerfile
+    container_name: talent-job-service
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=talent_platform
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - talent-network
+
+  # 简历服务
+  resume-service:
+    build:
+      context: ./backend/resume-service
+      dockerfile: Dockerfile
+    container_name: talent-resume-service
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=talent_platform
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - talent-network
+
+  # 推荐服务
+  recommendation-service:
+    build:
+      context: ./backend/recommendation-service
+      dockerfile: Dockerfile
+    container_name: talent-recommendation-service
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=talent_platform
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - talent-network
+
+  # 消息服务
+  message-service:
+    build:
+      context: ./backend/message-service
+      dockerfile: Dockerfile
+    container_name: talent-message-service
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=talent_platform
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - talent-network
+
+  # 面试服务
+  interview-service:
+    build:
+      context: ./backend/interview-service
+      dockerfile: Dockerfile
+    container_name: talent-interview-service
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=talent_platform
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - talent-network
+
+  # 前端应用
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: talent-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - gateway
+    networks:
+      - talent-network
+
+networks:
+  talent-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
