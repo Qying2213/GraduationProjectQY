@@ -1,130 +1,315 @@
-# 智能人才运营平台
+# 🎯 智能人才运营平台
 
-一个基于微服务架构的智能人才运营平台，采用 Go 微服务后端 + Vue3 前端的现代化技术栈。
+<p align="center">
+  <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go">
+  <img src="https://img.shields.io/badge/Vue-3.4-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white" alt="Vue">
+  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/PostgreSQL-15+-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
+</p>
 
-## 项目概述
+<p align="center">
+  一个基于 <strong>Go 微服务架构</strong> + <strong>Vue3</strong> 的现代化企业级人才管理系统
+</p>
 
-本项目是一个完整的毕业设计项目，实现了人才招聘管理的核心功能，包括人才管理、职位管理、智能推荐、简历解析、消息通知、面试管理等模块。
+---
 
-### 主要特性
+## 📖 项目简介
 
-- ✨ **微服务架构**: 8个独立微服务，易于扩展和维护
-- 🤖 **智能推荐**: 基于多维度匹配的人岗推荐算法（技能、经验、学历、地理位置、薪资）
-- 📊 **数据可视化**: ECharts 实现的数据分析大屏
-- 🎨 **现代化 UI**: 渐变色设计、响应式布局
-- 🔐 **安全认证**: JWT 身份验证和角色权限控制
-- 📱 **多角色支持**: 管理员、HR、面试官、候选人等角色
-- 📅 **面试管理**: 完整的面试安排、反馈、改期流程
-- 🔔 **实时通知**: WebSocket 实时消息推送
-- 📤 **数据导出**: 支持 Excel/CSV 格式导出
-- 📥 **批量导入**: 支持批量导入人才数据
-- 🐳 **容器化部署**: Docker Compose 一键部署
-- 📝 **API 文档**: OpenAPI 3.0 规范文档
-- ✅ **测试覆盖**: 单元测试和集成测试
+智能人才运营平台是一个功能完善的招聘管理系统，采用前后端分离架构，后端使用 Go 语言构建微服务集群，前端使用 Vue3 + TypeScript + Element Plus 构建现代化 UI。系统提供人才管理、职位发布、智能推荐、面试安排、数据分析等核心功能，帮助企业高效管理招聘流程。
 
-## 技术栈
+## ✨ 功能特性
+
+### 🧑‍💼 人才管理
+- 人才信息录入与编辑
+- 多维度搜索筛选（技能、经验、学历、地区等）
+- 人才标签分类管理
+- 批量导入导出（Excel/CSV）
+- 人才状态跟踪（活跃/待处理/已雇佣/已拒绝）
+
+### 📋 职位管理
+- 职位发布与编辑
+- 职位状态管理（招聘中/已关闭/已满员）
+- 技能要求配置
+- 福利待遇设置
+- 职位紧急程度标记
+
+### 📄 简历管理
+- 简历上传（支持 PDF/DOC/DOCX）
+- 智能简历解析
+- 批量导入功能
+- 简历预览与下载
+- 解析状态跟踪
+
+### 🤖 智能推荐系统
+基于多维度加权算法的人岗智能匹配：
+- **技能匹配** (50%) - 支持技能权重配置，热门技能加权
+- **经验匹配** (20%) - 根据职位级别智能匹配经验年限
+- **地理位置** (15%) - 支持同城市群识别
+- **学历匹配** (10%) - 学历等级评分
+- **薪资匹配** (5%) - 薪资范围匹配度
+
+### 📅 面试管理
+- 面试安排与日历视图
+- 多轮面试支持（初试/复试/终面/HR面）
+- 面试方式配置（现场/视频/电话）
+- 面试反馈提交
+- 面试改期功能
+- 候选人面试历史
+
+### 🎯 招聘看板
+- 可视化招聘流程
+- 拖拽式状态变更
+- 各阶段人数统计
+- 招聘漏斗分析
+
+### 💬 消息中心
+- WebSocket 实时通知
+- 系统消息推送
+- 面试提醒
+- 消息已读状态
+
+### 📊 数据报表
+- 招聘数据可视化
+- ECharts 图表展示
+- 多维度数据分析
+- 数据导出功能
+
+### 🔐 权限管理
+- RBAC 角色权限控制
+- 5种预设角色（超级管理员/HR主管/招聘专员/面试官/只读用户）
+- 细粒度权限配置
+- 操作日志记录
+
+### 🎨 界面特性
+- 青蓝色主题设计
+- 响应式布局适配
+- 深色/浅色主题切换
+- 跟随系统主题
+
+---
+
+## 🏗️ 系统架构
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              Frontend                                    │
+│                   Vue3 + TypeScript + Element Plus                       │
+│                   Pinia + Vue Router + ECharts                           │
+└─────────────────────────────────┬───────────────────────────────────────┘
+                                  │ HTTP/WebSocket
+┌─────────────────────────────────▼───────────────────────────────────────┐
+│                           API Gateway                                    │
+│                    Go + Gin + JWT Authentication                         │
+│                         Port: 8080                                       │
+└─────────────────────────────────┬───────────────────────────────────────┘
+                                  │
+        ┌─────────────┬───────────┼───────────┬─────────────┐
+        │             │           │           │             │
+        ▼             ▼           ▼           ▼             ▼
+┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐
+│   User    │ │  Talent   │ │    Job    │ │  Resume   │ │ Interview │
+│  Service  │ │  Service  │ │  Service  │ │  Service  │ │  Service  │
+│   :8081   │ │   :8082   │ │   :8083   │ │   :8084   │ │   :8086   │
+└─────┬─────┘ └─────┬─────┘ └─────┬─────┘ └─────┬─────┘ └─────┬─────┘
+      │             │             │             │             │
+      │     ┌───────────┐ ┌───────────┐         │             │
+      │     │  Recommend │ │  Message  │         │             │
+      │     │  Service   │ │  Service  │         │             │
+      │     │   :8085    │ │   :8087   │         │             │
+      │     └─────┬─────┘ └─────┬─────┘         │             │
+      │           │             │               │             │
+      └───────────┴──────┬──────┴───────────────┴─────────────┘
+                         │
+              ┌──────────▼──────────┐
+              │     PostgreSQL      │
+              │    (数据持久化)      │
+              └─────────────────────┘
+```
+
+### 微服务说明
+
+| 服务 | 端口 | 职责 |
+|------|------|------|
+| Gateway | 8080 | API 网关、路由转发、JWT 认证 |
+| User Service | 8081 | 用户注册、登录、权限管理 |
+| Talent Service | 8082 | 人才 CRUD、搜索、标签管理 |
+| Job Service | 8083 | 职位 CRUD、状态管理 |
+| Resume Service | 8084 | 简历上传、解析、管理 |
+| Recommendation Service | 8085 | 智能推荐算法、人岗匹配 |
+| Interview Service | 8086 | 面试安排、反馈、日历 |
+| Message Service | 8087 | 消息推送、WebSocket 通知 |
+
+---
+
+## 🛠️ 技术栈
 
 ### 后端
-- **语言**: Golang 1.21+
-- **框架**: Gin
-- **数据库**: PostgreSQL + Redis
-- **ORM**: GORM
-- **认证**: JWT
+- **语言**: Go 1.21+
+- **Web框架**: Gin
+- **数据库**: PostgreSQL 15+
+- **ORM**: 原生 SQL + database/sql
+- **认证**: JWT (golang-jwt/jwt)
 - **日志**: Zap
-- **WebSocket**: Gorilla WebSocket
-- **测试**: Go Testing + Testify
+- **配置**: 环境变量
+- **API文档**: OpenAPI 3.0 / Swagger
 
 ### 前端
-- **框架**: Vue 3 (Composition API)
-- **语言**: TypeScript 5+
-- **构建工具**: Vite
-- **UI 组件**: Element Plus
+- **框架**: Vue 3.4 (Composition API)
+- **语言**: TypeScript 5.x
+- **UI组件**: Element Plus 2.5
 - **状态管理**: Pinia
-- **图表**: ECharts
+- **路由**: Vue Router 4
+- **图表**: ECharts 5
+- **HTTP**: Axios
+- **构建工具**: Vite 5
+- **样式**: SCSS
 - **测试**: Vitest
-- **导出**: XLSX
 
 ### DevOps
 - **容器化**: Docker + Docker Compose
-- **CI/CD**: GitHub Actions (可选)
-- **API 文档**: OpenAPI 3.0 / Swagger
+- **CI/CD**: 支持 GitHub Actions
+- **代码规范**: ESLint + Prettier
 
-## 项目结构
+---
+
+## 📁 项目结构
 
 ```
-talent-platform/
-├── backend/                    # 后端微服务
-│   ├── gateway/               # API 网关 (:8080)
-│   ├── user-service/          # 用户服务 (:8081)
-│   ├── talent-service/        # 人才服务 (:8082)
-│   ├── job-service/           # 职位服务 (:8083)
-│   ├── resume-service/        # 简历服务 (:8084)
-│   ├── recommendation-service/ # 推荐服务 (:8085)
-│   ├── message-service/       # 消息服务 (:8086)
-│   ├── interview-service/     # 面试服务 (:8087)
-│   ├── common/                # 公共模块
-│   ├── database/              # 数据库脚本
-│   └── docs/                  # API 文档
-├── frontend/                   # 前端应用 (:3000)
-├── docker-compose.yml         # Docker 编排
-├── Makefile                   # 开发命令
+├── backend/
+│   ├── gateway/                 # API 网关
+│   │   ├── handlers/            # 路由处理
+│   │   ├── Dockerfile
+│   │   └── main.go
+│   ├── user-service/            # 用户服务
+│   │   ├── handlers/            # 业务处理
+│   │   ├── models/              # 数据模型
+│   │   └── main.go
+│   ├── talent-service/          # 人才服务
+│   ├── job-service/             # 职位服务
+│   ├── resume-service/          # 简历服务
+│   ├── recommendation-service/  # 推荐服务
+│   ├── interview-service/       # 面试服务
+│   ├── message-service/         # 消息服务
+│   │   └── websocket/           # WebSocket 实现
+│   ├── common/                  # 公共模块
+│   │   ├── config/              # 配置管理
+│   │   ├── database/            # 数据库连接
+│   │   ├── middleware/          # 中间件 (JWT/CORS)
+│   │   ├── logger/              # 日志模块
+│   │   ├── health/              # 健康检查
+│   │   └── response/            # 统一响应
+│   ├── database/
+│   │   ├── schema.sql           # 数据库表结构
+│   │   └── mock_data.sql        # 测试数据
+│   └── docs/
+│       └── swagger.yaml         # API 文档
+│
+├── frontend/
+│   ├── src/
+│   │   ├── api/                 # API 接口封装
+│   │   ├── components/          # 公共组件
+│   │   │   ├── common/          # 通用组件
+│   │   │   ├── layout/          # 布局组件
+│   │   │   ├── interview/       # 面试相关组件
+│   │   │   └── talent/          # 人才相关组件
+│   │   ├── views/               # 页面视图
+│   │   │   ├── auth/            # 登录/注册
+│   │   │   ├── dashboard/       # 仪表板
+│   │   │   ├── talents/         # 人才管理
+│   │   │   ├── jobs/            # 职位管理
+│   │   │   ├── resumes/         # 简历管理
+│   │   │   ├── recommend/       # 智能推荐
+│   │   │   ├── interviews/      # 面试详情
+│   │   │   ├── calendar/        # 面试日历
+│   │   │   ├── kanban/          # 招聘看板
+│   │   │   ├── messages/        # 消息中心
+│   │   │   ├── reports/         # 数据报表
+│   │   │   ├── profile/         # 个人中心
+│   │   │   └── system/          # 系统管理
+│   │   ├── store/               # Pinia 状态管理
+│   │   ├── router/              # 路由配置
+│   │   ├── styles/              # 全局样式
+│   │   ├── types/               # TypeScript 类型
+│   │   └── utils/               # 工具函数
+│   ├── public/                  # 静态资源
+│   └── package.json
+│
+├── docker-compose.yml           # Docker 编排
+├── Makefile                     # 开发命令
+├── start-backend.sh             # 后端启动脚本
 └── README.md
 ```
 
-## 快速开始
+---
 
-### 方式一：Docker 部署（推荐）
+## 🚀 快速开始
+
+### 环境要求
+
+- Go 1.21+
+- Node.js 18+
+- PostgreSQL 15+
+- Docker & Docker Compose（可选）
+
+### 方式一：Docker 一键启动（推荐）
 
 ```bash
 # 克隆项目
-git clone <repository-url>
+git clone https://github.com/your-username/talent-platform.git
 cd talent-platform
 
-# 一键启动所有服务
+# 启动所有服务
 docker-compose up -d
 
 # 查看服务状态
 docker-compose ps
-
-# 查看日志
-docker-compose logs -f
 ```
 
-访问地址：
-- 前端应用: http://localhost:3000
-- API 网关: http://localhost:8080
-- API 文档: http://localhost:8080/swagger
+访问 http://localhost:3000
 
 ### 方式二：本地开发
 
-#### 前置要求
-- Go 1.21+
-- Node.js 18+
-- PostgreSQL 14+
-- Redis 6+ (可选)
-
-#### 1. 初始化数据库
+#### 1. 配置数据库
 
 ```bash
 # 创建数据库
-psql -U postgres -c "CREATE DATABASE talent_platform;"
+createdb talent_db
 
-# 导入表结构和测试数据
-psql -U postgres -d talent_platform -f backend/database/schema.sql
-psql -U postgres -d talent_platform -f backend/database/mock_data.sql
+# 导入表结构
+psql -d talent_db -f backend/database/schema.sql
+
+# 导入测试数据
+psql -d talent_db -f backend/database/mock_data.sql
 ```
 
-#### 2. 启动后端服务
+#### 2. 配置环境变量
 
 ```bash
-# 使用 Makefile
-make dev-backend
+# 复制环境变量模板
+cp backend/.env.example backend/.env
 
-# 或使用启动脚本
-./start-backend.sh
+# 编辑配置
+vim backend/.env
 ```
 
-#### 3. 启动前端
+```env
+DATABASE_URL=postgres://user:password@localhost:5432/talent_db?sslmode=disable
+JWT_SECRET=your-secret-key
+```
+
+#### 3. 启动后端服务
+
+```bash
+# 方式1: 使用启动脚本
+chmod +x start-backend.sh
+./start-backend.sh
+
+# 方式2: 使用 Makefile
+make run-backend
+```
+
+#### 4. 启动前端
 
 ```bash
 cd frontend
@@ -132,197 +317,149 @@ npm install
 npm run dev
 ```
 
-### 使用 Makefile
+访问 http://localhost:5173
 
-```bash
-make help          # 查看所有命令
-make dev           # 启动开发环境
-make test          # 运行测试
-make docker-up     # Docker 启动
-make db-init       # 初始化数据库
+---
+
+## 🔑 测试账号
+
+| 角色 | 用户名 | 密码 | 权限说明 |
+|------|--------|------|----------|
+| 超级管理员 | admin | admin123 | 所有权限 |
+| HR主管 | hr | hr123456 | 人才/职位/简历/面试管理 |
+| 招聘专员 | recruiter | recruiter123 | 日常招聘操作 |
+| 面试官 | interviewer | interviewer123 | 查看和面试反馈 |
+| 普通用户 | user | user123456 | 只读权限 |
+
+---
+
+## 📡 API 接口
+
+### 认证接口
+```
+POST /api/auth/login          # 用户登录
+POST /api/auth/register       # 用户注册
+GET  /api/auth/profile        # 获取用户信息
+PUT  /api/auth/profile        # 更新用户信息
 ```
 
-## 测试账号
-
-| 用户名 | 密码 | 角色 | 说明 |
-|--------|------|------|------|
-| admin | password123 | 超级管理员 | 拥有所有权限 |
-| hr_zhang | password123 | HR主管 | HR总监 |
-| hr_li | password123 | 招聘专员 | 招聘专员 |
-| tech_chen | password123 | 面试官 | 技术总监 |
-| tech_liu | password123 | 面试官 | 前端负责人 |
-| viewer_test | password123 | 只读用户 | 仅查看权限 |
-
-## 核心功能
-
-### 1. 用户管理
-- 用户注册 / 登录
-- 多角色权限（管理员、HR、面试官、候选人）
-- 个人信息管理
-- 操作日志记录
-
-### 2. 人才管理
-- 人才信息 CRUD
-- 高级搜索（技能、经验、地区）
-- 标签分类
-- 批量导入/导出
-
-### 3. 职位管理
-- 职位发布 / 编辑
-- 职位状态管理（开放、关闭、已填补）
-- 职位统计
-- 紧急招聘标记
-
-### 4. 简历管理
-- 简历上传
-- 简历解析
-- 申请状态跟踪
-- 匹配度评分
-
-### 5. 面试管理
-- 面试安排（初试、复试、终面、HR面）
-- 面试日历视图
-- 面试反馈录入
-- 面试改期/取消
-- 面试官日程管理
-
-### 6. 智能推荐
-- 为人才推荐合适职位
-- 为职位推荐匹配候选人
-- 多维度匹配算法：
-  - 技能匹配 (50%)
-  - 经验匹配 (20%)
-  - 地理位置 (15%)
-  - 学历匹配 (10%)
-  - 薪资匹配 (5%)
-
-### 7. 消息通知
-- 站内消息
-- 未读消息提醒
-- WebSocket 实时推送
-- 面试提醒通知
-
-### 8. 数据可视化
-- 仪表板统计
-- 招聘漏斗分析
-- 渠道效果分析
-- 部门招聘进度
-- 趋势图表
-
-### 9. 数据导出
-- 人才列表导出 Excel/CSV
-- 职位列表导出
-- 面试记录导出
-- 自定义导出字段
-
-## API 文档
-
-API 文档遵循 OpenAPI 3.0 规范，位于 `backend/docs/swagger.yaml`。
-
-所有 API 通过网关统一访问：`http://localhost:8080/api/v1`
-
-主要接口：
-- `POST /login` - 用户登录
-- `POST /register` - 用户注册
-- `GET /talents` - 获取人才列表
-- `GET /jobs` - 获取职位列表
-- `GET /interviews` - 获取面试列表
-- `POST /recommendations/jobs-for-talent` - 为人才推荐职位
-- `POST /recommendations/talents-for-job` - 为职位推荐人才
-
-详细文档请查看 [API 文档](backend/docs/swagger.yaml)
-
-## 测试
-
-### 后端测试
-
-```bash
-# 运行所有后端测试
-make test-backend
-
-# 运行单个服务测试
-cd backend/interview-service
-go test -v ./...
-
-# 生成覆盖率报告
-go test -coverprofile=coverage.out ./...
-go tool cover -html=coverage.out
+### 人才接口
+```
+GET    /api/talents           # 获取人才列表
+POST   /api/talents           # 创建人才
+GET    /api/talents/:id       # 获取人才详情
+PUT    /api/talents/:id       # 更新人才
+DELETE /api/talents/:id       # 删除人才
+POST   /api/talents/import    # 批量导入
 ```
 
-### 前端测试
-
-```bash
-cd frontend
-
-# 运行测试
-npm run test
-
-# 监听模式
-npm run test:watch
-
-# 生成覆盖率报告
-npm run test:coverage
+### 职位接口
+```
+GET    /api/jobs              # 获取职位列表
+POST   /api/jobs              # 发布职位
+GET    /api/jobs/:id          # 获取职位详情
+PUT    /api/jobs/:id          # 更新职位
+DELETE /api/jobs/:id          # 删除职位
 ```
 
-## 部署
-
-### Docker 部署
-
-```bash
-# 构建镜像
-docker-compose build
-
-# 启动服务
-docker-compose up -d
-
-# 查看日志
-docker-compose logs -f
-
-# 停止服务
-docker-compose down
+### 推荐接口
+```
+POST /api/recommend/talents   # 为职位推荐人才
+POST /api/recommend/jobs      # 为人才推荐职位
+GET  /api/recommend/stats     # 获取推荐统计
 ```
 
-### 生产环境建议
+### 面试接口
+```
+GET    /api/interviews                    # 获取面试列表
+POST   /api/interviews                    # 创建面试
+GET    /api/interviews/:id                # 获取面试详情
+PUT    /api/interviews/:id                # 更新面试
+DELETE /api/interviews/:id                # 删除面试
+POST   /api/interviews/:id/feedback       # 提交面试反馈
+PUT    /api/interviews/:id/reschedule     # 面试改期
+GET    /api/interviews/candidate/:id/history  # 候选人面试历史
+```
 
-1. 使用 Nginx 作为反向代理
-2. 配置 HTTPS 证书
-3. 使用独立的 PostgreSQL 和 Redis 服务器
-4. 配置日志收集（如 ELK）
-5. 配置监控告警（如 Prometheus + Grafana）
-6. 定期备份数据库
+完整 API 文档：`backend/docs/swagger.yaml`
 
-## 服务端口
+---
 
-| 服务名称 | 端口 | 说明 |
-|----------|------|------|
-| frontend | 3000 | 前端应用 |
-| gateway | 8080 | API网关 |
-| user-service | 8081 | 用户服务 |
-| talent-service | 8082 | 人才服务 |
-| job-service | 8083 | 职位服务 |
-| resume-service | 8084 | 简历服务 |
-| recommendation-service | 8085 | 推荐服务 |
-| message-service | 8086 | 消息服务 |
-| interview-service | 8087 | 面试服务 |
+## 🛠️ 开发命令
 
-## 常见问题
+```bash
+# ===== 后端 =====
+make run-backend          # 启动所有后端服务
+make test-backend         # 运行后端测试
+make build-backend        # 构建后端
 
-**Q: 后端服务启动失败？**
-A: 检查 PostgreSQL 数据库是否正常运行，确保数据库连接配置正确
+# ===== 前端 =====
+make run-frontend         # 启动前端开发服务器
+make test-frontend        # 运行前端测试
+make build-frontend       # 构建前端生产版本
 
-**Q: 前端无法连接后端？**
-A: 确保 API 网关正在运行，检查 Vite 代理配置
+# ===== Docker =====
+make docker-build         # 构建 Docker 镜像
+make docker-up            # 启动所有容器
+make docker-down          # 停止所有容器
+make docker-logs          # 查看容器日志
 
-**Q: Docker 启动失败？**
-A: 检查端口是否被占用，确保 Docker 和 Docker Compose 已正确安装
+# ===== 数据库 =====
+make db-init              # 初始化数据库
+make db-migrate           # 运行数据库迁移
+make db-seed              # 导入测试数据
+```
 
-**Q: 测试运行失败？**
-A: 确保已安装测试依赖，后端需要 testify，前端需要 vitest
+---
 
-## License
+## 📊 数据库设计
 
-MIT
+### 核心表结构
 
-## 作者
+- **users** - 用户表（认证、角色）
+- **talents** - 人才表（基本信息、技能、经验）
+- **jobs** - 职位表（职位信息、要求、状态）
+- **resumes** - 简历表（文件、解析结果）
+- **interviews** - 面试表（安排、状态）
+- **interview_feedbacks** - 面试反馈表
+- **messages** - 消息表
+- **applications** - 应聘记录表
+- **roles** - 角色权限表
+- **operation_logs** - 操作日志表
 
-qinyang - 毕业设计项目 2024
+详细表结构见 `backend/database/schema.sql`
+
+---
+
+## 🎨 界面预览
+
+- 🏠 **仪表板** - 数据概览、趋势图表、快捷操作
+- 👥 **人才管理** - 列表/卡片视图、搜索筛选、详情抽屉
+- 💼 **职位管理** - 职位卡片、状态管理、技能标签
+- 📑 **简历管理** - 上传解析、预览下载
+- 🤖 **智能推荐** - 匹配度圆环、维度分析
+- 📅 **面试日历** - 日历视图、面试安排
+- 📊 **招聘看板** - 拖拽式流程管理
+- ⚙️ **系统设置** - 主题切换、权限配置
+
+---
+
+## 📄 License
+
+MIT License
+
+---
+
+## 🤝 贡献指南
+
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 提交 Pull Request
+
+---
+
+## 📞 联系方式
+
+如有问题或建议，欢迎提交 Issue！
