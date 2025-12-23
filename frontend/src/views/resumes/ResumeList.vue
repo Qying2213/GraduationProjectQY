@@ -110,13 +110,13 @@
         </el-table-column>
         <el-table-column label="操作" fixed="right" width="200">
           <template #default="{ row }">
-            <el-button link type="primary" @click="previewResume(row)">
+            <el-button link type="primary" @click="previewResume(row)" title="">
               <el-icon><View /></el-icon> 预览
             </el-button>
-            <el-button link type="primary" @click="parseResume(row)" :disabled="row.status === 'parsed'">
+            <el-button link type="primary" @click="parseResume(row)" :disabled="row.status === 'parsed'" title="">
               <el-icon><MagicStick /></el-icon> 解析
             </el-button>
-            <el-button link type="danger" @click="handleDelete(row.id)">
+            <el-button link type="danger" @click="handleDelete(row.id)" title="">
               <el-icon><Delete /></el-icon> 删除
             </el-button>
           </template>

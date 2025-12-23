@@ -227,13 +227,13 @@ html.theme-transition *::after {
 }
 
 /* Element Plus 按钮样式 */
-.el-button--primary {
+.el-button--primary:not(.is-link) {
   background: var(--primary-color) !important;
   border-color: var(--primary-color) !important;
 }
 
-.el-button--primary:hover,
-.el-button--primary:focus {
+.el-button--primary:not(.is-link):hover,
+.el-button--primary:not(.is-link):focus {
   background: var(--primary-light) !important;
   border-color: var(--primary-light) !important;
 }
@@ -389,4 +389,19 @@ html.dark {
     border-color: var(--primary-color);
     color: white;
   }
+}
+
+/* 禁用表格操作按钮的tooltip */
+.el-table .el-button.is-link {
+  pointer-events: auto;
+}
+
+.el-table .el-button.is-link[title] {
+  position: relative;
+}
+
+/* 确保link按钮样式正确 */
+.el-button.is-link {
+  background: transparent !important;
+  border: none !important;
 }

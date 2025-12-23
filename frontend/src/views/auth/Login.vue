@@ -126,11 +126,13 @@
 import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import { usePermissionStore } from '@/store/permission'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import { User, Lock, Check, Connection, ChatDotRound, Message, OfficeBuilding } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
+const permissionStore = usePermissionStore()
 const loading = ref(false)
 const isLoaded = ref(false)
 const loginFormRef = ref<FormInstance>()
@@ -189,6 +191,9 @@ const handleLogin = async () => {
       loading.value = true
       try {
         await userStore.login(loginForm.username, loginForm.password)
+        
+        // 登录成功后初始化权限
+        permissionStore.init()
 
         // 处理记住密码
         if (loginForm.remember) {

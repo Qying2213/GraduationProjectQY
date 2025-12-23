@@ -26,7 +26,7 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <el-button type="primary" @click="showAddDialog = true">
+        <el-button type="primary" @click="showAddDialog = true" v-if="canCreate">
           <el-icon><Plus /></el-icon>
           安排面试
         </el-button>
@@ -213,10 +213,10 @@
               <el-button link type="primary" size="small" @click="showInterviewDetail(row)">
                 查看
               </el-button>
-              <el-button link type="warning" size="small" @click="editInterview(row)">
+              <el-button link type="warning" size="small" @click="editInterview(row)" v-if="canEdit">
                 编辑
               </el-button>
-              <el-button link type="danger" size="small" @click="cancelInterview(row)">
+              <el-button link type="danger" size="small" @click="cancelInterview(row)" v-if="canDelete">
                 取消
               </el-button>
             </template>
@@ -411,15 +411,15 @@
         </div>
 
         <div class="detail-actions">
-          <el-button @click="editInterview(selectedInterview)">
+          <el-button @click="editInterview(selectedInterview)" v-if="canEdit">
             <el-icon><Edit /></el-icon>
             编辑
           </el-button>
-          <el-button type="danger" @click="cancelInterview(selectedInterview)">
+          <el-button type="danger" @click="cancelInterview(selectedInterview)" v-if="canDelete">
             <el-icon><Close /></el-icon>
             取消面试
           </el-button>
-          <el-button type="success" @click="completeInterview(selectedInterview)">
+          <el-button type="success" @click="completeInterview(selectedInterview)" v-if="canEdit">
             <el-icon><Check /></el-icon>
             完成面试
           </el-button>
@@ -438,6 +438,14 @@ import {
   Download, ArrowDown, Document, DocumentCopy
 } from '@element-plus/icons-vue'
 import { exportToExcel, exportToCsv, interviewExportColumns } from '@/utils/export'
+import { usePermissionStore } from '@/store/permission'
+
+const permissionStore = usePermissionStore()
+
+// 权限检查
+const canCreate = computed(() => permissionStore.hasPermission('calendar:create'))
+const canEdit = computed(() => permissionStore.hasPermission('calendar:edit'))
+const canDelete = computed(() => permissionStore.hasPermission('calendar:delete'))
 
 interface Interview {
   id: number

@@ -299,12 +299,27 @@ export const usePermissionStore = defineStore('permission', () => {
 
   // 初始化
   const init = () => {
+    // 优先从用户信息中读取角色
+    const storedUser = localStorage.getItem('user')
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser)
+        if (user.role) {
+          setRole(user.role)
+          return
+        }
+      } catch (e) {
+        console.error('Failed to parse user data:', e)
+      }
+    }
+    
+    // 如果没有用户角色信息，使用保存的角色或默认viewer
     const savedRole = localStorage.getItem('user-role')
     if (savedRole) {
       setRole(savedRole)
     } else {
-      // 默认设置为管理员角色（演示用）
-      setRole('admin')
+      // 默认设置为只读用户（安全起见）
+      setRole('viewer')
     }
   }
 

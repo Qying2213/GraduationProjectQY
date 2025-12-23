@@ -2,10 +2,12 @@ export interface User {
     id: number
     username: string
     email: string
-    role: 'admin' | 'hr' | 'candidate'
+    role: 'admin' | 'hr_manager' | 'recruiter' | 'interviewer' | 'viewer' | 'hr' | 'candidate'
     avatar?: string
     phone?: string
     real_name?: string
+    department?: string
+    position?: string
     status: string
     created_at: string
     updated_at: string

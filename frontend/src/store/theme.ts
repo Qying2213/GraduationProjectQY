@@ -4,8 +4,8 @@ import { ref, watch } from 'vue'
 export type ThemeMode = 'light' | 'dark' | 'system'
 
 export const useThemeStore = defineStore('theme', () => {
-  // 当前主题模式
-  const mode = ref<ThemeMode>('system')
+  // 当前主题模式 - 默认使用亮色主题
+  const mode = ref<ThemeMode>('light')
   // 实际应用的主题（light 或 dark）
   const actualTheme = ref<'light' | 'dark'>('light')
 
@@ -69,6 +69,9 @@ export const useThemeStore = defineStore('theme', () => {
     const savedMode = localStorage.getItem('theme-mode') as ThemeMode | null
     if (savedMode && ['light', 'dark', 'system'].includes(savedMode)) {
       mode.value = savedMode
+    } else {
+      // 新用户默认使用亮色主题
+      mode.value = 'light'
     }
 
     // 应用主题

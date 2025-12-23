@@ -391,7 +391,7 @@ const initTrendChart = () => {
       left: '3%',
       right: '4%',
       bottom: '12%',
-      top: '10%',
+      top: '15%',
       containLabel: true
     },
     xAxis: {
@@ -421,6 +421,13 @@ const initTrendChart = () => {
           ])
         },
         itemStyle: { color: '#0ea5e9' },
+        label: {
+          show: true,
+          position: 'top',
+          color: '#0ea5e9',
+          fontSize: 11,
+          fontWeight: 'bold'
+        },
         data: [12, 19, 15, 25, 22, 18, 28]
       },
       {
@@ -435,6 +442,13 @@ const initTrendChart = () => {
           ])
         },
         itemStyle: { color: '#06b6d4' },
+        label: {
+          show: true,
+          position: 'top',
+          color: '#06b6d4',
+          fontSize: 11,
+          fontWeight: 'bold'
+        },
         data: [20, 32, 28, 45, 38, 30, 42]
       },
       {
@@ -449,6 +463,13 @@ const initTrendChart = () => {
           ])
         },
         itemStyle: { color: '#22c55e' },
+        label: {
+          show: true,
+          position: 'top',
+          color: '#22c55e',
+          fontSize: 11,
+          fontWeight: 'bold'
+        },
         data: [5, 8, 6, 12, 10, 8, 15]
       }
     ]
@@ -464,11 +485,11 @@ const initJobChart = () => {
   const option = {
     tooltip: {
       trigger: 'item',
-      formatter: '{b}: {c} ({d}%)'
+      formatter: '{b}: {c}个 ({d}%)'
     },
     legend: {
       orient: 'vertical',
-      right: '5%',
+      right: '2%',
       top: 'center',
       itemGap: 16,
       textStyle: { color: '#64748b' }
@@ -477,21 +498,30 @@ const initJobChart = () => {
       {
         name: '职位状态',
         type: 'pie',
-        radius: ['50%', '75%'],
+        radius: ['45%', '70%'],
         center: ['35%', '50%'],
-        avoidLabelOverlap: false,
+        avoidLabelOverlap: true,
         itemStyle: {
           borderRadius: 8,
           borderColor: '#fff',
           borderWidth: 3
         },
         label: {
+          show: true,
+          position: 'inside',
+          formatter: '{c}个\n{d}%',
+          fontSize: 11,
+          lineHeight: 14,
+          color: '#fff',
+          fontWeight: 'bold'
+        },
+        labelLine: {
           show: false
         },
         emphasis: {
           label: {
             show: true,
-            fontSize: 16,
+            fontSize: 12,
             fontWeight: 'bold'
           },
           itemStyle: {
@@ -500,7 +530,6 @@ const initJobChart = () => {
             shadowColor: 'rgba(0, 0, 0, 0.2)'
           }
         },
-        labelLine: { show: false },
         data: [
           { value: 48, name: '招聘中', itemStyle: { color: '#0ea5e9' } },
           { value: 23, name: '已暂停', itemStyle: { color: '#06b6d4' } },
