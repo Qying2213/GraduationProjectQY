@@ -220,7 +220,7 @@ const statsCards = ref([
     displayValue: 0,
     suffix: '',
     icon: markRaw(User),
-    colorClass: 'cyan',
+    colorClass: 'sky',
     trend: 12.5
   },
   {
@@ -229,7 +229,7 @@ const statsCards = ref([
     displayValue: 0,
     suffix: '个',
     icon: markRaw(Suitcase),
-    colorClass: 'teal',
+    colorClass: 'cyan',
     trend: 8.2
   },
   {
@@ -247,79 +247,79 @@ const statsCards = ref([
     displayValue: 0,
     suffix: '%',
     icon: markRaw(MagicStick),
-    colorClass: 'green',
+    colorClass: 'teal',
     trend: 5.8
   }
 ])
 
-// 快捷操作 - 青蓝色系
+// 快捷操作 - 天蓝色系
 const quickActions = [
   {
     title: '发布新职位',
     desc: '创建并发布招聘职位',
     icon: markRaw(Plus),
-    gradient: 'linear-gradient(135deg, #00b8d4 0%, #0097a7 100%)',
+    gradient: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
     route: '/jobs'
   },
   {
     title: '搜索人才',
     desc: '在人才库中搜索匹配候选人',
     icon: markRaw(Search),
-    gradient: 'linear-gradient(135deg, #26c6da 0%, #00acc1 100%)',
+    gradient: 'linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%)',
     route: '/talents'
   },
   {
     title: '上传简历',
     desc: '批量导入候选人简历',
     icon: markRaw(Upload),
-    gradient: 'linear-gradient(135deg, #4dd0e1 0%, #00bcd4 100%)',
+    gradient: 'linear-gradient(135deg, #38bdf8 0%, #22d3ee 100%)',
     route: '/resumes'
   },
   {
     title: '智能推荐',
     desc: '查看AI推荐的匹配结果',
     icon: markRaw(MagicStick),
-    gradient: 'linear-gradient(135deg, #00c853 0%, #00e676 100%)',
+    gradient: 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)',
     route: '/recommend'
   }
 ]
 
-// 最近活动 - 青蓝色系
+// 最近活动 - 天蓝色系
 const recentActivities = ref([
   {
     title: '新增候选人',
     description: '张三已加入人才库',
     time: '5分钟前',
     icon: markRaw(UserFilled),
-    color: '#00b8d4'
+    color: '#0ea5e9'
   },
   {
     title: '职位发布',
     description: '高级Go开发工程师职位已上线',
     time: '15分钟前',
     icon: markRaw(Briefcase),
-    color: '#26c6da'
+    color: '#06b6d4'
   },
   {
     title: '简历审核',
     description: '李四的简历已通过初审',
     time: '1小时前',
     icon: markRaw(Document),
-    color: '#4dd0e1'
+    color: '#38bdf8'
   },
   {
     title: '智能匹配',
     description: '为前端开发岗位推荐了5位候选人',
     time: '2小时前',
     icon: markRaw(TrendCharts),
-    color: '#00c853'
+    color: '#22c55e'
   },
   {
     title: '面试安排',
     description: '王五的面试已安排在明天下午3点',
     time: '3小时前',
     icon: markRaw(ChatDotRound),
-    color: '#0097a7'
+    color: '#14b8a6'
   }
 ])
 
@@ -332,18 +332,18 @@ const topTalents = ref([
   { name: '钱七', skills: ['Vue', 'Element Plus', 'Vite'], score: 82 }
 ])
 
-// 热门职位 - 青蓝色系
+// 热门职位 - 天蓝色系
 const hotJobs = ref([
-  { title: '高级Go开发工程师', location: '北京', salary: '30-50K', applicants: 128, color: '#00b8d4' },
-  { title: '前端架构师', location: '上海', salary: '40-60K', applicants: 96, color: '#26c6da' },
-  { title: 'AI算法工程师', location: '深圳', salary: '50-80K', applicants: 87, color: '#4dd0e1' },
-  { title: '产品经理', location: '杭州', salary: '25-40K', applicants: 156, color: '#00c853' },
-  { title: 'DevOps工程师', location: '广州', salary: '30-45K', applicants: 64, color: '#0097a7' }
+  { title: '高级Go开发工程师', location: '北京', salary: '30-50K', applicants: 128, color: '#0ea5e9' },
+  { title: '前端架构师', location: '上海', salary: '40-60K', applicants: 96, color: '#06b6d4' },
+  { title: 'AI算法工程师', location: '深圳', salary: '50-80K', applicants: 87, color: '#38bdf8' },
+  { title: '产品经理', location: '杭州', salary: '25-40K', applicants: 156, color: '#22c55e' },
+  { title: 'DevOps工程师', location: '广州', salary: '30-45K', applicants: 64, color: '#14b8a6' }
 ])
 
-// 获取头像颜色 - 青蓝色系
+// 获取头像颜色 - 天蓝色系
 const getAvatarColor = (index: number) => {
-  const colors = ['#00b8d4', '#26c6da', '#4dd0e1', '#00c853', '#0097a7']
+  const colors = ['#0ea5e9', '#06b6d4', '#38bdf8', '#22c55e', '#14b8a6']
   return colors[index % colors.length]
 }
 
@@ -370,7 +370,7 @@ const animateNumbers = () => {
   })
 }
 
-// 初始化趋势图表 - 青蓝色系
+// 初始化趋势图表 - 天蓝色系
 const initTrendChart = () => {
   if (!trendChartRef.value) return
 
@@ -380,7 +380,7 @@ const initTrendChart = () => {
       trigger: 'axis',
       axisPointer: {
         type: 'cross',
-        label: { backgroundColor: '#0097a7' }
+        label: { backgroundColor: '#0ea5e9' }
       }
     },
     legend: {
@@ -398,57 +398,57 @@ const initTrendChart = () => {
       type: 'category',
       boundaryGap: false,
       data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
-      axisLine: { lineStyle: { color: '#e5e7eb' } },
-      axisLabel: { color: '#6b7280' }
+      axisLine: { lineStyle: { color: '#e2e8f0' } },
+      axisLabel: { color: '#64748b' }
     },
     yAxis: {
       type: 'value',
       axisLine: { show: false },
       axisTick: { show: false },
-      splitLine: { lineStyle: { color: '#f3f4f6', type: 'dashed' } },
-      axisLabel: { color: '#6b7280' }
+      splitLine: { lineStyle: { color: '#f1f5f9', type: 'dashed' } },
+      axisLabel: { color: '#64748b' }
     },
     series: [
       {
         name: '新增人才',
         type: 'line',
         smooth: true,
-        lineStyle: { width: 3, color: '#00b8d4' },
+        lineStyle: { width: 3, color: '#0ea5e9' },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(0, 184, 212, 0.3)' },
-            { offset: 1, color: 'rgba(0, 184, 212, 0.05)' }
+            { offset: 0, color: 'rgba(14, 165, 233, 0.3)' },
+            { offset: 1, color: 'rgba(14, 165, 233, 0.05)' }
           ])
         },
-        itemStyle: { color: '#00b8d4' },
+        itemStyle: { color: '#0ea5e9' },
         data: [12, 19, 15, 25, 22, 18, 28]
       },
       {
         name: '职位申请',
         type: 'line',
         smooth: true,
-        lineStyle: { width: 3, color: '#26c6da' },
+        lineStyle: { width: 3, color: '#06b6d4' },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(38, 198, 218, 0.3)' },
-            { offset: 1, color: 'rgba(38, 198, 218, 0.05)' }
+            { offset: 0, color: 'rgba(6, 182, 212, 0.3)' },
+            { offset: 1, color: 'rgba(6, 182, 212, 0.05)' }
           ])
         },
-        itemStyle: { color: '#26c6da' },
+        itemStyle: { color: '#06b6d4' },
         data: [20, 32, 28, 45, 38, 30, 42]
       },
       {
         name: '成功匹配',
         type: 'line',
         smooth: true,
-        lineStyle: { width: 3, color: '#00c853' },
+        lineStyle: { width: 3, color: '#22c55e' },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(0, 200, 83, 0.3)' },
-            { offset: 1, color: 'rgba(0, 200, 83, 0.05)' }
+            { offset: 0, color: 'rgba(34, 197, 94, 0.3)' },
+            { offset: 1, color: 'rgba(34, 197, 94, 0.05)' }
           ])
         },
-        itemStyle: { color: '#00c853' },
+        itemStyle: { color: '#22c55e' },
         data: [5, 8, 6, 12, 10, 8, 15]
       }
     ]
@@ -456,7 +456,7 @@ const initTrendChart = () => {
   trendChart.setOption(option)
 }
 
-// 初始化职位图表 - 青蓝色系
+// 初始化职位图表 - 天蓝色系
 const initJobChart = () => {
   if (!jobChartRef.value) return
 
@@ -471,7 +471,7 @@ const initJobChart = () => {
       right: '5%',
       top: 'center',
       itemGap: 16,
-      textStyle: { color: '#6b7280' }
+      textStyle: { color: '#64748b' }
     },
     series: [
       {
@@ -502,10 +502,10 @@ const initJobChart = () => {
         },
         labelLine: { show: false },
         data: [
-          { value: 48, name: '招聘中', itemStyle: { color: '#00b8d4' } },
-          { value: 23, name: '已暂停', itemStyle: { color: '#26c6da' } },
-          { value: 15, name: '已关闭', itemStyle: { color: '#9ca3af' } },
-          { value: 32, name: '已完成', itemStyle: { color: '#00c853' } }
+          { value: 48, name: '招聘中', itemStyle: { color: '#0ea5e9' } },
+          { value: 23, name: '已暂停', itemStyle: { color: '#06b6d4' } },
+          { value: 15, name: '已关闭', itemStyle: { color: '#94a3b8' } },
+          { value: 32, name: '已完成', itemStyle: { color: '#22c55e' } }
         ]
       }
     ]
@@ -619,18 +619,17 @@ onUnmounted(() => {
       box-shadow: var(--shadow-card);
       border: 1px solid var(--border-light);
       overflow: hidden;
-      transition: all 0.3s ease;
+      transition: box-shadow 0.3s ease;
 
       &:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-lg);
+        box-shadow: var(--shadow-md);
       }
 
-      /* 青蓝色系 */
-      &.cyan { border-left: 4px solid #00b8d4; }
-      &.teal { border-left: 4px solid #26c6da; }
-      &.blue { border-left: 4px solid #4dd0e1; }
-      &.green { border-left: 4px solid #00c853; }
+      /* 天蓝色系 */
+      &.sky { border-left: 4px solid #0ea5e9; }
+      &.cyan { border-left: 4px solid #06b6d4; }
+      &.blue { border-left: 4px solid #38bdf8; }
+      &.teal { border-left: 4px solid #14b8a6; }
 
       .stat-icon-wrapper {
         display: flex;
@@ -658,22 +657,22 @@ onUnmounted(() => {
           border-radius: 20px;
 
           &.up {
-            color: #00c853;
-            background: rgba(0, 200, 83, 0.1);
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
           }
 
           &.down {
-            color: #ff5252;
-            background: rgba(255, 82, 82, 0.1);
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
           }
         }
       }
 
-      /* 青蓝色系图标背景 */
-      &.cyan .stat-icon { background: linear-gradient(135deg, #00b8d4 0%, #0097a7 100%); }
-      &.teal .stat-icon { background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%); }
-      &.blue .stat-icon { background: linear-gradient(135deg, #4dd0e1 0%, #00bcd4 100%); }
-      &.green .stat-icon { background: linear-gradient(135deg, #00c853 0%, #00e676 100%); }
+      /* 天蓝色系图标背景 */
+      &.sky .stat-icon { background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); }
+      &.cyan .stat-icon { background: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%); }
+      &.blue .stat-icon { background: linear-gradient(135deg, #38bdf8 0%, #22d3ee 100%); }
+      &.teal .stat-icon { background: linear-gradient(135deg, #14b8a6 0%, #22c55e 100%); }
 
       .stat-content {
         position: relative;
@@ -765,15 +764,13 @@ onUnmounted(() => {
         border-radius: 12px;
         background: var(--bg-secondary);
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: background-color 0.3s ease;
 
         &:hover {
           background: var(--bg-tertiary);
-          transform: translateX(4px);
 
           .action-arrow {
             opacity: 1;
-            transform: translateX(0);
           }
         }
 
@@ -809,8 +806,7 @@ onUnmounted(() => {
         .action-arrow {
           color: var(--text-muted);
           opacity: 0;
-          transform: translateX(-10px);
-          transition: all 0.3s ease;
+          transition: opacity 0.3s ease;
         }
       }
     }
@@ -910,7 +906,7 @@ onUnmounted(() => {
         font-weight: 600;
 
         &.top {
-          background: linear-gradient(135deg, #00b8d4 0%, #0097a7 100%);
+          background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
           color: white;
         }
       }
@@ -938,7 +934,7 @@ onUnmounted(() => {
           display: block;
           font-size: 18px;
           font-weight: 700;
-          color: #00b8d4;
+          color: #0ea5e9;
         }
 
         .label {
@@ -1003,7 +999,7 @@ onUnmounted(() => {
           display: block;
           font-size: 18px;
           font-weight: 700;
-          color: #26c6da;
+          color: #06b6d4;
         }
 
         .label {

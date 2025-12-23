@@ -226,7 +226,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #00b8d4 0%, #0097a7 100%);
+  background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
   position: relative;
   overflow: hidden;
 }
@@ -268,7 +268,7 @@ onMounted(() => {
   min-height: 600px;
   background: white;
   border-radius: 24px;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   opacity: 0;
   transform: translateY(30px) scale(0.95);
@@ -283,7 +283,7 @@ onMounted(() => {
 .login-left {
   flex: 1.1;
   position: relative;
-  background: linear-gradient(135deg, #00b8d4 0%, #0097a7 100%);
+  background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
 
   .gradient-overlay {
     position: absolute;
@@ -390,7 +390,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 50px;
-  background: #f0f9fa;
+  background: #ffffff;
 }
 
 .login-form-wrapper {
@@ -403,12 +403,12 @@ onMounted(() => {
     h2 {
       font-size: 32px;
       font-weight: 700;
-      color: #263238;
+      color: #1e293b;
       margin-bottom: 8px;
     }
 
     .desc {
-      color: #546e7a;
+      color: #64748b;
       font-size: 15px;
     }
   }
@@ -423,12 +423,12 @@ onMounted(() => {
         transition: all 0.3s;
 
         &:hover {
-          box-shadow: 0 4px 12px rgba(0, 184, 212, 0.1);
+          box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
         }
 
         &.is-focus {
-          border-color: #00b8d4;
-          box-shadow: 0 4px 16px rgba(0, 184, 212, 0.2);
+          border-color: #0ea5e9;
+          box-shadow: 0 4px 16px rgba(14, 165, 233, 0.15);
         }
       }
     }
@@ -440,13 +440,13 @@ onMounted(() => {
       margin-bottom: 24px;
 
       .forgot-link {
-        color: #00b8d4;
+        color: #0ea5e9;
         font-size: 14px;
         text-decoration: none;
         transition: color 0.3s;
 
         &:hover {
-          color: #0097a7;
+          color: #0284c7;
         }
       }
     }
@@ -457,17 +457,16 @@ onMounted(() => {
       border-radius: 12px;
       font-size: 16px;
       font-weight: 600;
-      background: linear-gradient(135deg, #00b8d4 0%, #0097a7 100%);
+      background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
       border: none;
-      transition: all 0.3s;
+      transition: opacity 0.3s ease;
 
       &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 184, 212, 0.4);
+        opacity: 0.9;
       }
 
       &:active {
-        transform: translateY(0);
+        opacity: 0.8;
       }
     }
   }
@@ -482,12 +481,12 @@ onMounted(() => {
       content: '';
       flex: 1;
       height: 1px;
-      background: #b2ebf2;
+      background: #e2e8f0;
     }
 
     span {
       padding: 0 16px;
-      color: #90a4ae;
+      color: #94a3b8;
       font-size: 14px;
     }
   }
@@ -508,7 +507,7 @@ onMounted(() => {
       justify-content: center;
       gap: 4px;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: opacity 0.3s ease;
       font-size: 22px;
 
       .social-label {
@@ -517,52 +516,40 @@ onMounted(() => {
       }
 
       &:hover {
-        transform: translateY(-3px);
+        opacity: 0.8;
       }
 
       &.wechat {
-        background: #e0f7fa;
-        color: #00b8d4;
-
-        &:hover {
-          box-shadow: 0 8px 20px rgba(0, 184, 212, 0.3);
-        }
+        background: #e0f2fe;
+        color: #0ea5e9;
       }
 
       &.dingtalk {
-        background: #e0f7fa;
-        color: #0097a7;
-
-        &:hover {
-          box-shadow: 0 8px 20px rgba(0, 151, 167, 0.3);
-        }
+        background: #ecfeff;
+        color: #06b6d4;
       }
 
       &.wecom {
-        background: #e0f7fa;
-        color: #26c6da;
-
-        &:hover {
-          box-shadow: 0 8px 20px rgba(38, 198, 218, 0.3);
-        }
+        background: #f0fdfa;
+        color: #14b8a6;
       }
     }
   }
 
   .footer-links {
     text-align: center;
-    color: #546e7a;
+    color: #64748b;
     font-size: 15px;
 
     a {
-      color: #00b8d4;
+      color: #0ea5e9;
       text-decoration: none;
       font-weight: 600;
       margin-left: 6px;
       transition: color 0.3s;
 
       &:hover {
-        color: #0097a7;
+        color: #0284c7;
       }
     }
   }

@@ -238,10 +238,10 @@ onMounted(() => {
 
 .sidebar {
   background: var(--sidebar-bg);
-  color: white;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 1px 0 3px rgba(0, 0, 0, 0.05);
   transition: width 0.3s ease;
   overflow: hidden;
+  border-right: 1px solid var(--border-color);
 
   .logo {
     height: 64px;
@@ -249,13 +249,13 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
     gap: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border-color);
     padding: 0 16px;
 
     .logo-icon {
       width: 36px;
       height: 36px;
-      background: rgba(255, 255, 255, 0.2);
+      background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
       border-radius: 10px;
       display: flex;
       align-items: center;
@@ -272,7 +272,7 @@ onMounted(() => {
       margin: 0;
       font-size: 18px;
       font-weight: 700;
-      color: white;
+      color: var(--text-primary);
       white-space: nowrap;
     }
   }
@@ -293,6 +293,18 @@ onMounted(() => {
 
       &.is-active {
         background: var(--sidebar-item-active);
+        color: var(--sidebar-text-active);
+        font-weight: 600;
+      }
+    }
+
+    :deep(.el-sub-menu__title) {
+      color: var(--sidebar-text);
+      margin: 4px 8px;
+      border-radius: 8px;
+
+      &:hover {
+        background: var(--sidebar-item-hover);
         color: var(--sidebar-text-active);
       }
     }
@@ -408,7 +420,7 @@ onMounted(() => {
 :deep(.el-dropdown-menu__item) {
   &.active {
     color: var(--primary-color);
-    background: rgba(99, 102, 241, 0.1);
+    background: rgba(14, 165, 233, 0.1);
   }
 
   .el-icon {
