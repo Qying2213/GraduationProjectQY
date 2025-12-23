@@ -7,7 +7,7 @@
         <p class="subtitle">共 {{ total }} 份简历</p>
       </div>
       <div class="header-actions">
-        <el-button type="primary" @click="showUploadDialog = true">
+        <el-button type="primary" @click="showUploadDialog = true" v-if="canCreate">
           <el-icon><Upload /></el-icon>
           上传简历
         </el-button>
@@ -113,10 +113,10 @@
             <el-button link type="primary" @click="previewResume(row)" title="">
               <el-icon><View /></el-icon> 预览
             </el-button>
-            <el-button link type="primary" @click="parseResume(row)" :disabled="row.status === 'parsed'" title="">
+            <el-button link type="primary" @click="parseResume(row)" :disabled="row.status === 'parsed'" title="" v-if="canEdit">
               <el-icon><MagicStick /></el-icon> 解析
             </el-button>
-            <el-button link type="danger" @click="handleDelete(row.id)" title="">
+            <el-button link type="danger" @click="handleDelete(row.id)" title="" v-if="canDelete">
               <el-icon><Delete /></el-icon> 删除
             </el-button>
           </template>
@@ -242,6 +242,14 @@ import {
   Upload, Search, Document, View, MagicStick, Delete, UploadFilled,
   Download, Loading, FolderOpened, Clock, CircleCheck, CircleClose
 } from '@element-plus/icons-vue'
+import { usePermissionStore } from '@/store/permission'
+
+const permissionStore = usePermissionStore()
+
+// 权限检查
+const canCreate = computed(() => permissionStore.hasPermission('resume:create'))
+const canEdit = computed(() => permissionStore.hasPermission('resume:edit'))
+const canDelete = computed(() => permissionStore.hasPermission('resume:delete'))
 
 interface Resume {
   id: number

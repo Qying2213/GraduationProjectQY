@@ -34,7 +34,7 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <el-button type="primary" @click="openCreateDialog">
+        <el-button type="primary" @click="openCreateDialog" v-if="canCreate">
           <el-icon><Plus /></el-icon>
           新增人才
         </el-button>
@@ -132,9 +132,9 @@
         </el-table-column>
         <el-table-column label="操作" fixed="right" width="160">
           <template #default="{ row }">
-            <el-button link type="primary" @click.stop="openEditDialog(row)">编辑</el-button>
+            <el-button link type="primary" @click.stop="openEditDialog(row)" v-if="canEdit">编辑</el-button>
             <el-button link type="primary" @click.stop="openDetailDrawer(row)">详情</el-button>
-            <el-button link type="danger" @click.stop="handleDelete(row.id)">删除</el-button>
+            <el-button link type="danger" @click.stop="handleDelete(row.id)" v-if="canDelete">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -165,10 +165,10 @@
                 <el-button text :icon="MoreFilled" />
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item @click="openEditDialog(talent)">
+                    <el-dropdown-item @click="openEditDialog(talent)" v-if="canEdit">
                       <el-icon><Edit /></el-icon> 编辑
                     </el-dropdown-item>
-                    <el-dropdown-item divided @click="handleDelete(talent.id)">
+                    <el-dropdown-item divided @click="handleDelete(talent.id)" v-if="canDelete">
                       <el-icon><Delete /></el-icon> 删除
                     </el-dropdown-item>
                   </el-dropdown-menu>
@@ -382,7 +382,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { talentApi } from '@/api/talent'
 import type { Talent } from '@/types'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
@@ -391,6 +391,15 @@ import {
   Message, Phone, MagicStick, Download, ArrowDown, Document, DocumentCopy
 } from '@element-plus/icons-vue'
 import { exportToExcel, exportToCsv, talentExportColumns } from '@/utils/export'
+import { usePermissionStore } from '@/store/permission'
+
+const permissionStore = usePermissionStore()
+
+// 权限检查
+const canCreate = computed(() => permissionStore.hasPermission('talent:create'))
+const canEdit = computed(() => permissionStore.hasPermission('talent:edit'))
+const canDelete = computed(() => permissionStore.hasPermission('talent:delete'))
+const canExport = computed(() => permissionStore.hasPermission('talent:export'))
 
 const loading = ref(false)
 const submitting = ref(false)

@@ -26,7 +26,7 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <el-button type="primary" @click="openCreateDialog">
+        <el-button type="primary" @click="openCreateDialog" v-if="canCreate">
           <el-icon><Plus /></el-icon>
           发布职位
         </el-button>
@@ -113,14 +113,14 @@
             <el-button text :icon="MoreFilled" />
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="openEditDialog(job)">
+                <el-dropdown-item @click="openEditDialog(job)" v-if="canEdit">
                   <el-icon><Edit /></el-icon> 编辑
                 </el-dropdown-item>
-                <el-dropdown-item @click="toggleJobStatus(job)">
+                <el-dropdown-item @click="toggleJobStatus(job)" v-if="canEdit">
                   <el-icon><Switch /></el-icon>
                   {{ job.status === 'open' ? '关闭职位' : '开放职位' }}
                 </el-dropdown-item>
-                <el-dropdown-item divided @click="handleDelete(job.id)">
+                <el-dropdown-item divided @click="handleDelete(job.id)" v-if="canDelete">
                   <el-icon><Delete /></el-icon> 删除
                 </el-dropdown-item>
               </el-dropdown-menu>
@@ -391,7 +391,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, markRaw } from 'vue'
+import { ref, reactive, computed, onMounted, markRaw } from 'vue'
 import { jobApi } from '@/api/job'
 import type { Job } from '@/types'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
@@ -401,6 +401,14 @@ import {
   Download, ArrowDown, Document, DocumentCopy
 } from '@element-plus/icons-vue'
 import { exportToExcel, exportToCsv, jobExportColumns } from '@/utils/export'
+import { usePermissionStore } from '@/store/permission'
+
+const permissionStore = usePermissionStore()
+
+// 权限检查
+const canCreate = computed(() => permissionStore.hasPermission('job:create'))
+const canEdit = computed(() => permissionStore.hasPermission('job:edit'))
+const canDelete = computed(() => permissionStore.hasPermission('job:delete'))
 
 const loading = ref(false)
 const submitting = ref(false)
