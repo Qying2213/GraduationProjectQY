@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import { useUserStore } from '@/store/user'
 
 const routes: RouteRecordRaw[] = [
+    // 后台管理登录
     {
         path: '/login',
         name: 'Login',
@@ -14,6 +15,57 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/auth/Register.vue'),
         meta: { requiresAuth: false }
     },
+    // 前台求职端
+    {
+        path: '/portal',
+        component: () => import('@/components/layout/PortalLayout.vue'),
+        meta: { requiresAuth: false },
+        children: [
+            {
+                path: '',
+                name: 'PortalHome',
+                component: () => import('@/views/portal/PortalHome.vue'),
+                meta: { title: '首页' }
+            },
+            {
+                path: 'jobs',
+                name: 'PortalJobs',
+                component: () => import('@/views/portal/PortalJobList.vue'),
+                meta: { title: '职位列表' }
+            },
+            {
+                path: 'jobs/:id',
+                name: 'PortalJobDetail',
+                component: () => import('@/views/portal/PortalJobDetail.vue'),
+                meta: { title: '职位详情' }
+            },
+            {
+                path: 'login',
+                name: 'PortalLogin',
+                component: () => import('@/views/portal/PortalLogin.vue'),
+                meta: { title: '求职者登录' }
+            },
+            {
+                path: 'register',
+                name: 'PortalRegister',
+                component: () => import('@/views/portal/PortalRegister.vue'),
+                meta: { title: '求职者注册' }
+            },
+            {
+                path: 'my-applications',
+                name: 'MyApplications',
+                component: () => import('@/views/portal/MyApplications.vue'),
+                meta: { title: '我的投递', requiresAuth: true }
+            },
+            {
+                path: 'my-resume',
+                name: 'MyResume',
+                component: () => import('@/views/portal/MyResume.vue'),
+                meta: { title: '我的简历', requiresAuth: true }
+            }
+        ]
+    },
+    // 后台管理系统
     {
         path: '/',
         component: () => import('@/components/layout/MainLayout.vue'),

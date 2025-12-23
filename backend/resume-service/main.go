@@ -46,6 +46,8 @@ func main() {
 			resumes.GET("", resumeHandler.ListResumes)
 			resumes.GET("/:id", resumeHandler.GetResume)
 			resumes.DELETE("/:id", resumeHandler.DeleteResume)
+			resumes.POST("/parse", resumeHandler.ParseResume)
+			resumes.POST("/match", resumeHandler.MatchResumeToJob)
 		}
 
 		// Application routes

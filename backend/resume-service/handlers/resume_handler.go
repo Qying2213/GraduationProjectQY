@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"resume-service/models"
+	"resume-service/parser"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -10,11 +11,15 @@ import (
 )
 
 type ResumeHandler struct {
-	DB *gorm.DB
+	DB     *gorm.DB
+	Parser *parser.ResumeParser
 }
 
 func NewResumeHandler(db *gorm.DB) *ResumeHandler {
-	return &ResumeHandler{DB: db}
+	return &ResumeHandler{
+		DB:     db,
+		Parser: parser.NewResumeParser(),
+	}
 }
 
 // UploadResume 上传简历
@@ -205,5 +210,64 @@ func (h *ResumeHandler) UpdateApplication(c *gin.Context) {
 		"code":    0,
 		"message": "Application updated successfully",
 		"data":    app,
+	})
+}
+
+// ParseResume 解析简历文本
+func (h *ResumeHandler) ParseResume(c *gin.Context) {
+	var req struct {
+		Text string `json:"text" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "请提供简历文本内容"})
+		return
+	}
+
+	// 解析简历
+	result, err := h.Parser.Parse(req.Text)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "简历解析失败"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "解析成功",
+		"data":    result,
+	})
+}
+
+// MatchResumeToJob 计算简历与职位的匹配度
+func (h *ResumeHandler) MatchResumeToJob(c *gin.Context) {
+	var req struct {
+		ResumeText    string   `json:"resume_text" binding:"required"`
+		JobSkills     []string `json:"job_skills"`
+		JobExperience int      `json:"job_experience"`
+		JobEducation  string   `json:"job_education"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 解析简历
+	parsedResume, err := h.Parser.Parse(req.ResumeText)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "简历解析失败"})
+		return
+	}
+
+	// 计算匹配度
+	score := h.Parser.CalculateMatchScore(parsedResume, req.JobSkills, req.JobExperience, req.JobEducation)
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "匹配计算成功",
+		"data": gin.H{
+			"parsed_resume": parsedResume,
+			"match_score":   score,
+		},
 	})
 }
