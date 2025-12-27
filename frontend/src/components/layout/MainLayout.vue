@@ -94,6 +94,21 @@
           </div>
 
           <div class="header-right">
+            <!-- 快捷入口按钮 -->
+            <el-tooltip content="前台投递简历" placement="bottom">
+              <el-button type="primary" plain size="small" @click="goToPortal" class="quick-btn">
+                <el-icon><Upload /></el-icon>
+                投递简历
+              </el-button>
+            </el-tooltip>
+            
+            <el-tooltip content="AI智能评估系统" placement="bottom">
+              <el-button type="success" plain size="small" @click="goToEvaluator" class="quick-btn">
+                <el-icon><MagicStick /></el-icon>
+                AI评估
+              </el-button>
+            </el-tooltip>
+
             <!-- Theme Switcher -->
             <el-dropdown @command="handleThemeChange" trigger="click">
               <div class="theme-btn">
@@ -168,7 +183,7 @@ import { ElMessage } from 'element-plus'
 import {
   DataAnalysis, User, Suitcase, Document, TrendCharts,
   ChatDotRound, Fold, Expand, Bell, SwitchButton, MagicStick,
-  Sunny, Moon, Monitor, Operation, Calendar, Key, Setting, DataLine
+  Sunny, Moon, Monitor, Operation, Calendar, Key, Setting, DataLine, Upload
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -190,6 +205,16 @@ const toggleSidebar = () => {
 
 const goToMessages = () => {
   router.push('/messages')
+}
+
+const goToPortal = () => {
+  // 跳转到前台投递简历页面
+  window.open('/portal/jobs', '_blank')
+}
+
+const goToEvaluator = () => {
+  // 跳转到 AI 评估系统（8090端口）
+  window.open('http://localhost:8090', '_blank')
 }
 
 const handleCommand = (command: string) => {
@@ -341,7 +366,16 @@ onMounted(() => {
   .header-right {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 16px;
+
+    .quick-btn {
+      border-radius: 8px;
+      font-weight: 500;
+      
+      .el-icon {
+        margin-right: 4px;
+      }
+    }
 
     .theme-btn {
       width: 36px;

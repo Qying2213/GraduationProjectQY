@@ -5,9 +5,108 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+// ==================== 限流器 ====================
+
+// RateLimiter 简单的令牌桶限流器
+type RateLimiter struct {
+	tokens     map[string]int
+	maxTokens  int
+	refillRate int
+	mu         sync.Mutex
+}
+
+// NewRateLimiter 创建限流器
+func NewRateLimiter(maxTokens, refillRate int) *RateLimiter {
+	rl := &RateLimiter{
+		tokens:     make(map[string]int),
+		maxTokens:  maxTokens,
+		refillRate: refillRate,
+	}
+	// 定时补充令牌
+	go rl.refillTokens()
+	return rl
+}
+
+// refillTokens 定时补充令牌
+func (rl *RateLimiter) refillTokens() {
+	ticker := time.NewTicker(time.Second)
+	for range ticker.C {
+		rl.mu.Lock()
+		for ip := range rl.tokens {
+			rl.tokens[ip] += rl.refillRate
+			if rl.tokens[ip] > rl.maxTokens {
+				rl.tokens[ip] = rl.maxTokens
+			}
+		}
+		rl.mu.Unlock()
+	}
+}
+
+// Allow 检查是否允许请求
+func (rl *RateLimiter) Allow(ip string) bool {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	if _, exists := rl.tokens[ip]; !exists {
+		rl.tokens[ip] = rl.maxTokens
+	}
+
+	if rl.tokens[ip] > 0 {
+		rl.tokens[ip]--
+		return true
+	}
+	return false
+}
+
+// RateLimitMiddleware 限流中间件
+func RateLimitMiddleware(limiter *RateLimiter) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ip := c.ClientIP()
+		if !limiter.Allow(ip) {
+			c.JSON(http.StatusTooManyRequests, gin.H{
+				"code":    429,
+				"message": "请求过于频繁，请稍后再试",
+			})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}
+
+// ==================== 日志中间件 ====================
+
+// LoggerMiddleware 请求日志中间件
+func LoggerMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		startTime := time.Now()
+		path := c.Request.URL.Path
+		method := c.Request.Method
+
+		// 处理请求
+		c.Next()
+
+		// 记录日志
+		latency := time.Since(startTime)
+		statusCode := c.Writer.Status()
+		clientIP := c.ClientIP()
+
+		log.Printf("[API] %s | %3d | %13v | %15s | %s %s",
+			time.Now().Format("2006/01/02 - 15:04:05"),
+			statusCode,
+			latency,
+			clientIP,
+			method,
+			path,
+		)
+	}
+}
 
 // ==================== 统计处理器 ====================
 
@@ -173,6 +272,15 @@ func ReverseProxy(target string) gin.HandlerFunc {
 func main() {
 	r := gin.Default()
 
+	// 创建限流器：每个IP每秒最多100个请求
+	rateLimiter := NewRateLimiter(100, 10)
+
+	// 日志中间件
+	r.Use(LoggerMiddleware())
+
+	// 限流中间件
+	r.Use(RateLimitMiddleware(rateLimiter))
+
 	// CORS中间件
 	r.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -219,6 +327,10 @@ func main() {
 	api.Any("/resumes/*path", ReverseProxy(serviceRegistry["resume"]))
 	api.Any("/applications", ReverseProxy(serviceRegistry["resume"]))
 	api.Any("/applications/*path", ReverseProxy(serviceRegistry["resume"]))
+
+	// AI 评估服务路由（转发到简历服务）
+	api.Any("/ai", ReverseProxy(serviceRegistry["resume"]))
+	api.Any("/ai/*path", ReverseProxy(serviceRegistry["resume"]))
 
 	// 推荐服务路由
 	api.Any("/recommendations", ReverseProxy(serviceRegistry["recommendation"]))

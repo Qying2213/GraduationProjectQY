@@ -47,8 +47,8 @@ func main() {
 		api.DELETE("/:id", talentHandler.DeleteTalent)
 	}
 
-	log.Println("Talent service is running on :8082")
-	if err := r.Run(":8082"); err != nil {
+	log.Println("Talent service is running on :8086")
+	if err := r.Run(":8086"); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }

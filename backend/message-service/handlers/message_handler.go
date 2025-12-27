@@ -52,7 +52,7 @@ func (h *MessageHandler) GetMessages(c *gin.Context) {
 
 	offset := (page - 1) * pageSize
 
-	query := h.DB.Model(&models.Message{}).Where("to_id = ?", userID)
+	query := h.DB.Model(&models.Message{}).Where("receiver_id = ?", userID)
 
 	if msgType != "" {
 		query = query.Where("type = ?", msgType)
@@ -107,7 +107,7 @@ func (h *MessageHandler) GetUnreadCount(c *gin.Context) {
 	}
 
 	var count int64
-	h.DB.Model(&models.Message{}).Where("to_id = ? AND is_read = ?", userID, false).Count(&count)
+	h.DB.Model(&models.Message{}).Where("receiver_id = ? AND is_read = ?", userID, false).Count(&count)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,

@@ -47,8 +47,8 @@ func main() {
 		api.DELETE("/:id", jobHandler.DeleteJob)
 	}
 
-	log.Println("Job service is running on :8083")
-	if err := r.Run(":8083"); err != nil {
+	log.Println("Job service is running on :8082")
+	if err := r.Run(":8082"); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }

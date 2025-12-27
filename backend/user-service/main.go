@@ -2,26 +2,44 @@ package main
 
 import (
 	"log"
+	"os"
 	"user-service/handlers"
-	"user-service/models"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
 func main() {
-	// 数据库连接
-	dsn := "host=localhost user=qinyang dbname=talent_platform port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	// 数据库连接（支持环境变量配置）
+	dbHost := getEnv("DB_HOST", "localhost")
+	dbUser := getEnv("DB_USER", "qinyang")
+	dbPassword := getEnv("DB_PASSWORD", "")
+	dbName := getEnv("DB_NAME", "talent_platform")
+	dbPort := getEnv("DB_PORT", "5432")
+
+	dsn := "host=" + dbHost + " user=" + dbUser + " dbname=" + dbName + " port=" + dbPort + " sslmode=disable TimeZone=Asia/Shanghai"
+	if dbPassword != "" {
+		dsn = "host=" + dbHost + " user=" + dbUser + " password=" + dbPassword + " dbname=" + dbName + " port=" + dbPort + " sslmode=disable TimeZone=Asia/Shanghai"
+	}
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect database:", err)
 	}
 
-	// 自动迁移
-	if err := db.AutoMigrate(&models.User{}); err != nil {
-		log.Fatal("Failed to migrate database:", err)
-	}
+	// 自动迁移（表已存在则跳过）
+	// 注意：数据库表已通过 SQL 脚本创建，这里只做兼容性检查
+	// if err := db.AutoMigrate(&models.User{}); err != nil {
+	// 	log.Fatal("Failed to migrate database:", err)
+	// }
 
 	// 初始化路由
 	r := gin.Default()

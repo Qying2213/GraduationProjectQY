@@ -1,0 +1,3862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI简历评估系统 - 智能招聘助手</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 50%, #a855f7 100%);
+            color: white;
+            padding: 40px 48px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.3; }
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            position: relative;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+            position: relative;
+            font-weight: 400;
+        }
+        
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10;
+        }
+        .user-info span {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .header-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            margin-top: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: white;
+            padding: 8px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .tab {
+            padding: 14px 28px;
+            background: transparent;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--gray-600);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .tab:hover:not(.active) {
+            background: var(--gray-100);
+            color: var(--gray-800);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-100);
+            transition: all 0.3s ease;
+        }
+        
+        .panel:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .panel h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .panel h2::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            border-radius: 2px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--gray-300);
+            border-radius: 16px;
+            padding: 48px 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--gray-50);
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+            transform: translateY(-2px);
+        }
+
+        .upload-area.has-file {
+            border-color: var(--success);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(52, 211, 153, 0.05) 100%);
+        }
+        
+        .upload-area.drag-over {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            transform: scale(1.02);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .filter-btns {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 18px;
+            border: 2px solid var(--gray-200);
+            border-radius: 25px;
+            background: white;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            color: var(--gray-600);
+        }
+        
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            background: var(--gray-800);
+            color: white;
+            border-radius: 12px;
+            z-index: 9999;
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-xl);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .toast.success { background: linear-gradient(135deg, var(--success) 0%, #34d399 100%); }
+        .toast.error { background: linear-gradient(135deg, var(--danger) 0%, #f87171 100%); }
+        .toast.info { background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%); }
+        
+        @keyframes slideIn {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .upload-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 14px;
+            resize: vertical;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: var(--gray-50);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-200);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #34d399 100%);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning) 0%, #fbbf24 100%);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(245, 158, 11, 0.4);
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-small {
+            padding: 8px 14px;
+            font-size: 12px;
+            border-radius: 8px;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 16px;
+            margin: 6px;
+            text-align: center;
+            display: inline-block;
+            min-width: 110px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-100);
+            transition: all 0.2s ease;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        /* 分数卡片悬浮提示 */
+        .result-card {
+            position: relative;
+            cursor: default;
+        }
+        
+        /* 全局分数 tooltip 样式 */
+        .global-score-tooltip {
+            position: fixed;
+            background: var(--gray-800);
+            color: white;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.7;
+            width: 360px;
+            max-width: calc(100vw - 40px);
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            text-align: left;
+            z-index: 99999;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+        
+        .global-score-tooltip .tooltip-grade {
+            color: #fbbf24;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .global-score-tooltip .tooltip-reason {
+            color: rgba(255,255,255,0.95);
+            line-height: 1.8;
+        }
+        
+        .score-card-with-tooltip {
+            cursor: pointer;
+        }
+        
+        .score-card-with-tooltip:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .result-card.total {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.4);
+        }
+
+        .result-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+        
+        .result-card.total .result-value {
+            color: white;
+        }
+
+        .result-label {
+            font-size: 12px;
+            color: var(--gray-500);
+            margin-top: 6px;
+            font-weight: 500;
+        }
+        
+        .result-card.total .result-label {
+            color: rgba(255,255,255,0.9);
+        }
+
+        .recommendation {
+            padding: 20px 24px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 24px 0;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .recommendation.good {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.1) 100%);
+            color: var(--success);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .recommendation.warn {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(251, 191, 36, 0.1) 100%);
+            color: var(--warning);
+            border: 2px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .recommendation.bad {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(248, 113, 113, 0.1) 100%);
+            color: var(--danger);
+            border: 2px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .report-box {
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 24px;
+            max-height: 600px;
+            overflow-y: auto;
+            background: var(--gray-50);
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .report-table th,
+        .report-table td {
+            border: 1px solid var(--gray-200);
+            padding: 12px 14px;
+            text-align: left;
+        }
+        
+        .report-table th {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .report-table tr:nth-child(even) {
+            background: var(--gray-50);
+        }
+
+        .report-box h1 {
+            font-size: 22px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            color: var(--gray-800);
+        }
+
+        .report-box h2 {
+            font-size: 18px;
+            color: var(--primary);
+            margin: 24px 0 14px;
+            font-weight: 600;
+        }
+
+        .report-box table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .report-box th,
+        .report-box td {
+            border: 1px solid var(--gray-200);
+            padding: 12px 14px;
+            text-align: left;
+        }
+
+        .report-box th {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        .report-box tr:nth-child(even) {
+            background: white;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-name {
+            color: var(--success);
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        #error-msg {
+            color: var(--danger);
+            margin-top: 12px;
+            font-weight: 500;
+        }
+
+        .batch-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .batch-table th,
+        .batch-table td {
+            border-bottom: 1px solid var(--gray-200);
+            padding: 14px 12px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .batch-table th {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .batch-table tbody tr {
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        .batch-table tbody tr:nth-child(even) {
+            background: var(--gray-50);
+        }
+
+        .batch-table tbody tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .batch-table tr.selected {
+            background: rgba(99, 102, 241, 0.1) !important;
+            box-shadow: inset 0 0 0 2px var(--primary);
+        }
+
+        .grade-A {
+            color: var(--success);
+            font-weight: 700;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .grade-B {
+            color: #3b82f6;
+            font-weight: 700;
+            background: rgba(59, 130, 246, 0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .grade-C {
+            color: var(--warning);
+            font-weight: 700;
+            background: rgba(245, 158, 11, 0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .grade-D {
+            color: #f97316;
+            font-weight: 700;
+            background: rgba(249, 115, 22, 0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .grade-E {
+            color: var(--danger);
+            font-weight: 700;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .rec-good {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(52, 211, 153, 0.08) 100%) !important;
+        }
+
+        .rec-warn {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(251, 191, 36, 0.08) 100%) !important;
+        }
+
+        .rec-bad {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(248, 113, 113, 0.08) 100%) !important;
+        }
+
+        .file-list {
+            margin-top: 16px;
+            text-align: left;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            padding: 10px 14px;
+            background: var(--gray-50);
+            border-radius: 8px;
+            margin: 6px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s ease;
+        }
+        
+        .file-item:hover {
+            background: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .file-item .remove {
+            color: var(--danger);
+            cursor: pointer;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .file-item .remove:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-100);
+            transition: all 0.2s ease;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray-500);
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-xl);
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 24px 28px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--gray-50);
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .modal-close {
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--gray-400);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--gray-800);
+            background: var(--gray-200);
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid #eee;
+            text-align: right;
+        }
+
+        .checkbox-cell {
+            width: 40px;
+        }
+
+        .compare-section {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .radar-container {
+            flex: 1;
+            min-width: 400px;
+        }
+
+        .compare-table-container {
+            flex: 1;
+            overflow-x: auto;
+        }
+
+        /* 进度条样式 */
+        .progress-container {
+            width: 100%;
+            margin: 20px 0;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 16px;
+            background: var(--gray-200);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, #8b5cf6 50%, #a855f7 100%);
+            border-radius: 8px;
+            transition: width 0.3s ease;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+        
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .progress-text {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .progress-detail {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--gray-500);
+            padding: 0 10px;
+        }
+        
+        .progress-steps {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--gray-100);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--gray-500);
+            transition: all 0.3s ease;
+        }
+        
+        .progress-step.active {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+        
+        .progress-step.done {
+            background: var(--success);
+            color: white;
+        }
+        
+        .progress-step .step-icon {
+            font-size: 14px;
+        }
+
+        /* 统计图表区域 */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-100);
+            transition: all 0.3s ease;
+        }
+        
+        .chart-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        .chart-card h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .chart-container {
+            height: 220px;
+            position: relative;
+        }
+        
+        .chart-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--gray-400);
+            font-size: 14px;
+        }
+
+        /* 人才库对比选择 */
+        .talent-compare-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            background: var(--gray-50);
+            border-radius: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .talent-compare-bar .selected-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+        
+        .compare-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .compare-tag .remove-tag {
+            cursor: pointer;
+            opacity: 0.8;
+            font-size: 14px;
+        }
+        
+        .compare-tag .remove-tag:hover {
+            opacity: 1;
+        }
+        
+        /* 第三方登录弹窗样式 */
+        .credentials-modal {
+            max-width: 480px;
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .credentials-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+            padding: 32px 32px 28px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .credentials-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .credentials-header h3 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .credentials-subtitle {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .credentials-form {
+            padding: 32px;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-group:last-of-type {
+            margin-bottom: 0;
+        }
+        
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+        
+        .label-icon {
+            font-size: 16px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+            color: var(--gray-800);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-input::placeholder {
+            color: var(--gray-400);
+        }
+        
+        .disabled-input {
+            background: var(--gray-50);
+            color: var(--gray-500);
+            cursor: not-allowed;
+        }
+        
+        .error-message {
+            min-height: 24px;
+            color: #ff4d4f;
+            font-size: 13px;
+            margin-top: 16px;
+            padding: 8px 12px;
+            background: rgba(255, 77, 79, 0.1);
+            border-radius: 6px;
+            display: none;
+        }
+        
+        .error-message:not(:empty) {
+            display: block;
+        }
+        
+        .credentials-footer {
+            padding: 20px 32px 32px;
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn-large {
+            flex: 1;
+            padding: 14px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-large:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-large:active {
+            transform: translateY(0);
+        }
+        
+        .credentials-modal .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            color: white;
+            opacity: 0.8;
+            z-index: 10;
+        }
+        
+        .credentials-modal .modal-close:hover {
+            opacity: 1;
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="user-info" id="userInfo">
+                <span id="userDisplay"></span>
+                <button class="logout-btn" onclick="logout()">退出登录</button>
+            </div>
+            <h1>📋 简历自动评估系统</h1>
+            <p>上传简历PDF，AI自动分析评估，生成面试问题</p>
+        </div>
+        <div class="tabs">
+            <button class="tab active" onclick="switchMode('single')">📄 单份评估</button>
+            <button class="tab" onclick="switchMode('batch')">📚 批量评估</button>
+            <button class="tab" onclick="switchMode('talent')">👥 人才库</button>
+            <button class="tab" onclick="window.location.href='/static/dingtalk-config.html'" style="margin-left: auto;">🤖 钉钉配置</button>
+        </div>
+        <!-- 单份评估模式 -->
+        <div id="singleMode">
+            <div class="grid">
+                <div class="panel">
+                    <h2>上传简历</h2>
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">📄</div>
+                        <div id="uploadText">点击或拖拽上传简历PDF</div>
+                        <div id="fileName" class="file-name hidden"></div>
+                        <div style="font-size: 12px; color: #999; margin-top: 8px;">快捷键 Ctrl+Enter 开始评估</div>
+                    </div>
+                    <input type="file" id="fileInput" class="file-input" accept=".pdf"
+                        onchange="handleFileSelect(this)">
+                </div>
+                <div class="panel">
+                    <h2>选择岗位</h2>
+                    <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 16px;">
+                        <select id="positionSelect" onchange="onPositionChange()" style="flex: 1; padding: 12px 16px; border: 2px solid var(--gray-200); border-radius: 10px; font-size: 14px; background: var(--gray-50); cursor: pointer;">
+                            <option value="">请选择岗位...</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="syncPositions()" id="syncPositionsBtn">🔄 同步岗位</button>
+                    </div>
+                    <div id="positionEmpty" style="color: var(--gray-500); font-size: 13px; text-align: center; padding: 20px;">
+                        暂无岗位数据，请点击"同步岗位"按钮从招聘系统获取
+                    </div>
+                </div>
+                <div class="panel full-width hidden" id="jdDisplayPanel">
+                    <h2>职位描述 (JD)</h2>
+                    <div id="jdDisplay" class="report-box" style="max-height: 300px; white-space: pre-wrap;"></div>
+                </div>
+                <div class="panel full-width center">
+                    <button class="btn btn-primary" id="startBtn" onclick="startEvaluation()">🚀 开始评估</button>
+                    <div id="error-msg"></div>
+                </div>
+                <div class="panel full-width hidden" id="loadingPanel">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 16px;">AI正在分析简历，请稍候...</p>
+                    </div>
+                </div>
+                <div class="panel full-width hidden" id="resultPanel">
+                    <h2>评估结果</h2>
+                    <div id="candidateName" style="font-size: 20px; font-weight: bold; margin-bottom: 16px;"></div>
+                    <div id="scoreCards" style="margin-bottom: 20px;"></div>
+                    <div id="recommendation" class="recommendation"></div>
+                    <h2>详细报告</h2>
+                    <div class="report-box" id="reportContent"></div>
+                    <div class="center" style="margin-top: 20px;">
+                        <button class="btn btn-primary" onclick="downloadPdf()">📥 下载PDF报告</button>
+                        <button class="btn btn-secondary" onclick="downloadMarkdown()">📄 下载Markdown</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 人才库模式 -->
+        <div id="talentMode" class="hidden">
+            <!-- 钉钉配置快捷入口 -->
+            <div class="panel" style="margin-bottom: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; cursor: pointer;" onclick="window.location.href='/static/dingtalk-config.html'">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div style="font-size: 48px;">🤖</div>
+                        <div>
+                            <h2 style="color: white; margin: 0 0 8px 0;">钉钉机器人配置</h2>
+                            <p style="margin: 0; opacity: 0.9; font-size: 14px;">配置钉钉机器人，实现候选人信息自动推送和交互式查询</p>
+                        </div>
+                    </div>
+                    <div style="font-size: 24px; opacity: 0.8;">→</div>
+                </div>
+            </div>
+            
+            <!-- 快速统计卡片 -->
+            <div class="stats-bar" id="talentQuickStats" style="margin-bottom: 20px;">
+                <div class="stat-item" style="flex: 1; min-width: 120px;">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">总人数</div>
+                </div>
+                <div class="stat-item" style="flex: 1; min-width: 120px;">
+                    <div class="stat-value" style="color: var(--success);" id="statRecommend">0</div>
+                    <div class="stat-label">推荐人数</div>
+                </div>
+                <div class="stat-item" style="flex: 1; min-width: 120px;">
+                    <div class="stat-value" style="color: var(--primary);" id="statAvgScore">0</div>
+                    <div class="stat-label">平均分</div>
+                </div>
+                <div class="stat-item" style="flex: 1; min-width: 120px;">
+                    <div class="stat-value" style="color: #10b981;" id="statGradeA">0</div>
+                    <div class="stat-label">A级人才</div>
+                </div>
+                <div class="stat-item" style="flex: 1; min-width: 120px;">
+                    <div class="stat-value" style="color: var(--warning);" id="statPending">0</div>
+                    <div class="stat-label">待面试</div>
+                </div>
+                <div class="stat-item" style="flex: 1; min-width: 120px;">
+                    <div class="stat-value" style="color: #10b981;" id="statHired">0</div>
+                    <div class="stat-label">已录用</div>
+                </div>
+            </div>
+            
+            <!-- 统计图表区域 -->
+            <div class="charts-grid" id="talentChartsGrid">
+                <div class="chart-card" style="cursor: pointer;" title="点击查看详情">
+                    <h3>📊 评级分布 <span style="font-size: 11px; color: var(--gray-400); font-weight: normal;">点击查看</span></h3>
+                    <div class="chart-container"><canvas id="gradeChart"></canvas></div>
+                </div>
+                <div class="chart-card" style="cursor: pointer;" title="点击查看详情">
+                    <h3>📈 状态统计 <span style="font-size: 11px; color: var(--gray-400); font-weight: normal;">点击查看</span></h3>
+                    <div class="chart-container"><canvas id="statusChart"></canvas></div>
+                </div>
+                <div class="chart-card" style="cursor: pointer;" title="点击查看详情">
+                    <h3>🎯 推荐结果分布 <span style="font-size: 11px; color: var(--gray-400); font-weight: normal;">点击查看</span></h3>
+                    <div class="chart-container"><canvas id="recommendChart"></canvas></div>
+                </div>
+                <div class="chart-card" style="cursor: pointer;" title="点击查看详情">
+                    <h3>📉 分数分布 <span style="font-size: 11px; color: var(--gray-400); font-weight: normal;">点击查看</span></h3>
+                    <div class="chart-container"><canvas id="scoreDistChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>🎯 各维度平均分</h3>
+                    <div class="chart-container"><canvas id="dimensionAvgChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>📅 近期入库趋势</h3>
+                    <div class="chart-container"><canvas id="trendChart"></canvas></div>
+                </div>
+            </div>
+            
+            <div class="panel full-width" style="margin-top: 20px;">
+                <h2>👥 人才库管理</h2>
+                <div class="stats-bar" id="talentStatsBar"></div>
+                
+                <!-- 对比选择栏 -->
+                <div class="talent-compare-bar" id="talentCompareBar">
+                    <span style="font-weight: 500; color: var(--gray-600);">📊 对比候选人：</span>
+                    <div class="selected-tags" id="compareSelectedTags">
+                        <span style="color: var(--gray-400); font-size: 13px;">点击表格中的"加入对比"按钮选择候选人</span>
+                    </div>
+                    <button class="btn btn-warning btn-small" onclick="showTalentCompareModal()" id="talentCompareBtn" disabled>对比分析</button>
+                    <button class="btn btn-secondary btn-small" onclick="clearCompareSelection()">清空选择</button>
+                </div>
+                
+                <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                    <select id="statusFilter" onchange="loadCandidates()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd;">
+                        <option value="">全部状态</option>
+                        <option value="待面试">待面试</option>
+                        <option value="已面试">已面试</option>
+                        <option value="已录用">已录用</option>
+                        <option value="淘汰">淘汰</option>
+                    </select>
+                    <select id="gradeFilter" onchange="loadCandidates()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd;">
+                        <option value="">全部评级</option>
+                        <option value="A">A级</option>
+                        <option value="B">B级</option>
+                        <option value="C">C级</option>
+                        <option value="D">D级</option>
+                        <option value="E">E级</option>
+                    </select>
+                    <input type="text" id="searchInput" placeholder="搜索姓名..." style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd; width: 150px;">
+                    <button class="btn btn-primary btn-small" onclick="loadCandidates()">🔍 搜索</button>
+                    <button class="btn btn-secondary btn-small" onclick="refreshTalentPool()">🔄 刷新</button>
+                    <button class="btn btn-small" onclick="clearAllCandidates()" style="background:#ff4d4f;color:white;">🗑️ 清空人才库</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="batch-table" id="talentTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>姓名</th>
+                                <th>总分</th>
+                                <th>评级</th>
+                                <th>JD匹配</th>
+                                <th>推荐结果</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="talentTableBody"></tbody>
+                    </table>
+                </div>
+                <div id="talentEmpty" class="hidden" style="text-align: center; padding: 40px; color: #999;">
+                    暂无候选人数据，请先进行简历评估
+                </div>
+            </div>
+        </div>
+        
+        <!-- 图表筛选结果模态框 -->
+        <div id="chartFilterModal" class="modal">
+            <div class="modal-content" style="max-width: 1000px;">
+                <div class="modal-header">
+                    <h3 id="chartFilterTitle">📊 筛选结果</h3>
+                    <span class="modal-close" onclick="closeModal('chartFilterModal')">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="chartFilterSummary" style="background: var(--gray-50); padding: 16px; border-radius: 12px; margin-bottom: 20px;"></div>
+                    <div style="overflow-x: auto;">
+                        <table class="batch-table" id="chartFilterTable">
+                            <thead>
+                                <tr>
+                                    <th>排名</th>
+                                    <th>姓名</th>
+                                    <th>总分</th>
+                                    <th>评级</th>
+                                    <th>JD匹配</th>
+                                    <th>年龄</th>
+                                    <th>经验</th>
+                                    <th>学历</th>
+                                    <th>公司</th>
+                                    <th>技术</th>
+                                    <th>项目</th>
+                                    <th>推荐</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="chartFilterBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModal('chartFilterModal')">关闭</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 人才库对比模态框 -->
+        <div id="talentCompareModal" class="modal">
+            <div class="modal-content" style="max-width: 1200px;">
+                <div class="modal-header">
+                    <h3>📊 人才库候选人对比分析</h3>
+                    <span class="modal-close" onclick="closeModal('talentCompareModal')">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <!-- 对比总结 -->
+                    <div id="compareSummary" style="background: var(--gray-50); padding: 16px; border-radius: 12px; margin-bottom: 20px;"></div>
+                    <div class="compare-section">
+                        <div class="radar-container">
+                            <h3 style="margin-bottom: 15px;">能力雷达图</h3>
+                            <canvas id="talentRadarChart"></canvas>
+                        </div>
+                        <div class="compare-table-container">
+                            <h3 style="margin-bottom: 15px;">详细对比</h3>
+                            <table class="batch-table" id="talentCompareTable"></table>
+                        </div>
+                    </div>
+                    <!-- 各维度详细理由 -->
+                    <div id="compareReasons" style="margin-top: 20px;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" onclick="exportCompareExcel()">📥 导出Excel对比表</button>
+                    <button class="btn btn-secondary" onclick="closeModal('talentCompareModal')">关闭</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 批量评估模式 -->
+        <div id="batchMode" class="hidden">
+            <!-- 钉钉配置提示 -->
+            <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid rgba(102, 126, 234, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="font-size: 32px;">🤖</div>
+                    <div>
+                        <div style="font-weight: 600; color: #667eea; margin-bottom: 4px;">💡 提示：已支持钉钉机器人推送</div>
+                        <div style="font-size: 13px; color: #6b7280;">批量评估完成后，可通过钉钉机器人自动推送候选人信息到群聊</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary btn-small" onclick="window.location.href='/static/dingtalk-config.html'">去配置</button>
+            </div>
+            
+            <div class="grid">
+                <div class="panel">
+                    <h2>批量上传简历</h2>
+                    <div class="upload-area" id="batchUploadArea"
+                        onclick="document.getElementById('batchFileInput').click()">
+                        <div class="upload-icon">📚</div>
+                        <div>点击或拖拽上传多个PDF/ZIP</div>
+                        <div style="font-size: 12px; color: #999; margin-top: 8px;">支持拖拽 | Ctrl/Cmd多选 | 快捷键 Ctrl+Enter 开始评估</div>
+                    </div>
+                    <input type="file" id="batchFileInput" class="file-input" accept=".pdf,.zip" multiple
+                        onchange="handleBatchFileSelect(this)">
+                    <div id="batchFileList" class="file-list"></div>
+                </div>
+                <div class="panel">
+                    <h2>职位描述 (JD)</h2>
+                    <textarea id="batchJdContent" placeholder="请输入职位描述（可选，留空则使用候选人自带的JD）..."></textarea>
+                    <button class="btn btn-secondary" onclick="loadBatchJdTemplate()">加载JD模板</button>
+                </div>
+                <div class="panel full-width center">
+                    <button class="btn btn-primary" id="batchStartBtn" onclick="startBatchEvaluation()">🚀
+                        开始批量评估</button>
+                    <div id="batch-error-msg" style="color: #ff4d4f; margin-top: 10px;"></div>
+                </div>
+                <div class="panel full-width hidden" id="batchLoadingPanel">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 16px; font-size: 18px; font-weight: 600;" id="batchProgressText">AI正在批量分析简历</p>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="batchProgressFill" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-text" id="batchProgressPercent">0%</div>
+                            <div class="progress-detail">
+                                <span id="batchProgressCurrent">已完成: 0</span>
+                                <span id="batchProgressTotal">总计: 0</span>
+                                <span id="batchProgressTime">预计剩余: 计算中...</span>
+                            </div>
+                            <div class="progress-steps" id="progressSteps">
+                                <div class="progress-step active" id="step-upload"><span class="step-icon">📤</span> 上传文件</div>
+                                <div class="progress-step" id="step-parse"><span class="step-icon">📄</span> 解析简历</div>
+                                <div class="progress-step" id="step-analyze"><span class="step-icon">🤖</span> AI分析</div>
+                                <div class="progress-step" id="step-score"><span class="step-icon">📊</span> 评分计算</div>
+                                <div class="progress-step" id="step-done"><span class="step-icon">✅</span> 完成</div>
+                            </div>
+                        </div>
+                        <p style="margin-top: 20px; font-size: 13px; color: var(--gray-400);" id="batchProgressTip">💡 提示：每份简历约需8-15秒处理时间</p>
+                    </div>
+                </div>
+                <div class="panel full-width hidden" id="batchResultPanel">
+                    <h2>📊 批量评估结果</h2>
+                    <div class="stats-bar" id="statsBar"></div>
+                    <div class="filter-btns">
+                        <button class="filter-btn active" onclick="filterResults('all')">全部</button>
+                        <button class="filter-btn" onclick="filterResults('recommend')" style="color:#52c41a;border-color:#52c41a;">✅ 推荐</button>
+                        <button class="filter-btn" onclick="filterResults('pending')" style="color:#faad14;border-color:#faad14;">⏳ 待定</button>
+                        <button class="filter-btn" onclick="filterResults('reject')" style="color:#ff4d4f;border-color:#ff4d4f;">❌ 不推荐</button>
+                        <button class="filter-btn" onclick="filterResults('gradeA')">A级</button>
+                        <button class="filter-btn" onclick="filterResults('gradeB')">B级</button>
+                        <button class="filter-btn" onclick="filterResults('gradeC')">C级</button>
+                    </div>
+                    <div class="center" style="margin-bottom: 20px;">
+                        <button class="btn btn-success" onclick="exportExcel()">📥 导出Excel</button>
+                        <button class="btn btn-warning" onclick="showCompareModal()" id="compareBtn" disabled>📊 对比选中</button>
+                        <button class="btn btn-primary" onclick="selectRecommended()">✅ 选中推荐</button>
+                        <button class="btn btn-secondary" onclick="exportSelectedReports()">📦 导出选中报告</button>
+                        <span id="selectedCount" style="margin-left: 10px; color: #666;">已选: 0人</span>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="batch-table" id="batchResultTable">
+                            <thead>
+                                <tr>
+                                    <th class="checkbox-cell"><input type="checkbox" onchange="toggleSelectAll(this)">
+                                    </th>
+                                    <th>排名</th>
+                                    <th>姓名</th>
+                                    <th>总分</th>
+                                    <th>评级</th>
+                                    <th>JD匹配</th>
+                                    <th>年龄</th>
+                                    <th>经验</th>
+                                    <th>学历</th>
+                                    <th>公司</th>
+                                    <th>技术</th>
+                                    <th>项目</th>
+                                    <th>推荐结果</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batchResultBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 详情模态框 -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">候选人详细报告</h3>
+                <span class="modal-close" onclick="closeModal('detailModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="modalScoreCards" style="margin-bottom: 20px;"></div>
+                <div id="modalRecommendation" class="recommendation" style="margin-bottom: 20px;"></div>
+                <div class="report-box" id="modalReportContent" style="max-height: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" id="viewResumeBtn" onclick="viewResumePdf()" style="display:none;">📋 查看原始简历</button>
+                <button class="btn btn-primary" onclick="downloadModalPdf()">📥 下载PDF报告</button>
+                <button class="btn btn-secondary" onclick="downloadModalMarkdown()">📄 下载Markdown</button>
+                <button class="btn btn-secondary" onclick="closeModal('detailModal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 对比模态框 -->
+    <div id="compareModal" class="modal">
+        <div class="modal-content" style="max-width: 1200px;">
+            <div class="modal-header">
+                <h3>📊 候选人对比分析</h3>
+                <span class="modal-close" onclick="closeModal('compareModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="compare-section">
+                    <div class="radar-container">
+                        <h3 style="margin-bottom: 15px;">能力雷达图</h3>
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                    <div class="compare-table-container">
+                        <h3 style="margin-bottom: 15px;">详细对比</h3>
+                        <table class="batch-table" id="compareTable"></table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('compareModal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 重复检测弹窗 -->
+    <div id="duplicateModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>⚠️ 发现已评估的候选人</h3>
+                <span class="modal-close" onclick="handleDuplicateChoice(false)">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="duplicateInfo" style="margin-bottom: 20px;">
+                    <p style="font-size: 15px; color: var(--gray-700); margin-bottom: 16px;">
+                        以下 <strong id="duplicateCount">0</strong> 人已评估过：
+                    </p>
+                    <div id="duplicateList" style="max-height: 200px; overflow-y: auto; background: var(--gray-50); border-radius: 8px; padding: 12px;"></div>
+                </div>
+                <p style="font-size: 14px; color: var(--gray-600); text-align: center; margin-top: 16px;">
+                    是否重新评估这些候选人？
+                </p>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: center; gap: 16px;">
+                <button class="btn btn-primary" onclick="handleDuplicateChoice(true)" style="min-width: 100px;">
+                    ✅ 是，重新评估
+                </button>
+                <button class="btn btn-secondary" onclick="handleDuplicateChoice(false)" style="min-width: 100px;">
+                    ❌ 否，跳过
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === 认证相关 ===
+        function checkAuth() {
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                window.location.href = '/static/login.html';
+                return false;
+            }
+            // 显示用户信息
+            const userInfo = localStorage.getItem('user_info');
+            if (userInfo) {
+                try {
+                    const user = JSON.parse(userInfo);
+                    document.getElementById('userDisplay').textContent = `👤 ${user.username} (${user.corp_code})`;
+                } catch (e) {}
+            }
+            return true;
+        }
+
+        function logout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_info');
+            window.location.href = '/static/login.html';
+        }
+
+        function getAuthHeaders() {
+            const token = localStorage.getItem('auth_token');
+            return token ? { 'Authorization': `Bearer ${token}` } : {};
+        }
+
+        // 封装 fetch，自动添加认证头和处理 401
+        async function authFetch(url, options = {}) {
+            const headers = { ...getAuthHeaders(), ...(options.headers || {}) };
+            const response = await fetch(url, { ...options, headers });
+            if (response.status === 401) {
+                logout();
+                throw new Error('认证已过期，请重新登录');
+            }
+            return response;
+        }
+
+        // 页面加载时检查认证
+        if (!checkAuth()) {
+            throw new Error('未登录');
+        }
+
+        let selectedFile = null;
+        let batchFiles = [];
+        let batchResults = [];
+        let selectedIndices = new Set();
+        let reportMarkdown = '';
+        let candidateName = '';
+        let currentModalData = null;
+        let radarChart = null;
+        let talentRadarChart = null;
+        let gradeChart = null;
+        let statusChart = null;
+        let recommendChart = null;
+        let scoreDistChart = null;
+        let dimensionAvgChart = null;
+        
+        // 重复检测相关变量
+        let pendingDuplicateData = null; // 存储待处理的重复数据
+        let trendChart = null;
+        let talentCompareList = [];  // 人才库对比选择列表
+
+        function switchMode(mode) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('singleMode').classList.toggle('hidden', mode !== 'single');
+            document.getElementById('batchMode').classList.toggle('hidden', mode !== 'batch');
+            document.getElementById('talentMode').classList.toggle('hidden', mode !== 'talent');
+            if (mode === 'talent') { 
+                loadCandidates(); 
+                loadTalentStats(); 
+                loadTalentCharts();
+            } else if (mode === 'batch') {
+                // 进入批量评估模式时隐藏上传、JD 和评估标准面板
+                hideBatchPanels();
+            }
+        }
+
+        // === 单份评估 ===
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                selectedFile = input.files[0];
+                document.getElementById('uploadArea').classList.add('has-file');
+                document.getElementById('uploadText').textContent = '已选择文件：';
+                document.getElementById('fileName').innerHTML = `${selectedFile.name} <span onclick="previewSingleFile(event)" style="color:#1890ff;cursor:pointer;margin-left:10px;">👁 预览</span>`;
+                document.getElementById('fileName').classList.remove('hidden');
+            }
+        }
+        
+        function previewSingleFile(e) {
+            e.stopPropagation();
+            if (selectedFile) {
+                const url = URL.createObjectURL(selectedFile);
+                window.open(url, '_blank');
+            }
+        }
+
+        // 岗位数据缓存
+        let positionsData = [];
+        let selectedPositionId = null;
+
+        // 加载岗位列表
+        async function loadPositions() {
+            try {
+                const res = await authFetch('/api/positions');
+                const data = await res.json();
+                positionsData = data.positions || [];
+                renderPositionSelect();
+            } catch (e) {
+                console.error('加载岗位列表失败:', e);
+            }
+        }
+
+        // 渲染岗位下拉框
+        function renderPositionSelect() {
+            const select = document.getElementById('positionSelect');
+            const emptyTip = document.getElementById('positionEmpty');
+            select.innerHTML = '<option value="">请选择岗位...</option>';
+            
+            if (positionsData.length === 0) {
+                emptyTip.classList.remove('hidden');
+                document.getElementById('jdDisplayPanel').classList.add('hidden');
+            } else {
+                emptyTip.classList.add('hidden');
+                positionsData.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.id;
+                    option.textContent = p.post_name || p.post_id;
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        // 岗位选择变化时显示 JD
+        function onPositionChange() {
+            const select = document.getElementById('positionSelect');
+            const jdPanel = document.getElementById('jdDisplayPanel');
+            const jdDisplay = document.getElementById('jdDisplay');
+            
+            selectedPositionId = select.value;
+            
+            if (!selectedPositionId) {
+                jdPanel.classList.add('hidden');
+                return;
+            }
+            
+            const position = positionsData.find(p => p.id == selectedPositionId);
+            if (position) {
+                let jdText = '';
+                if (position.service_condition) {
+                    jdText = position.service_condition;
+                }
+                if (position.work_content) {
+                    if (jdText) jdText += '\n\n';
+                    jdText += position.work_content;
+                }
+                jdDisplay.textContent = jdText || '暂无职位描述';
+                jdPanel.classList.remove('hidden');
+            }
+        }
+
+        // 同步岗位数据
+        async function syncPositions() {
+            const btn = document.getElementById('syncPositionsBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '⏳ 同步中...';
+            
+            try {
+                const res = await authFetch('/api/positions/sync', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`成功同步 ${data.synced_count} 个岗位`, 'success');
+                    await loadPositions();
+                } else {
+                    showToast('同步失败: ' + (data.error || '未知错误'), 'error');
+                }
+            } catch (e) {
+                showToast('同步失败: ' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        async function startEvaluation() {
+            const errorMsg = document.getElementById('error-msg');
+            errorMsg.textContent = '';
+            
+            if (!selectedFile) { 
+                errorMsg.textContent = '请先上传简历PDF'; 
+                return; 
+            }
+            if (!selectedPositionId) { 
+                errorMsg.textContent = '请选择岗位'; 
+                return; 
+            }
+            
+            document.getElementById('loadingPanel').classList.remove('hidden');
+            document.getElementById('resultPanel').classList.add('hidden');
+            document.getElementById('startBtn').disabled = true;
+            
+            try {
+                const formData = new FormData();
+                formData.append('resume', selectedFile);
+                formData.append('position_id', selectedPositionId);
+                const res = await authFetch('/api/evaluate', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.success) { 
+                    showResult(data); 
+                } else { 
+                    errorMsg.textContent = '评估失败：' + (data.error || data.detail || '未知错误'); 
+                }
+            } catch (e) { 
+                errorMsg.textContent = '请求失败：' + e.message; 
+            } finally {
+                document.getElementById('loadingPanel').classList.add('hidden');
+                document.getElementById('startBtn').disabled = false;
+            }
+        }
+
+        function showResult(data) {
+            candidateName = data.candidate_name;
+            reportMarkdown = data.report_markdown;
+            document.getElementById('candidateName').textContent = '候选人：' + candidateName;
+            document.getElementById('scoreCards').innerHTML = renderScoreCards(data);
+            const recEl = document.getElementById('recommendation');
+            recEl.textContent = '推荐结果：' + data.recommendation;
+            const isNotRecommend = data.recommendation.includes('不建议录用') || data.recommendation.includes('不推荐');
+            const isRecommend = !isNotRecommend && (data.recommendation.includes('推荐录用') || data.recommendation.includes('建议录用'));
+            const isPending = data.recommendation.includes('谨慎考虑') || data.recommendation.includes('待定');
+            recEl.className = 'recommendation ' + (isRecommend ? 'good' : isPending ? 'warn' : 'bad');
+            
+            // 优先使用完整的 Coze 报告
+            let reportContent = '';
+            if (data.coze_report_json) {
+                try {
+                    const cozeReport = JSON.parse(data.coze_report_json);
+                    reportContent = renderCozeReport(cozeReport);
+                } catch (e) {
+                    console.error('解析 Coze 报告失败:', e);
+                    reportContent = data.report_html;
+                }
+            } else {
+                reportContent = data.report_html;
+            }
+            document.getElementById('reportContent').innerHTML = reportContent;
+            document.getElementById('resultPanel').classList.remove('hidden');
+        }
+
+        function downloadMarkdown() {
+            const blob = new Blob([reportMarkdown], { type: 'text/markdown' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = candidateName + '_评估报告.md'; a.click();
+        }
+
+        async function downloadPdf() {
+            const formData = new FormData();
+            formData.append('markdown', reportMarkdown);
+            formData.append('filename', candidateName + '_评估报告');
+            const res = await authFetch('/api/export/pdf', { method: 'POST', body: formData });
+            const blob = await res.blob();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = candidateName + '_评估报告.pdf'; a.click();
+        }
+
+        // === 批量评估 ===
+        function handleBatchFileSelect(input) {
+            for (let file of input.files) {
+                if (!batchFiles.find(f => f.name === file.name)) { batchFiles.push(file); }
+            }
+            renderBatchFileList();
+            if (batchFiles.length > 0) { document.getElementById('batchUploadArea').classList.add('has-file'); }
+            input.value = ''; // 清空以便再次选择
+        }
+
+        function renderBatchFileList() {
+            const list = document.getElementById('batchFileList');
+            list.innerHTML = batchFiles.map((f, i) => `<div class="file-item">
+                <span style="flex:1;overflow:hidden;text-overflow:ellipsis;">${f.name}</span>
+                <span class="preview-btn" onclick="previewUploadedFile(${i})" style="color:#1890ff;cursor:pointer;margin-right:10px;">👁 预览</span>
+                <span class="remove" onclick="removeBatchFile(${i})">✕</span>
+            </div>`).join('');
+        }
+
+        function removeBatchFile(index) {
+            batchFiles.splice(index, 1); renderBatchFileList();
+            if (batchFiles.length === 0) { document.getElementById('batchUploadArea').classList.remove('has-file'); }
+        }
+        
+        function previewUploadedFile(index) {
+            const file = batchFiles[index];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                window.open(url, '_blank');
+            }
+        }
+
+        async function loadBatchJdTemplate() {
+            const res = await authFetch('/api/templates/jd');
+            const data = await res.json();
+            document.getElementById('batchJdContent').value = data.content;
+        }
+
+        async function startBatchEvaluation(forceReevaluate = false, skipDuplicates = false) {
+            const jd = document.getElementById('batchJdContent').value;
+            const errorMsg = document.getElementById('batch-error-msg');
+            errorMsg.textContent = '';
+            // JD 可选，不输入则使用 Python 脚本抓取的职位描述
+            
+            document.getElementById('batchLoadingPanel').classList.remove('hidden');
+            document.getElementById('batchResultPanel').classList.add('hidden');
+            document.getElementById('batchStartBtn').disabled = true;
+        
+            const startTime = Date.now();
+            let totalCount = 0;
+            
+            // 初始化进度条
+            updateBatchProgress(0, 0, 0, startTime);
+            document.getElementById('batchProgressText').textContent = '正在连接招聘系统...';
+            document.getElementById('batchProgressTip').textContent = '💡 提示：正在获取简历列表，请稍候...';
+            
+            // 重置步骤状态
+            ['step-upload', 'step-parse', 'step-analyze', 'step-score', 'step-done'].forEach(id => {
+                document.getElementById(id).classList.remove('active', 'done');
+            });
+            document.getElementById('step-upload').classList.add('active');
+            
+            try {
+                // 使用 fetch + ReadableStream 处理 SSE（因为需要 POST 请求）
+                const formData = new FormData();
+                formData.append('jd', jd);
+                if (forceReevaluate) {
+                    formData.append('force_reevaluate', 'true');
+                }
+                if (skipDuplicates) {
+                    formData.append('skip_duplicates', 'true');
+                }
+                
+                const response = await authFetch('/api/evaluate/batch', { method: 'POST', body: formData });
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                
+                // 当前事件类型（需要在函数外部保持状态）
+                let currentEvent = '';
+                
+                // 处理SSE数据的函数
+                const processSSELines = async (lines) => {
+                    for (const line of lines) {
+                        if (line.startsWith('event: ')) {
+                            currentEvent = line.slice(7).trim();
+                        } else if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                
+                                // 检测重复候选人事件
+                                if (currentEvent === 'duplicates_found' || data.duplicates) {
+                                    console.log('>>> DUPLICATES FOUND <<<', data);
+                                    showDuplicateDialog(data);
+                                    return; // 等待用户选择
+                                }
+                                
+                                // 如果数据包含results数组，说明是complete事件（兼容事件类型丢失的情况）
+                                const eventType = (data.results && Array.isArray(data.results)) ? 'complete' : currentEvent;
+                                console.log('SSE event:', eventType, 'data keys:', Object.keys(data));
+                                handleSSEEvent(eventType, data, startTime);
+                                
+                                if (eventType === 'total') {
+                                    totalCount = data.total;
+                                } else if (eventType === 'complete' || data.results) {
+                                    // 评估完成
+                                    console.log('>>> COMPLETE EVENT DETECTED <<<');
+                                    console.log('Results count:', data.results?.length);
+                                    try {
+                                        updateBatchProgress(totalCount, totalCount, 100, startTime);
+                                        console.log('Progress updated');
+                                        batchResults = data.results || [];
+                                        selectedIndices.clear();
+                                        console.log('>>> Calling showBatchResults NOW <<<');
+                                        showBatchResults(data);
+                                        console.log('>>> showBatchResults DONE <<<');
+                                        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                                        // 显示包含统计信息的提示
+                                        let msg = `成功评估 ${(data.results || []).length} 份简历，用时 ${elapsed} 秒`;
+                                        if (data.new_count > 0 || data.reevaluated_count > 0 || data.skipped_count > 0) {
+                                            msg = `评估完成：新增 ${data.new_count || 0} 人，重新评估 ${data.reevaluated_count || 0} 人，跳过 ${data.skipped_count || 0} 人`;
+                                        }
+                                        showToast(msg, 'success');
+                                    } catch (err) {
+                                        console.error('Error in complete handler:', err);
+                                    }
+                                } else if (eventType === 'error') {
+                                    errorMsg.textContent = '批量评估失败：' + data.error;
+                                }
+                            } catch (parseErr) {
+                                console.error('SSE parse error:', parseErr, 'line:', line);
+                            }
+                        }
+                    }
+                };
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        // 流结束时处理剩余的buffer
+                        if (buffer.trim()) {
+                            const remainingLines = buffer.split('\n');
+                            await processSSELines(remainingLines);
+                        }
+                        break;
+                    }
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop(); // 保留不完整的行
+                    await processSSELines(lines);
+                }
+            } catch (e) { 
+                console.error('Batch evaluation error:', e);
+                errorMsg.textContent = '请求失败：' + e.message; 
+            } finally {
+                // 只有在没有显示重复弹窗时才隐藏加载面板
+                if (!document.getElementById('duplicateModal').classList.contains('show')) {
+                    document.getElementById('batchLoadingPanel').classList.add('hidden');
+                    document.getElementById('batchStartBtn').disabled = false;
+                }
+                
+                // 如果有结果但还没显示，在这里再次尝试显示
+                console.log('Finally block - batchResults length:', batchResults.length);
+                if (batchResults.length > 0) {
+                    const panel = document.getElementById('batchResultPanel');
+                    if (panel && panel.classList.contains('hidden')) {
+                        console.log('Forcing showBatchResults in finally block');
+                        showBatchResults({ results: batchResults });
+                    }
+                }
+            }
+        }
+        
+        // 显示重复检测弹窗
+        function showDuplicateDialog(data) {
+            pendingDuplicateData = data;
+            
+            // 更新重复数量
+            document.getElementById('duplicateCount').textContent = data.duplicate_count;
+            
+            // 构建重复候选人列表
+            const listEl = document.getElementById('duplicateList');
+            const duplicates = data.duplicates || [];
+            const maxShow = 5;
+            
+            let html = '';
+            duplicates.slice(0, maxShow).forEach(dup => {
+                html += `
+                    <div style="padding: 8px 12px; background: white; border-radius: 6px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 500; color: var(--gray-800);">👤 ${dup.name}</span>
+                        <span style="font-size: 12px; color: var(--gray-500);">评估于 ${dup.evaluated_at}</span>
+                    </div>
+                `;
+            });
+            
+            if (duplicates.length > maxShow) {
+                html += `<div style="text-align: center; color: var(--gray-500); font-size: 13px; padding: 8px;">等 ${duplicates.length - maxShow} 人...</div>`;
+            }
+            
+            listEl.innerHTML = html;
+            
+            // 隐藏加载面板，显示弹窗
+            document.getElementById('batchLoadingPanel').classList.add('hidden');
+            document.getElementById('duplicateModal').classList.add('show');
+        }
+        
+        // 处理用户选择
+        function handleDuplicateChoice(reevaluate) {
+            // 关闭弹窗
+            document.getElementById('duplicateModal').classList.remove('show');
+            
+            if (reevaluate) {
+                // 用户选择重新评估，带 force_reevaluate=true 重新调用
+                showToast('正在重新评估所有候选人...', 'info');
+                startBatchEvaluation(true, false);
+            } else {
+                // 用户选择跳过，带 skip_duplicates=true 重新调用（只评估新候选人）
+                const newCount = pendingDuplicateData?.new_count || 0;
+                if (newCount > 0) {
+                    showToast(`跳过已评估候选人，正在评估 ${newCount} 位新候选人...`, 'info');
+                    startBatchEvaluation(false, true);
+                } else {
+                    showToast('所有候选人均已评估，无需重复操作', 'info');
+                    document.getElementById('batchStartBtn').disabled = false;
+                }
+            }
+            
+            pendingDuplicateData = null;
+        }
+        
+        function handleSSEEvent(event, data, startTime) {
+            switch (event) {
+                case 'status':
+                    document.getElementById('batchProgressText').textContent = data.message;
+                    if (data.stage === 'fetching') {
+                        document.getElementById('step-upload').classList.add('active');
+                    } else if (data.stage === 'checking') {
+                        document.getElementById('step-upload').classList.remove('active');
+                        document.getElementById('step-upload').classList.add('done');
+                    } else if (data.stage === 'evaluating') {
+                        document.getElementById('step-upload').classList.remove('active');
+                        document.getElementById('step-upload').classList.add('done');
+                        document.getElementById('step-parse').classList.add('active');
+                    }
+                    break;
+                case 'total':
+                    let totalMsg = `正在评估 ${data.total} 份简历`;
+                    if (data.skipped > 0) {
+                        totalMsg += `（跳过 ${data.skipped} 位已评估）`;
+                    }
+                    document.getElementById('batchProgressText').textContent = totalMsg;
+                    document.getElementById('batchProgressTip').textContent = '💡 提示：每份简历约需8-15秒处理时间';
+                    break;
+                case 'progress':
+                    updateBatchProgress(data.completed, data.total, data.percent, startTime);
+                    let progressMsg = `正在评估: ${data.current} (${data.completed}/${data.total})`;
+                    if (data.result_type === 'reevaluated') {
+                        progressMsg += ' 🔄';
+                    }
+                    document.getElementById('batchProgressText').textContent = progressMsg;
+                    break;
+            }
+        }
+        
+        function updateBatchProgress(completed, total, percent, startTime) {
+            document.getElementById('batchProgressFill').style.width = percent + '%';
+            document.getElementById('batchProgressPercent').textContent = `${Math.round(percent)}%`;
+            document.getElementById('batchProgressCurrent').textContent = `已完成: ${completed}`;
+            document.getElementById('batchProgressTotal').textContent = `总计: ${total}`;
+            
+            // 更新步骤状态
+            const steps = ['step-upload', 'step-parse', 'step-analyze', 'step-score', 'step-done'];
+            let currentStep = 0;
+            if (percent >= 10) currentStep = 1;  // 解析
+            if (percent >= 30) currentStep = 2;  // AI分析
+            if (percent >= 80) currentStep = 3;  // 评分
+            if (percent >= 100) currentStep = 4; // 完成
+            
+            steps.forEach((stepId, idx) => {
+                const el = document.getElementById(stepId);
+                el.classList.remove('active', 'done');
+                if (idx < currentStep) el.classList.add('done');
+                else if (idx === currentStep) el.classList.add('active');
+            });
+            
+            // 估算剩余时间
+            if (startTime && percent > 5 && percent < 100) {
+                const elapsed = (Date.now() - startTime) / 1000;
+                const totalEstimate = elapsed / (percent / 100);
+                const remaining = Math.ceil(totalEstimate - elapsed);
+                if (remaining > 60) {
+                    document.getElementById('batchProgressTime').textContent = `预计剩余: ${Math.ceil(remaining/60)}分${remaining%60}秒`;
+                } else {
+                    document.getElementById('batchProgressTime').textContent = `预计剩余: ${remaining}秒`;
+                }
+            } else if (percent >= 100) {
+                document.getElementById('batchProgressTime').textContent = `✅ 已完成!`;
+                document.getElementById('batchProgressTip').textContent = '🎉 所有简历评估完成！';
+            } else {
+                document.getElementById('batchProgressTime').textContent = `预计剩余: 计算中...`;
+            }
+            
+            // 更新提示文字
+            const tips = [
+                '💡 提示：每份简历约需8-15秒处理时间',
+                '🔍 正在提取简历文本内容...',
+                '🤖 AI正在深度分析候选人能力...',
+                '📊 正在计算各维度评分...',
+                '🎉 所有简历评估完成！'
+            ];
+            if (percent < 100) {
+                document.getElementById('batchProgressTip').textContent = tips[currentStep];
+            }
+        }
+
+        function showBatchResults(data) {
+            console.log('=== showBatchResults START ===');
+            console.log('Data received:', data);
+            console.log('Results count:', data?.results?.length);
+            
+            if (!data || !data.results || data.results.length === 0) {
+                console.error('No results to display');
+                document.getElementById('batch-error-msg').textContent = '没有评估结果';
+                return;
+            }
+            
+            console.log('Processing results...');
+            const total = data.results.length;
+            // 判断推荐类型的辅助函数
+            const isRecommended = (rec) => {
+                if (!rec) return false;
+                if (rec.includes('不推荐') || rec.includes('不建议')) return false;
+                return rec.includes('推荐') || rec.includes('建议录用');
+            };
+            const isPendingRec = (rec) => {
+                if (!rec) return false;
+                return rec.includes('谨慎考虑') || rec.includes('待定');
+            };
+            const isRejected = (rec) => {
+                if (!rec) return false;
+                return rec.includes('不推荐') || rec.includes('不建议');
+            };
+            // 统计各类数量
+            const recommended = data.results.filter(r => isRecommended(r.recommendation)).length;
+            const pending = data.results.filter(r => isPendingRec(r.recommendation)).length;
+            const rejected = data.results.filter(r => isRejected(r.recommendation)).length;
+            const avgScore = (data.results.reduce((sum, r) => sum + (r.total_score || 0), 0) / total).toFixed(1);
+
+            document.getElementById('statsBar').innerHTML = `
+                <div class="stat-item"><div class="stat-value">${total}</div><div class="stat-label">总人数</div></div>
+                <div class="stat-item"><div class="stat-value" style="color:#52c41a">${recommended}</div><div class="stat-label">推荐</div></div>
+                <div class="stat-item"><div class="stat-value" style="color:#faad14">${pending}</div><div class="stat-label">待定</div></div>
+                <div class="stat-item"><div class="stat-value" style="color:#ff4d4f">${rejected}</div><div class="stat-label">不推荐</div></div>
+                <div class="stat-item"><div class="stat-value">${avgScore}</div><div class="stat-label">平均分</div></div>
+            `;
+
+            const tbody = document.getElementById('batchResultBody');
+            tbody.innerHTML = data.results.map((r, idx) => {
+                // 判断推荐类型
+                const rec = r.recommendation || '';
+                let recClass = isRecommended(rec) ? 'rec-good' : isPendingRec(rec) ? 'rec-warn' : 'rec-bad';
+                return `<tr class="${recClass}" id="row-${idx}">
+                    <td class="checkbox-cell"><input type="checkbox" onchange="toggleSelect(${idx}, this)"></td>
+                    <td>${r.rank || '-'}</td>
+                    <td>${r.candidate_name || '-'}</td>
+                    <td><strong>${r.total_score || 0}</strong></td>
+                    <td class="grade-${r.grade || 'E'}">${r.grade || '-'}</td>
+                    <td>${r.jd_match || 0}</td>
+                    <td>${r.age_score || 0}</td>
+                    <td>${r.experience_score || 0}</td>
+                    <td>${r.education_score || 0}</td>
+                    <td>${r.company_score || 0}</td>
+                    <td>${r.tech_score || 0}</td>
+                    <td>${r.project_score || 0}</td>
+                    <td>${r.recommendation || '-'}</td>
+                    <td><button class="btn btn-primary btn-small" onclick="showDetail(${idx})">详情</button></td>
+                </tr>`;
+            }).join('');
+            console.log('Removing hidden class from batchResultPanel...');
+            const panel = document.getElementById('batchResultPanel');
+            console.log('Panel element:', panel);
+            console.log('Panel classList before:', panel?.classList?.toString());
+            panel.classList.remove('hidden');
+            console.log('Panel classList after:', panel?.classList?.toString());
+            updateSelectedCount();
+            console.log('=== showBatchResults END ===');
+        }
+
+        // === 选择与对比 ===
+        function toggleSelect(idx, checkbox) {
+            if (checkbox.checked) { selectedIndices.add(idx); }
+            else { selectedIndices.delete(idx); }
+            document.getElementById('row-' + idx).classList.toggle('selected', checkbox.checked);
+            updateSelectedCount();
+        }
+
+        function toggleSelectAll(checkbox) {
+            const checkboxes = document.querySelectorAll('#batchResultBody input[type="checkbox"]');
+            checkboxes.forEach((cb, idx) => {
+                cb.checked = checkbox.checked;
+                if (checkbox.checked) { selectedIndices.add(idx); }
+                else { selectedIndices.delete(idx); }
+                document.getElementById('row-' + idx).classList.toggle('selected', checkbox.checked);
+            });
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const count = selectedIndices.size;
+            document.getElementById('selectedCount').textContent = `已选: ${count}人`;
+            document.getElementById('compareBtn').disabled = count < 2;
+        }
+
+        function showCompareModal() {
+            if (selectedIndices.size < 2) { alert('请至少选择2个候选人进行对比'); return; }
+            const selected = Array.from(selectedIndices).map(i => batchResults[i]);
+            renderCompareTable(selected);
+            renderRadarChart(selected);
+            document.getElementById('compareModal').classList.add('show');
+        }
+
+        function renderCompareTable(candidates) {
+            const dimensions = [
+                { key: 'total_score', label: '总分', max: 100 },
+                { key: 'jd_match', label: 'JD匹配', max: 100 },
+                { key: 'age_score', label: '年龄', max: 10 },
+                { key: 'experience_score', label: '经验', max: 25 },
+                { key: 'education_score', label: '学历', max: 20 },
+                { key: 'company_score', label: '公司', max: 15 },
+                { key: 'tech_score', label: '技术', max: 25 },
+                { key: 'project_score', label: '项目', max: 15 },
+            ];
+
+            let html = '<thead><tr><th>维度</th>';
+            candidates.forEach(c => { html += `<th>${c.candidate_name}</th>`; });
+            html += '</tr></thead><tbody>';
+
+            dimensions.forEach(d => {
+                html += `<tr><td>${d.label}</td>`;
+                const values = candidates.map(c => c[d.key] || 0);
+                const maxVal = Math.max(...values);
+                candidates.forEach(c => {
+                    const val = c[d.key] || 0;
+                    const isMax = val === maxVal && maxVal > 0;
+                    html += `<td style="${isMax ? 'color:#52c41a;font-weight:bold;' : ''}">${val}/${d.max}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '<tr><td>推荐结果</td>';
+            candidates.forEach(c => { html += `<td>${c.recommendation}</td>`; });
+            html += '</tr></tbody>';
+
+            document.getElementById('compareTable').innerHTML = html;
+        }
+
+        function renderRadarChart(candidates) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            if (radarChart) { radarChart.destroy(); }
+
+            const labels = ['年龄(10)', '经验(25)', '学历(20)', '公司(15)', '技术(25)', '项目(15)'];
+            const colors = ['#667eea', '#52c41a', '#faad14', '#ff4d4f', '#1890ff', '#722ed1'];
+
+            const datasets = candidates.map((c, i) => ({
+                label: c.candidate_name,
+                data: [
+                    (c.age_score || 0) / 10 * 100,
+                    (c.experience_score || 0) / 25 * 100,
+                    (c.education_score || 0) / 20 * 100,
+                    (c.company_score || 0) / 15 * 100,
+                    (c.tech_score || 0) / 25 * 100,
+                    (c.project_score || 0) / 15 * 100,
+                ],
+                borderColor: colors[i % colors.length],
+                backgroundColor: colors[i % colors.length] + '33',
+                borderWidth: 2,
+                pointRadius: 4,
+            }));
+
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: { labels, datasets },
+                options: {
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { stepSize: 20 }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        // === 详情模态框 ===
+        function showDetail(index) {
+            const r = batchResults[index];
+            currentModalData = r;
+            document.getElementById('modalTitle').textContent = r.candidate_name + ' - 详细评估报告';
+            document.getElementById('modalScoreCards').innerHTML = renderScoreCards(r);
+            const recEl = document.getElementById('modalRecommendation');
+            recEl.textContent = '推荐结果：' + r.recommendation;
+            const isNotRecommend = r.recommendation.includes('不建议录用') || r.recommendation.includes('不推荐');
+            const isRecommend = !isNotRecommend && (r.recommendation.includes('推荐录用') || r.recommendation.includes('建议录用'));
+            const isPending = r.recommendation.includes('谨慎考虑') || r.recommendation.includes('待定');
+            recEl.className = 'recommendation ' + (isRecommend ? 'good' : isPending ? 'warn' : 'bad');
+            
+            // 渲染完整的 Coze 报告
+            let reportContent = '';
+            console.log('coze_report_json:', r.coze_report_json ? '有数据' : '无数据', r.coze_report_json?.substring(0, 100));
+            if (r.coze_report_json) {
+                try {
+                    const cozeReport = JSON.parse(r.coze_report_json);
+                    console.log('解析成功:', Object.keys(cozeReport));
+                    reportContent = renderCozeReport(cozeReport);
+                } catch (e) {
+                    console.error('解析失败:', e);
+                    reportContent = r.report_html || '<p>暂无详细报告</p>';
+                }
+            } else {
+                console.log('使用旧报告');
+                reportContent = r.report_html || '<p>暂无详细报告</p>';
+            }
+            document.getElementById('modalReportContent').innerHTML = reportContent;
+            
+            // 显示简历预览按钮
+            const resumeBtn = document.getElementById('viewResumeBtn');
+            if (resumeBtn && r.candidate_id) {
+                resumeBtn.style.display = 'inline-block';
+            }
+            document.getElementById('detailModal').classList.add('show');
+            // 初始化分数卡片 tooltip
+            setTimeout(initScoreCardTooltips, 100);
+        }
+        
+        // 获取分数档位说明
+        function getScoreGrade(score, maxScore) {
+            const percent = (score / maxScore) * 100;
+            if (percent >= 90) return '优秀';
+            if (percent >= 70) return '良好';
+            if (percent >= 50) return '一般';
+            if (percent > 0) return '较差';
+            return '不达标';
+        }
+        
+        // 生成带tooltip的分数卡片HTML
+        function renderScoreCard(score, label, reason, maxScore = 10) {
+            const grade = getScoreGrade(score, maxScore);
+            const reasonId = 'tooltip_' + label + '_' + Date.now() + Math.random().toString(36).substr(2, 5);
+            const tooltipAttr = reason ? `data-tooltip-id="${reasonId}" data-tooltip-grade="${grade}" data-tooltip-score="${score}" data-tooltip-max="${maxScore}" data-tooltip-reason="${encodeURIComponent(reason)}"` : '';
+            return `<div class="result-card score-card-with-tooltip" ${tooltipAttr}><div class="result-value">${score}分</div><div class="result-label">${label}</div></div>`;
+        }
+        
+        // 初始化分数卡片 tooltip 事件
+        function initScoreCardTooltips() {
+            // 移除旧的全局 tooltip
+            const oldTooltip = document.getElementById('globalScoreTooltip');
+            if (oldTooltip) oldTooltip.remove();
+            
+            // 创建全局 tooltip 元素
+            const tooltip = document.createElement('div');
+            tooltip.id = 'globalScoreTooltip';
+            tooltip.className = 'global-score-tooltip';
+            tooltip.style.display = 'none';
+            document.body.appendChild(tooltip);
+            
+            // 为所有分数卡片添加事件
+            document.querySelectorAll('.score-card-with-tooltip[data-tooltip-reason]').forEach(card => {
+                card.addEventListener('mouseenter', function(e) {
+                    const grade = this.dataset.tooltipGrade;
+                    const score = this.dataset.tooltipScore;
+                    const maxScore = this.dataset.tooltipMax;
+                    const reason = decodeURIComponent(this.dataset.tooltipReason);
+                    
+                    if (!reason) return;
+                    
+                    tooltip.innerHTML = `
+                        <div class="tooltip-grade">档位：${grade}（${score}/${maxScore}分）</div>
+                        <div class="tooltip-reason">${reason}</div>
+                    `;
+                    tooltip.style.display = 'block';
+                    
+                    // 计算位置
+                    const rect = this.getBoundingClientRect();
+                    const tooltipRect = tooltip.getBoundingClientRect();
+                    
+                    let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+                    let top = rect.bottom + 10;
+                    
+                    // 确保不超出屏幕
+                    if (left < 10) left = 10;
+                    if (left + tooltipRect.width > window.innerWidth - 10) {
+                        left = window.innerWidth - tooltipRect.width - 10;
+                    }
+                    if (top + tooltipRect.height > window.innerHeight - 10) {
+                        top = rect.top - tooltipRect.height - 10;
+                    }
+                    
+                    tooltip.style.left = left + 'px';
+                    tooltip.style.top = top + 'px';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    tooltip.style.display = 'none';
+                });
+            });
+        }
+        
+        // 生成分数卡片组（用于详情弹窗）
+        function renderScoreCards(data, isFromCoze = false) {
+            // 尝试从coze_report_json获取详细说明
+            let reasons = {
+                age: '', experience: '', education: '', company: '', tech: '', project: ''
+            };
+            
+            const cozeJson = data.coze_report_json;
+            if (cozeJson) {
+                try {
+                    const cozeReport = JSON.parse(cozeJson);
+                    const scores = cozeReport['各维度得分'] || {};
+                    reasons.age = scores['年龄']?.['说明'] || '';
+                    reasons.experience = scores['工作经验']?.['说明'] || '';
+                    reasons.education = scores['学历背景']?.['说明'] || '';
+                    reasons.company = scores['公司背景']?.['说明'] || '';
+                    reasons.tech = scores['技术能力']?.['说明'] || '';
+                    reasons.project = scores['项目经历']?.['说明'] || '';
+                } catch (e) {}
+            }
+            
+            const totalScore = data.total_score ?? data.score?.total ?? 0;
+            const grade = data.grade ?? data.score?.grade ?? '-';
+            const ageScore = data.age_score ?? data.score?.age ?? 0;
+            const expScore = data.experience_score ?? data.score?.experience ?? 0;
+            const eduScore = data.education_score ?? data.score?.education ?? 0;
+            const compScore = data.company_score ?? data.score?.company ?? 0;
+            const techScore = data.tech_score ?? data.score?.tech ?? 0;
+            const projScore = data.project_score ?? data.score?.project ?? 0;
+            
+            return `
+                <div class="result-card total"><div class="result-value">${totalScore}</div><div class="result-label">综合评分 (${grade}级)</div></div>
+                ${renderScoreCard(ageScore, '年龄', reasons.age, 10)}
+                ${renderScoreCard(expScore, '工作经验', reasons.experience, 10)}
+                ${renderScoreCard(eduScore, '学历背景', reasons.education, 10)}
+                ${renderScoreCard(compScore, '公司背景', reasons.company, 10)}
+                ${renderScoreCard(techScore, '技术能力', reasons.tech, 10)}
+                ${renderScoreCard(projScore, '项目含金量', reasons.project, 10)}
+            `;
+        }
+        
+        // 渲染完整的 Coze 报告
+        function renderCozeReport(report) {
+            let html = '';
+            
+            // 基本信息
+            if (report['基本信息']) {
+                const info = report['基本信息'];
+                html += `<h2>📋 基本信息</h2>
+                <table class="report-table">
+                    <tr><td><strong>姓名</strong></td><td>${info['姓名'] || '-'}</td></tr>
+                    <tr><td><strong>学历</strong></td><td>${info['学历'] || '-'}</td></tr>
+                    <tr><td><strong>学校</strong></td><td>${info['学校'] || '-'}</td></tr>
+                    <tr><td><strong>工作经验</strong></td><td style="white-space: pre-wrap;">${info['工作经验'] || '-'}</td></tr>
+                    <tr><td><strong>最终得分</strong></td><td><strong style="color: var(--primary); font-size: 18px;">${info['最终得分'] || '-'}</strong></td></tr>
+                    <tr><td><strong>评级</strong></td><td><span class="grade-${(info['评级'] || '').replace('级', '')}">${info['评级'] || '-'}</span></td></tr>
+                </table>`;
+            }
+            
+            // JD匹配度
+            if (report['JD匹配度']) {
+                const jd = report['JD匹配度'];
+                html += `<h2>🎯 JD匹配度分析</h2>
+                <div style="background: var(--gray-50); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                    <div style="font-size: 24px; font-weight: bold; color: var(--primary); margin-bottom: 8px;">匹配分数: ${jd['匹配分数'] || 0}/100</div>
+                    <p style="color: var(--gray-600);">${jd['匹配总结'] || ''}</p>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <h4 style="color: var(--success); margin-bottom: 8px;">✅ 匹配的技能</h4>
+                        <ul style="margin: 0; padding-left: 20px;">
+                            ${(jd['匹配的技能'] || []).map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--danger); margin-bottom: 8px;">❌ 缺失的技能</h4>
+                        <ul style="margin: 0; padding-left: 20px;">
+                            ${(jd['缺失的技能'] || []).map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>`;
+            }
+            
+            // 各维度得分
+            if (report['各维度得分']) {
+                const dims = report['各维度得分'];
+                html += `<h2>📊 各维度得分详情</h2><table class="report-table">
+                    <tr><th>维度</th><th>得分</th><th>说明</th></tr>`;
+                const dimOrder = ['年龄', '工作经验', '学历背景', '公司背景', '技术能力', '项目经历'];
+                for (const key of dimOrder) {
+                    const dim = dims[key];
+                    if (dim) {
+                        html += `<tr>
+                            <td><strong>${key}</strong></td>
+                            <td><strong>${dim['得分']}分</strong></td>
+                            <td>${dim['说明'] || '-'}</td>
+                        </tr>`;
+                    }
+                }
+                html += '</table>';
+            }
+            
+            // 综合评价
+            if (report['综合评价']) {
+                const eval_ = report['综合评价'];
+                html += `<h2>💡 综合评价</h2>`;
+                if (eval_['核心优势'] && eval_['核心优势'].length > 0) {
+                    html += `<h4 style="color: var(--success); margin-bottom: 8px;">🌟 核心优势</h4>
+                    <ul style="margin: 0 0 16px 0; padding-left: 24px; color: var(--gray-700);">`;
+                    eval_['核心优势'].forEach(item => { html += `<li style="margin-bottom: 6px; line-height: 1.5;">${item}</li>`; });
+                    html += '</ul>';
+                }
+                if (eval_['待提升项'] && eval_['待提升项'].length > 0) {
+                    html += `<h4 style="color: var(--warning); margin-bottom: 8px;">📈 待提升项</h4>
+                    <ul style="margin: 0 0 16px 0; padding-left: 24px; color: var(--gray-700);">`;
+                    eval_['待提升项'].forEach(item => { html += `<li style="margin-bottom: 6px; line-height: 1.5;">${item}</li>`; });
+                    html += '</ul>';
+                }
+                if (eval_['风险提示'] && eval_['风险提示'].length > 0 && eval_['风险提示'][0] !== '无明显风险') {
+                    html += `<h4 style="color: var(--danger); margin-bottom: 8px;">⚠️ 风险提示</h4>
+                    <ul style="margin: 0 0 16px 0; padding-left: 24px; color: var(--gray-700);">`;
+                    eval_['风险提示'].forEach(item => { html += `<li style="margin-bottom: 6px; line-height: 1.5;">${item}</li>`; });
+                    html += '</ul>';
+                }
+            }
+            
+            // 录用建议
+            if (report['录用建议']) {
+                const rec = report['录用建议'];
+                const isGood = rec['结论']?.includes('建议录用') || rec['结论']?.includes('推荐录用');
+                html += `<h2>📌 录用建议</h2>
+                <div style="background: ${isGood ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)'}; padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                    <div style="font-size: 20px; font-weight: bold; color: ${isGood ? 'var(--success)' : 'var(--warning)'}; margin-bottom: 8px;">${rec['结论'] || '-'}</div>
+                    <p>${rec['结论理由'] || ''}</p>
+                </div>
+                <p><strong>💰 薪资建议：</strong>${rec['薪资建议'] || '-'}</p>
+                <p><strong>🎯 适合岗位：</strong>${rec['适合岗位'] || '-'}</p>`;
+                if (rec['面试重点'] && rec['面试重点'].length > 0) {
+                    html += `<h4 style="margin-top: 16px; margin-bottom: 8px;">🔍 面试重点</h4>
+                    <ol style="margin: 0; padding-left: 24px; color: var(--gray-700);">`;
+                    rec['面试重点'].forEach(item => { 
+                        html += `<li style="margin-bottom: 6px; line-height: 1.5;">${item}</li>`; 
+                    });
+                    html += '</ol>';
+                }
+                
+                // 面试题目
+                if (rec['面试题目'] && rec['面试题目'].length > 0) {
+                    html += `<h2>📝 定制面试题目</h2>`;
+                    rec['面试题目'].forEach((q, idx) => {
+                        html += `
+                        <div style="background: var(--gray-50); border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid var(--primary);">
+                            <div style="font-weight: 600; color: var(--gray-800); margin-bottom: 8px;">
+                                <span style="background: var(--primary); color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 8px;">Q${idx + 1}</span>
+                                ${q['题目'] || q.question || ''}
+                            </div>
+                            <div style="font-size: 13px; color: var(--gray-600); margin-bottom: 8px;">
+                                <strong>🎯 考察点：</strong>${q['考察点'] || q.focus || '-'}
+                            </div>
+                            ${q['参考答案要点'] || q.key_points ? `
+                            <div style="font-size: 13px; margin-bottom: 8px;">
+                                <strong>✅ 参考答案要点：</strong>
+                                <ul style="margin: 4px 0 0 20px; color: var(--gray-600);">
+                                    ${(q['参考答案要点'] || q.key_points || []).map(p => `<li>${p}</li>`).join('')}
+                                </ul>
+                            </div>` : ''}
+                            ${q['评分标准'] || q.scoring ? `
+                            <div style="font-size: 12px; background: white; border-radius: 8px; padding: 10px; margin-top: 8px;">
+                                <strong>📊 评分标准：</strong>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 6px;">
+                                    <div><span style="color: var(--success);">●优秀：</span>${(q['评分标准'] || q.scoring)['优秀'] || '-'}</div>
+                                    <div><span style="color: #3b82f6;">●良好：</span>${(q['评分标准'] || q.scoring)['良好'] || '-'}</div>
+                                    <div><span style="color: var(--warning);">●一般：</span>${(q['评分标准'] || q.scoring)['一般'] || '-'}</div>
+                                    <div><span style="color: var(--danger);">●不合格：</span>${(q['评分标准'] || q.scoring)['不合格'] || '-'}</div>
+                                </div>
+                            </div>` : ''}
+                        </div>`;
+                    });
+                }
+            }
+            
+            return html || '<p>暂无详细报告</p>';
+        }
+
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+        function downloadModalMarkdown() {
+            if (!currentModalData) return;
+            const blob = new Blob([currentModalData.report_markdown || ''], { type: 'text/markdown' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = currentModalData.candidate_name + '_评估报告.md'; a.click();
+        }
+
+        async function downloadModalPdf() {
+            if (!currentModalData) return;
+            const formData = new FormData();
+            formData.append('markdown', currentModalData.report_markdown || '');
+            formData.append('filename', currentModalData.candidate_name + '_评估报告');
+            const res = await authFetch('/api/export/pdf', { method: 'POST', body: formData });
+            const blob = await res.blob();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = currentModalData.candidate_name + '_评估报告.pdf'; a.click();
+        }
+
+        async function exportExcel() {
+            const formData = new FormData();
+            formData.append('data', JSON.stringify(batchResults));
+            const res = await authFetch('/api/export/excel', { method: 'POST', body: formData });
+            const blob = await res.blob();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = '简历评估汇总.xlsx'; a.click();
+        }
+
+        window.onclick = function (e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('show');
+            }
+        }
+
+        // === 人才库功能 ===
+        let talentList = [];
+
+        async function loadTalentStats() {
+            try {
+                const res = await authFetch('/api/candidates/stats/summary');
+                const data = await res.json();
+                document.getElementById('talentStatsBar').innerHTML = `
+                    <div class="stat-item"><div class="stat-value">${data.total}</div><div class="stat-label">总人数</div></div>
+                    <div class="stat-item"><div class="stat-value" style="color:#1890ff">${data.pending}</div><div class="stat-label">待面试</div></div>
+                    <div class="stat-item"><div class="stat-value" style="color:#faad14">${data.interviewed}</div><div class="stat-label">已面试</div></div>
+                    <div class="stat-item"><div class="stat-value" style="color:#52c41a">${data.hired}</div><div class="stat-label">已录用</div></div>
+                    <div class="stat-item"><div class="stat-value" style="color:#ff4d4f">${data.rejected}</div><div class="stat-label">淘汰</div></div>
+                `;
+            } catch (e) { console.error('加载统计失败', e); }
+        }
+        
+        // === 人才库统计图表 ===
+        async function loadTalentCharts() {
+            try {
+                const res = await authFetch('/api/candidates/stats/charts');
+                const data = await res.json();
+                
+                // 更新快速统计
+                document.getElementById('statTotal').textContent = data.total;
+                document.getElementById('statRecommend').textContent = data.recommend_distribution['推荐'] || 0;
+                document.getElementById('statGradeA').textContent = data.grade_distribution.A || 0;
+                document.getElementById('statPending').textContent = data.status_distribution['待面试'] || 0;
+                document.getElementById('statHired').textContent = data.status_distribution['已录用'] || 0;
+                
+                // 计算平均分
+                if (data.total > 0) {
+                    const avgScore = (
+                        (data.dimension_average.age / 10 + 
+                         data.dimension_average.experience / 25 + 
+                         data.dimension_average.education / 20 + 
+                         data.dimension_average.company / 15 + 
+                         data.dimension_average.tech / 25 + 
+                         data.dimension_average.project / 15) / 6 * 100
+                    ).toFixed(0);
+                    document.getElementById('statAvgScore').textContent = avgScore;
+                }
+                
+                if (data.total === 0) {
+                    document.getElementById('talentChartsGrid').style.display = 'none';
+                    document.getElementById('talentQuickStats').style.display = 'none';
+                    return;
+                }
+                document.getElementById('talentChartsGrid').style.display = 'grid';
+                document.getElementById('talentQuickStats').style.display = 'flex';
+                
+                // 评级分布饼图
+                renderGradeChart(data.grade_distribution);
+                // 状态统计柱状图
+                renderStatusChart(data.status_distribution);
+                // 推荐结果分布
+                renderRecommendChart(data.recommend_distribution);
+                // 分数分布直方图
+                renderScoreDistChart(data.score_distribution);
+                // 各维度平均分雷达图
+                renderDimensionAvgChart(data.dimension_average);
+                // 入库趋势折线图
+                renderTrendChart(data.date_stats);
+            } catch (e) { console.error('加载图表失败', e); }
+        }
+        
+        function renderGradeChart(grades) {
+            const ctx = document.getElementById('gradeChart').getContext('2d');
+            if (gradeChart) gradeChart.destroy();
+            
+            const gradeKeys = ['A', 'B', 'C', 'D', 'E'];
+            gradeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['A级 (优秀)', 'B级 (良好)', 'C级 (一般)', 'D级 (较差)', 'E级 (不合格)'],
+                    datasets: [{
+                        data: [grades.A, grades.B, grades.C, grades.D, grades.E],
+                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#f97316', '#ef4444'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const idx = elements[0].index;
+                            const grade = gradeKeys[idx];
+                            showChartFilterResult('grade', grade, `${grade}级候选人`);
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, padding: 8, font: { size: 11 } } },
+                        tooltip: { callbacks: { footer: () => '点击查看详情' } }
+                    }
+                }
+            });
+        }
+        
+        function renderStatusChart(statuses) {
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            if (statusChart) statusChart.destroy();
+            
+            const statusKeys = Object.keys(statuses);
+            statusChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: statusKeys,
+                    datasets: [{
+                        label: '人数',
+                        data: Object.values(statuses),
+                        backgroundColor: ['#6366f1', '#f59e0b', '#10b981', '#ef4444'],
+                        borderRadius: 8,
+                        barThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const idx = elements[0].index;
+                            const status = statusKeys[idx];
+                            showChartFilterResult('status', status, `${status}候选人`);
+                        }
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { callbacks: { footer: () => '点击查看详情' } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+        }
+        
+        function renderRecommendChart(recommend) {
+            const ctx = document.getElementById('recommendChart').getContext('2d');
+            if (recommendChart) recommendChart.destroy();
+            
+            const recKeys = ['推荐', '待定', '不推荐'];
+            recommendChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: recKeys,
+                    datasets: [{
+                        data: [recommend['推荐'], recommend['待定'], recommend['不推荐']],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const idx = elements[0].index;
+                            const rec = recKeys[idx];
+                            showChartFilterResult('recommend', rec, `${rec}候选人`);
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, padding: 8, font: { size: 11 } } },
+                        tooltip: { callbacks: { footer: () => '点击查看详情' } }
+                    }
+                }
+            });
+        }
+        
+        function renderScoreDistChart(ranges) {
+            const ctx = document.getElementById('scoreDistChart').getContext('2d');
+            if (scoreDistChart) scoreDistChart.destroy();
+            
+            const rangeKeys = Object.keys(ranges);
+            scoreDistChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: rangeKeys,
+                    datasets: [{
+                        label: '人数',
+                        data: Object.values(ranges),
+                        backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                        borderColor: '#6366f1',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        barThickness: 35
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const idx = elements[0].index;
+                            const range = rangeKeys[idx];
+                            showChartFilterResult('score', range, `${range}分候选人`);
+                        }
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { callbacks: { footer: () => '点击查看详情' } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                        x: { title: { display: true, text: '分数区间' } }
+                    }
+                }
+            });
+        }
+        
+        function renderDimensionAvgChart(avgData) {
+            const ctx = document.getElementById('dimensionAvgChart').getContext('2d');
+            if (dimensionAvgChart) dimensionAvgChart.destroy();
+            
+            // 转换为百分比
+            const labels = ['年龄', '经验', '学历', '公司', '技术', '项目'];
+            const maxScores = [10, 25, 20, 15, 25, 15];
+            const data = [
+                avgData.age / 10 * 100,
+                avgData.experience / 25 * 100,
+                avgData.education / 20 * 100,
+                avgData.company / 15 * 100,
+                avgData.tech / 25 * 100,
+                avgData.project / 15 * 100
+            ];
+            
+            dimensionAvgChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '平均得分率(%)',
+                        data: data,
+                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                        borderColor: '#6366f1',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#6366f1',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { stepSize: 20, font: { size: 10 } },
+                            pointLabels: { font: { size: 11 } }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+        
+        function renderTrendChart(dateStats) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            if (trendChart) trendChart.destroy();
+            
+            const labels = Object.keys(dateStats).map(d => d.slice(5)); // 只显示月-日
+            const data = Object.values(dateStats);
+            
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '入库人数',
+                        data: data,
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#6366f1',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                        x: { title: { display: true, text: '日期' } }
+                    }
+                }
+            });
+        }
+        
+        // === 图表点击筛选功能 ===
+        async function showChartFilterResult(filterType, filterValue, title) {
+            try {
+                // 获取所有候选人
+                const res = await authFetch('/api/candidates');
+                let candidates = await res.json();
+                
+                // 根据筛选类型过滤
+                if (filterType === 'grade') {
+                    candidates = candidates.filter(c => c.grade === filterValue);
+                } else if (filterType === 'status') {
+                    candidates = candidates.filter(c => c.status === filterValue);
+                } else if (filterType === 'recommend') {
+                    candidates = candidates.filter(c => {
+                        if (filterValue === '推荐') {
+                            // 匹配：推荐录用、建议录用
+                            return c.recommendation.includes('推荐录用') || c.recommendation.includes('建议录用');
+                        } else if (filterValue === '待定') {
+                            // 匹配：谨慎考虑、待定
+                            return c.recommendation.includes('谨慎考虑') || c.recommendation.includes('待定');
+                        } else {
+                            // 匹配：不建议录用、不推荐
+                            return c.recommendation.includes('不建议') || c.recommendation.includes('不推荐');
+                        }
+                    });
+                } else if (filterType === 'score') {
+                    const [min, max] = filterValue.split('-').map(Number);
+                    candidates = candidates.filter(c => {
+                        const score = c.total_score || 0;
+                        return score >= min && score <= max;
+                    });
+                }
+                
+                // 按总分排序
+                candidates.sort((a, b) => (b.total_score || 0) - (a.total_score || 0));
+                
+                // 更新标题
+                document.getElementById('chartFilterTitle').textContent = `📊 ${title} (${candidates.length}人)`;
+                
+                // 更新摘要
+                if (candidates.length > 0) {
+                    const avgScore = (candidates.reduce((sum, c) => sum + (c.total_score || 0), 0) / candidates.length).toFixed(1);
+                    const gradeA = candidates.filter(c => c.grade === 'A').length;
+                    // 匹配：推荐录用、建议录用
+                    const recommended = candidates.filter(c => c.recommendation.includes('推荐录用') || c.recommendation.includes('建议录用')).length;
+                    
+                    document.getElementById('chartFilterSummary').innerHTML = `
+                        <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                            <div><span style="color: var(--gray-500);">总人数：</span><strong style="font-size: 20px; color: var(--primary);">${candidates.length}</strong></div>
+                            <div><span style="color: var(--gray-500);">平均分：</span><strong style="font-size: 20px;">${avgScore}</strong></div>
+                            <div><span style="color: var(--gray-500);">A级人才：</span><strong style="font-size: 20px; color: #10b981;">${gradeA}</strong></div>
+                            <div><span style="color: var(--gray-500);">推荐人数：</span><strong style="font-size: 20px; color: #10b981;">${recommended}</strong></div>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('chartFilterSummary').innerHTML = '<p style="color: var(--gray-400);">暂无符合条件的候选人</p>';
+                }
+                
+                // 渲染表格
+                const tbody = document.getElementById('chartFilterBody');
+                if (candidates.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="13" style="text-align: center; color: var(--gray-400); padding: 40px;">暂无数据</td></tr>';
+                } else {
+                    tbody.innerHTML = candidates.map((c, idx) => {
+                        const isNotRecommend = c.recommendation.includes('不建议录用') || c.recommendation.includes('不推荐');
+                        const isRecommend = !isNotRecommend && (c.recommendation.includes('推荐录用') || c.recommendation.includes('建议录用'));
+                        const isPending = c.recommendation.includes('谨慎考虑') || c.recommendation.includes('待定');
+                        const recClass = isRecommend ? 'rec-good' : isPending ? 'rec-warn' : 'rec-bad';
+                        return `<tr class="${recClass}">
+                            <td>${idx + 1}</td>
+                            <td><strong>${c.name}</strong></td>
+                            <td><strong>${c.total_score || 0}</strong></td>
+                            <td><span class="grade-${c.grade}">${c.grade}</span></td>
+                            <td>${c.jd_match || 0}</td>
+                            <td>${c.age_score || 0}</td>
+                            <td>${c.experience_score || 0}</td>
+                            <td>${c.education_score || 0}</td>
+                            <td>${c.company_score || 0}</td>
+                            <td>${c.tech_score || 0}</td>
+                            <td>${c.project_score || 0}</td>
+                            <td>${c.recommendation || '-'}</td>
+                            <td><button class="btn btn-primary btn-small" onclick="viewCandidateFromChart(${c.id})">查看</button></td>
+                        </tr>`;
+                    }).join('');
+                }
+                
+                // 显示模态框
+                document.getElementById('chartFilterModal').classList.add('show');
+                
+            } catch (e) {
+                console.error('筛选失败', e);
+                showToast('加载数据失败', 'error');
+            }
+        }
+        
+        async function viewCandidateFromChart(id) {
+            // 关闭筛选模态框
+            closeModal('chartFilterModal');
+            // 打开候选人详情
+            await viewCandidate(id);
+        }
+        
+        // === 人才库对比功能 ===
+        function addToCompare(candidate) {
+            if (talentCompareList.find(c => c.id === candidate.id)) {
+                showToast('该候选人已在对比列表中', 'info');
+                return;
+            }
+            if (talentCompareList.length >= 5) {
+                showToast('最多只能对比5位候选人', 'error');
+                return;
+            }
+            talentCompareList.push(candidate);
+            updateCompareBar();
+            showToast(`已添加 ${candidate.name} 到对比列表`, 'success');
+        }
+        
+        function removeFromCompare(id) {
+            talentCompareList = talentCompareList.filter(c => c.id !== id);
+            updateCompareBar();
+        }
+        
+        function clearCompareSelection() {
+            talentCompareList = [];
+            updateCompareBar();
+        }
+        
+        function updateCompareBar() {
+            const tagsContainer = document.getElementById('compareSelectedTags');
+            const compareBtn = document.getElementById('talentCompareBtn');
+            
+            if (talentCompareList.length === 0) {
+                tagsContainer.innerHTML = '<span style="color: var(--gray-400); font-size: 13px;">点击表格中的"加入对比"按钮选择候选人</span>';
+                compareBtn.disabled = true;
+            } else {
+                tagsContainer.innerHTML = talentCompareList.map(c => `
+                    <span class="compare-tag">
+                        ${c.name} (${c.grade}级)
+                        <span class="remove-tag" onclick="removeFromCompare(${c.id})">✕</span>
+                    </span>
+                `).join('');
+                compareBtn.disabled = talentCompareList.length < 2;
+            }
+        }
+        
+        let currentCompareData = [];  // 当前对比的完整数据
+        
+        async function showTalentCompareModal() {
+            if (talentCompareList.length < 2) {
+                showToast('请至少选择2位候选人进行对比', 'error');
+                return;
+            }
+            
+            // 获取完整的候选人数据
+            const fullCandidates = [];
+            for (const c of talentCompareList) {
+                try {
+                    const res = await authFetch(`/api/candidates/${c.id}`);
+                    const data = await res.json();
+                    fullCandidates.push(data);
+                } catch (e) {
+                    fullCandidates.push(c);
+                }
+            }
+            
+            // 按总分排序
+            fullCandidates.sort((a, b) => (b.total_score || 0) - (a.total_score || 0));
+            currentCompareData = fullCandidates;
+            
+            renderCompareSummary(fullCandidates);
+            renderTalentCompareTable(fullCandidates);
+            renderTalentRadarChart(fullCandidates);
+            renderCompareReasons(fullCandidates);
+            document.getElementById('talentCompareModal').classList.add('show');
+        }
+        
+        function renderCompareSummary(candidates) {
+            const best = candidates[0];
+            const avgScore = (candidates.reduce((sum, c) => sum + (c.total_score || 0), 0) / candidates.length).toFixed(1);
+            
+            // 找出各维度最强者
+            const dimensions = ['age_score', 'experience_score', 'education_score', 'company_score', 'tech_score', 'project_score'];
+            const dimNames = ['年龄', '经验', '学历', '公司', '技术', '项目'];
+            const bestInDim = dimensions.map((dim, i) => {
+                const maxVal = Math.max(...candidates.map(c => c[dim] || 0));
+                const winner = candidates.find(c => (c[dim] || 0) === maxVal);
+                return { dim: dimNames[i], name: winner?.name, score: maxVal };
+            });
+            
+            let html = `
+                <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="font-size: 13px; color: var(--gray-500);">综合排名第一</div>
+                        <div style="font-size: 20px; font-weight: 700; color: var(--primary);">${best.name} <span class="grade-${best.grade}">${best.grade}级</span></div>
+                        <div style="font-size: 14px; color: var(--gray-600);">总分 ${best.total_score} 分</div>
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="font-size: 13px; color: var(--gray-500);">对比人数</div>
+                        <div style="font-size: 20px; font-weight: 700;">${candidates.length} 人</div>
+                        <div style="font-size: 14px; color: var(--gray-600);">平均分 ${avgScore}</div>
+                    </div>
+                    <div style="flex: 2; min-width: 300px;">
+                        <div style="font-size: 13px; color: var(--gray-500); margin-bottom: 8px;">各维度最强</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            ${bestInDim.map(b => `<span style="background: var(--gray-100); padding: 4px 10px; border-radius: 12px; font-size: 12px;">${b.dim}: <strong>${b.name}</strong></span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('compareSummary').innerHTML = html;
+        }
+        
+        function renderTalentCompareTable(candidates) {
+            const dimensions = [
+                { key: 'total_score', label: '总分', max: 100 },
+                { key: 'jd_match', label: 'JD匹配', max: 100 },
+                { key: 'age_score', label: '年龄', max: 10 },
+                { key: 'experience_score', label: '经验', max: 25 },
+                { key: 'education_score', label: '学历', max: 20 },
+                { key: 'company_score', label: '公司', max: 15 },
+                { key: 'tech_score', label: '技术', max: 25 },
+                { key: 'project_score', label: '项目', max: 15 },
+            ];
+
+            let html = '<thead><tr><th>维度</th><th>满分</th>';
+            candidates.forEach((c, i) => { 
+                html += `<th>${i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : ''}${c.name}</th>`; 
+            });
+            html += '</tr></thead><tbody>';
+
+            dimensions.forEach(d => {
+                html += `<tr><td><strong>${d.label}</strong></td><td style="color:var(--gray-400)">${d.max}</td>`;
+                const values = candidates.map(c => c[d.key] || 0);
+                const maxVal = Math.max(...values);
+                const minVal = Math.min(...values);
+                candidates.forEach(c => {
+                    const val = c[d.key] || 0;
+                    const isMax = val === maxVal && maxVal > 0;
+                    const isMin = val === minVal && candidates.length > 2;
+                    let style = '';
+                    if (isMax) style = 'color:#10b981;font-weight:bold;background:rgba(16,185,129,0.1);';
+                    else if (isMin) style = 'color:#ef4444;';
+                    html += `<td style="${style}">${val}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '<tr><td><strong>评级</strong></td><td>-</td>';
+            candidates.forEach(c => { html += `<td><span class="grade-${c.grade}">${c.grade}</span></td>`; });
+            html += '</tr>';
+            
+            html += '<tr><td><strong>推荐</strong></td><td>-</td>';
+            candidates.forEach(c => { 
+                const isGood = c.recommendation.includes('推荐') && !c.recommendation.includes('不');
+                html += `<td style="color:${isGood ? '#10b981' : c.recommendation.includes('待定') ? '#f59e0b' : '#ef4444'}">${c.recommendation}</td>`; 
+            });
+            html += '</tr></tbody>';
+
+            document.getElementById('talentCompareTable').innerHTML = html;
+        }
+        
+        function renderCompareReasons(candidates) {
+            const dimensions = [
+                { key: 'age', label: '年龄评估' },
+                { key: 'experience', label: '经验评估' },
+                { key: 'education', label: '学历评估' },
+                { key: 'company', label: '公司背景' },
+                { key: 'tech', label: '技术能力' },
+                { key: 'project', label: '项目经验' },
+            ];
+            
+            let html = '<h3 style="margin-bottom: 15px; font-size: 16px;">📝 评分理由对比</h3>';
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">';
+            
+            dimensions.forEach(d => {
+                html += `<div style="background: var(--gray-50); padding: 14px; border-radius: 10px;">
+                    <div style="font-weight: 600; margin-bottom: 10px; color: var(--primary);">${d.label}</div>`;
+                candidates.forEach(c => {
+                    const reason = c[d.key + '_reason'] || '暂无';
+                    const score = c[d.key + '_score'] || 0;
+                    html += `<div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--gray-200);">
+                        <span style="font-weight: 500;">${c.name}</span>
+                        <span style="color: var(--primary); margin-left: 8px;">${score}分</span>
+                        <div style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">${reason}</div>
+                    </div>`;
+                });
+                html += '</div>';
+            });
+            html += '</div>';
+            
+            document.getElementById('compareReasons').innerHTML = html;
+        }
+        
+        function renderTalentRadarChart(candidates) {
+            const ctx = document.getElementById('talentRadarChart').getContext('2d');
+            if (talentRadarChart) talentRadarChart.destroy();
+
+            const labels = ['年龄(10)', '经验(25)', '学历(20)', '公司(15)', '技术(25)', '项目(15)'];
+            const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'];
+
+            const datasets = candidates.map((c, i) => ({
+                label: c.name,
+                data: [
+                    (c.age_score || 0) / 10 * 100,
+                    (c.experience_score || 0) / 25 * 100,
+                    (c.education_score || 0) / 20 * 100,
+                    (c.company_score || 0) / 15 * 100,
+                    (c.tech_score || 0) / 25 * 100,
+                    (c.project_score || 0) / 15 * 100,
+                ],
+                borderColor: colors[i % colors.length],
+                backgroundColor: colors[i % colors.length] + '33',
+                borderWidth: 2,
+                pointRadius: 4,
+            }));
+
+            talentRadarChart = new Chart(ctx, {
+                type: 'radar',
+                data: { labels, datasets },
+                options: {
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { stepSize: 20, font: { size: 10 } }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } }
+                    }
+                }
+            });
+        }
+        
+        async function exportCompareExcel() {
+            if (currentCompareData.length < 2) {
+                showToast('没有对比数据', 'error');
+                return;
+            }
+            const ids = currentCompareData.map(c => c.id).join(',');
+            const formData = new FormData();
+            formData.append('ids', ids);
+            
+            try {
+                const res = await authFetch('/api/candidates/compare/export', { method: 'POST', body: formData });
+                const blob = await res.blob();
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `候选人对比_${currentCompareData.length}人.xlsx`;
+                a.click();
+                showToast('对比报告已导出', 'success');
+            } catch (e) {
+                showToast('导出失败: ' + e.message, 'error');
+            }
+        }
+
+        async function loadCandidates() {
+            const status = document.getElementById('statusFilter').value;
+            const grade = document.getElementById('gradeFilter').value;
+            const search = document.getElementById('searchInput').value;
+            let url = '/api/candidates?';
+            if (status) url += `status=${encodeURIComponent(status)}&`;
+            if (grade) url += `grade=${encodeURIComponent(grade)}&`;
+            if (search) url += `search=${encodeURIComponent(search)}&`;
+            try {
+                const res = await authFetch(url);
+                talentList = await res.json();
+                renderTalentTable();
+            } catch (e) { console.error('加载候选人失败', e); }
+        }
+
+        function renderTalentTable() {
+            const tbody = document.getElementById('talentTableBody');
+            const empty = document.getElementById('talentEmpty');
+            if (talentList.length === 0) {
+                tbody.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+            tbody.innerHTML = talentList.map(c => {
+                const isNotRecommend = c.recommendation.includes('不建议录用') || c.recommendation.includes('不推荐');
+                const isRecommend = !isNotRecommend && (c.recommendation.includes('推荐录用') || c.recommendation.includes('建议录用'));
+                const isPending = c.recommendation.includes('谨慎考虑') || c.recommendation.includes('待定');
+                let recClass = isRecommend ? 'rec-good' : isPending ? 'rec-warn' : 'rec-bad';
+                const isInCompare = talentCompareList.find(x => x.id === c.id);
+                return `<tr class="${recClass}">
+                    <td>${c.id}</td>
+                    <td>${c.name}</td>
+                    <td><strong>${c.total_score}</strong></td>
+                    <td class="grade-${c.grade}">${c.grade}</td>
+                    <td>${c.jd_match}</td>
+                    <td>${c.recommendation}</td>
+                    <td>
+                        <select onchange="updateStatus(${c.id}, this.value)" style="padding:4px;border-radius:4px;border:1px solid #ddd;">
+                            <option value="待面试" ${c.status === '待面试' ? 'selected' : ''}>待面试</option>
+                            <option value="已面试" ${c.status === '已面试' ? 'selected' : ''}>已面试</option>
+                            <option value="已录用" ${c.status === '已录用' ? 'selected' : ''}>已录用</option>
+                            <option value="淘汰" ${c.status === '淘汰' ? 'selected' : ''}>淘汰</option>
+                        </select>
+                    </td>
+                    <td>${c.created_at}</td>
+                    <td>
+                        <button class="btn btn-primary btn-small" onclick="viewCandidate(${c.id})">查看</button>
+                        <button class="btn btn-small ${isInCompare ? 'btn-success' : 'btn-warning'}" onclick="addToCompare({id:${c.id},name:'${c.name}',grade:'${c.grade}',total_score:${c.total_score}})" ${isInCompare ? 'disabled' : ''}>${isInCompare ? '✓ 已选' : '+ 对比'}</button>
+                        <button class="btn btn-secondary btn-small" onclick="deleteCandidate(${c.id})" style="background:#ff4d4f;color:white;">删除</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        async function updateStatus(id, status) {
+            const formData = new FormData();
+            formData.append('status', status);
+            await authFetch(`/api/candidates/${id}/status`, { method: 'PUT', body: formData });
+            // 同步更新统计和图表
+            loadTalentStats();
+            loadTalentCharts();
+            showToast(`状态已更新为"${status}"`, 'success');
+        }
+
+        async function viewCandidate(id) {
+            const res = await authFetch(`/api/candidates/${id}`);
+            const c = await res.json();
+            currentModalData = {
+                candidate_id: c.id,
+                candidate_name: c.name,
+                total_score: c.total_score,
+                grade: c.grade,
+                jd_match: c.jd_match,
+                age_score: c.age_score,
+                experience_score: c.experience_score,
+                education_score: c.education_score,
+                company_score: c.company_score,
+                tech_score: c.tech_score,
+                project_score: c.project_score,
+                recommendation: c.recommendation,
+                report_markdown: c.report_markdown,
+                coze_report_json: c.coze_report_json,
+                report_html: '',
+                has_pdf: c.has_pdf
+            };
+            document.getElementById('modalTitle').textContent = c.name + ' - 详细评估报告';
+            document.getElementById('modalScoreCards').innerHTML = renderScoreCards(c);
+            const recEl = document.getElementById('modalRecommendation');
+            recEl.textContent = '推荐结果：' + c.recommendation;
+            const isNotRecommend = c.recommendation.includes('不建议录用') || c.recommendation.includes('不推荐');
+            const isRecommend = !isNotRecommend && (c.recommendation.includes('推荐录用') || c.recommendation.includes('建议录用'));
+            const isPending = c.recommendation.includes('谨慎考虑') || c.recommendation.includes('待定');
+            recEl.className = 'recommendation ' + (isRecommend ? 'good' : isPending ? 'warn' : 'bad');
+            
+            // 使用 renderCozeReport 渲染完整报告（与批量评估详情一致）
+            let reportContent = '';
+            if (c.coze_report_json) {
+                try {
+                    const cozeReport = JSON.parse(c.coze_report_json);
+                    reportContent = renderCozeReport(cozeReport);
+                } catch (e) {
+                    console.error('解析 Coze 报告失败:', e);
+                    reportContent = '<pre style="white-space:pre-wrap;font-family:inherit;">' + (c.report_markdown || '暂无报告').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
+                }
+            } else {
+                reportContent = '<pre style="white-space:pre-wrap;font-family:inherit;">' + (c.report_markdown || '暂无报告').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
+            }
+            document.getElementById('modalReportContent').innerHTML = reportContent;
+            
+            // 更新简历预览按钮
+            const resumeBtn = document.getElementById('viewResumeBtn');
+            if (resumeBtn) {
+                resumeBtn.style.display = c.has_pdf ? 'inline-block' : 'none';
+            }
+            document.getElementById('detailModal').classList.add('show');
+            // 初始化分数卡片 tooltip
+            setTimeout(initScoreCardTooltips, 100);
+        }
+        
+        async function viewResumePdf() {
+            if (!currentModalData || !currentModalData.candidate_id) {
+                showToast('无法获取候选人信息', 'error');
+                return;
+            }
+            
+            try {
+                const res = await authFetch(`/api/candidates/${currentModalData.candidate_id}/resume`);
+                if (!res.ok) {
+                    let errorMsg = '获取简历失败';
+                    try {
+                        const data = await res.json();
+                        errorMsg = data.error || errorMsg;
+                    } catch (e) {}
+                    showToast(errorMsg, 'error');
+                    return;
+                }
+                
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+                
+                // 延迟释放URL以确保新窗口加载完成
+                setTimeout(() => URL.revokeObjectURL(url), 60000);
+            } catch (err) {
+                showToast('获取简历失败: ' + err.message, 'error');
+            }
+        }
+
+        async function deleteCandidate(id) {
+            if (!confirm('确定要删除该候选人吗？')) return;
+            await authFetch(`/api/candidates/${id}`, { method: 'DELETE' });
+            // 从对比列表中移除
+            talentCompareList = talentCompareList.filter(c => c.id !== id);
+            updateCompareBar();
+            // 同步更新列表、统计和图表
+            loadCandidates();
+            loadTalentStats();
+            loadTalentCharts();
+            showToast('候选人已删除', 'success');
+        }
+
+        function refreshTalentPool() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('gradeFilter').value = '';
+            document.getElementById('searchInput').value = '';
+            loadCandidates();
+            loadTalentStats();
+            loadTalentCharts();
+        }
+        
+        async function clearAllCandidates() {
+            if (!confirm('⚠️ 确定要清空所有候选人数据吗？此操作不可恢复！')) return;
+            if (!confirm('再次确认：这将删除所有候选人记录和简历文件！')) return;
+            try {
+                const res = await authFetch('/api/candidates', { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    // 清空对比列表
+                    talentCompareList = [];
+                    updateCompareBar();
+                    // 同步更新列表、统计和图表
+                    loadCandidates();
+                    loadTalentStats();
+                    loadTalentCharts();
+                    showToast(`已删除 ${data.deleted} 条记录`, 'success');
+                }
+            } catch (e) {
+                showToast('清空失败：' + e.message, 'error');
+            }
+        }
+
+        // === 快速筛选功能 ===
+        let currentFilter = 'all';
+        
+        function filterResults(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const rows = document.querySelectorAll('#batchResultBody tr');
+            rows.forEach((row, idx) => {
+                const r = batchResults[idx];
+                let show = true;
+                
+                if (filter === 'recommend') {
+                    // 匹配：推荐录用、建议录用
+                    show = (r.recommendation.includes('推荐录用') || r.recommendation.includes('建议录用'));
+                } else if (filter === 'pending') {
+                    // 匹配：谨慎考虑、待定
+                    show = r.recommendation.includes('谨慎考虑') || r.recommendation.includes('待定');
+                } else if (filter === 'reject') {
+                    // 匹配：不建议录用、不推荐
+                    show = r.recommendation.includes('不建议') || r.recommendation.includes('不推荐');
+                } else if (filter === 'gradeA') {
+                    show = r.grade === 'A';
+                } else if (filter === 'gradeB') {
+                    show = r.grade === 'B';
+                } else if (filter === 'gradeC') {
+                    show = r.grade === 'C';
+                }
+                
+                row.style.display = show ? '' : 'none';
+            });
+            
+            showToast(`已筛选 ${filter === 'all' ? '全部' : filter} 候选人`, 'info');
+        }
+        
+        function selectRecommended() {
+            selectedIndices.clear();
+            batchResults.forEach((r, idx) => {
+                if (r.recommendation.includes('推荐') && !r.recommendation.includes('不')) {
+                    selectedIndices.add(idx);
+                }
+            });
+            document.querySelectorAll('#batchResultBody input[type="checkbox"]').forEach((cb, idx) => {
+                const isRecommended = batchResults[idx].recommendation.includes('推荐') && !batchResults[idx].recommendation.includes('不');
+                cb.checked = isRecommended;
+                document.getElementById('row-' + idx).classList.toggle('selected', isRecommended);
+            });
+            updateSelectedCount();
+            showToast(`已选中 ${selectedIndices.size} 位推荐候选人`, 'success');
+        }
+        
+        async function exportSelectedReports() {
+            if (selectedIndices.size === 0) {
+                showToast('请先选择候选人', 'error');
+                return;
+            }
+            const selected = Array.from(selectedIndices).map(i => batchResults[i]);
+            let allMarkdown = '';
+            selected.forEach((r, i) => {
+                allMarkdown += r.report_markdown + '\n\n---\n\n';
+            });
+            const blob = new Blob([allMarkdown], { type: 'text/markdown' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `批量评估报告_${selected.length}人.md`;
+            a.click();
+            showToast(`已导出 ${selected.length} 份报告`, 'success');
+        }
+        
+        // === Toast提示 ===
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        // === 拖拽上传 ===
+        function setupDragDrop() {
+            const areas = ['uploadArea', 'batchUploadArea'];
+            areas.forEach(id => {
+                const area = document.getElementById(id);
+                if (!area) return;
+                
+                area.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    area.classList.add('drag-over');
+                });
+                
+                area.addEventListener('dragleave', () => {
+                    area.classList.remove('drag-over');
+                });
+                
+                area.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    area.classList.remove('drag-over');
+                    const files = e.dataTransfer.files;
+                    if (id === 'uploadArea' && files.length > 0) {
+                        const input = document.getElementById('fileInput');
+                        const dt = new DataTransfer();
+                        dt.items.add(files[0]);
+                        input.files = dt.files;
+                        handleFileSelect(input);
+                    } else if (id === 'batchUploadArea') {
+                        for (let file of files) {
+                            if (file.name.endsWith('.pdf') || file.name.endsWith('.zip')) {
+                                if (!batchFiles.find(f => f.name === file.name)) {
+                                    batchFiles.push(file);
+                                }
+                            }
+                        }
+                        renderBatchFileList();
+                        if (batchFiles.length > 0) {
+                            document.getElementById('batchUploadArea').classList.add('has-file');
+                        }
+                        showToast(`已添加 ${files.length} 个文件`, 'success');
+                    }
+                });
+            });
+        }
+        
+        // === 键盘快捷键 ===
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + Enter 开始评估
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                const activeMode = document.querySelector('.tab.active').textContent;
+                if (activeMode.includes('单份')) {
+                    document.getElementById('startBtn').click();
+                } else if (activeMode.includes('批量')) {
+                    document.getElementById('batchStartBtn').click();
+                }
+            }
+            // Esc 关闭模态框
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+            }
+        });
+
+        function hideUploadJdCriteriaPanels() {
+            const elementIds = ['uploadArea','jdContent','criteriaContent','batchUploadArea','batchJdContent','batchCriteriaContent','startBtn','batchStartBtn'];
+            elementIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const panel = el.closest('.panel');
+                    if (panel) { panel.style.display = 'none'; }
+                }
+            });
+        }
+
+        function initLiteMode() {
+            // 隐藏“单份评估”和“批量评估”的标签，仅保留“人才库”
+            document.querySelectorAll('.tabs .tab').forEach(btn => {
+                const txt = (btn.textContent || '').trim();
+                if (txt.includes('单份') || txt.includes('批量')) {
+                    btn.style.display = 'none';
+                } else if (txt.includes('人才库')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            // 仅显示人才库模式
+            const single = document.getElementById('singleMode');
+            const batch = document.getElementById('batchMode');
+            const talent = document.getElementById('talentMode');
+            if (single) single.classList.add('hidden');
+            if (batch) batch.classList.add('hidden');
+            if (talent) talent.classList.remove('hidden');
+            // 隐藏上传、JD 和评估标准相关的面板
+            hideUploadJdCriteriaPanels();
+            // 加载人才库数据
+            try { loadCandidates(); loadTalentStats(); loadTalentCharts(); } catch (e) { console.warn(e); }
+        }
+
+        function hideBatchPanels() {
+            // 仅隐藏批量评估中的：上传、职位描述、评估标准
+            const ids = ['batchUploadArea', 'batchJdContent', 'batchCriteriaContent'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const panel = el.closest('.panel');
+                    if (panel) panel.style.display = 'none';
+                }
+            });
+        }
+
+        window.onload = function () {
+            loadPositions(); // 加载岗位列表
+            loadBatchJdTemplate();
+            setupDragDrop();
+            // 如果需要精简模式（仅人才库），取消下面的注释
+            // initLiteMode();
+        };
+    </script>
+</body>
+
+</html>

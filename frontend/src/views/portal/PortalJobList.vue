@@ -147,6 +147,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Search, Location, Timer, School, OfficeBuilding } from '@element-plus/icons-vue'
+import request from '@/utils/request'
 
 const router = useRouter()
 const route = useRoute()
@@ -203,18 +204,70 @@ const salaryRanges = [
 const fetchJobs = async () => {
   loading.value = true
   try {
-    await new Promise(r => setTimeout(r, 500))
-    jobs.value = [
-      { id: 1, title: '高级前端工程师', salary: '25-45K', company: '科技有限公司', companySize: '500-1000人', companyType: '互联网', location: '北京', experience: '3-5年', education: '本科', skills: ['Vue', 'TypeScript', 'React'] },
-      { id: 2, title: '后端开发工程师(Go)', salary: '30-50K', company: '互联网公司', companySize: '1000-5000人', companyType: '互联网', location: '上海', experience: '3-5年', education: '本科', skills: ['Go', 'MySQL', 'Redis', 'K8s'] },
-      { id: 3, title: '产品经理', salary: '20-35K', company: '创新科技', companySize: '100-500人', companyType: '科技', location: '深圳', experience: '2-4年', education: '本科', skills: ['产品设计', '数据分析', 'Axure'] },
-      { id: 4, title: 'UI设计师', salary: '15-25K', company: '设计工作室', companySize: '50-100人', companyType: '设计', location: '杭州', experience: '1-3年', education: '本科', skills: ['Figma', 'Sketch', 'PS'] },
-      { id: 5, title: '数据分析师', salary: '18-30K', company: '数据科技', companySize: '100-500人', companyType: '科技', location: '广州', experience: '2-4年', education: '本科', skills: ['Python', 'SQL', 'Tableau'] },
-    ]
-    total.value = 156
+    const params: Record<string, any> = {
+      page: currentPage.value,
+      page_size: pageSize.value,
+      status: 'open'  // 只显示开放的职位
+    }
+    
+    // 添加筛选参数
+    if (searchParams.keyword) {
+      params.keyword = searchParams.keyword
+    }
+    if (searchParams.city) {
+      params.location = searchParams.city
+    }
+    if (searchParams.experience) {
+      params.experience = searchParams.experience
+    }
+    if (searchParams.education) {
+      params.education = searchParams.education
+    }
+    if (sortBy.value === 'salary') {
+      params.sort_by = 'salary'
+      params.sort_order = 'desc'
+    }
+    
+    const res = await request.get('/jobs', { params })
+    
+    if (res.data?.code === 0 && res.data.data) {
+      // 转换后端数据格式为前端显示格式
+      jobs.value = (res.data.data.jobs || []).map((job: any) => ({
+        id: job.id,
+        title: job.title,
+        salary: job.salary || '面议',
+        company: job.department || '公司',
+        companySize: '100-500人',
+        companyType: '互联网',
+        location: job.location || '全国',
+        experience: formatExperience(job.level),
+        education: '本科',
+        skills: job.skills || []
+      }))
+      total.value = res.data.data.total || 0
+    } else {
+      ElMessage.error(res.data?.message || '获取职位列表失败')
+    }
+  } catch (error) {
+    console.error('获取职位列表失败:', error)
+    ElMessage.error('获取职位列表失败')
+    jobs.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
+}
+
+// 格式化经验要求
+const formatExperience = (level: string) => {
+  const map: Record<string, string> = {
+    'junior': '1-3年',
+    'mid': '3-5年',
+    'senior': '5-10年',
+    'expert': '10年以上',
+    'management': '5年以上'
+  }
+  return map[level] || '不限'
 }
 
 const goToDetail = (id: number) => {

@@ -71,7 +71,7 @@
 
     <!-- 简历列表 -->
     <div class="card resume-table-card">
-      <el-table :data="resumes" style="width: 100%" v-loading="loading">
+      <el-table :data="resumes" style="width: 100%" v-loading="loading" @sort-change="handleSortChange">
         <el-table-column prop="file_name" label="简历文件" min-width="250">
           <template #default="{ row }">
             <div class="file-info">
@@ -95,7 +95,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="120">
+        <el-table-column prop="status" label="状态" width="120" sortable="custom">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" effect="light">
               <el-icon v-if="row.status === 'pending'" class="is-loading"><Loading /></el-icon>
@@ -103,7 +103,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="created_at" label="上传时间" width="180">
+        <el-table-column prop="created_at" label="上传时间" width="180" sortable="custom">
           <template #default="{ row }">
             {{ formatDate(row.created_at) }}
           </template>
@@ -243,6 +243,7 @@ import {
   Download, Loading, FolderOpened, Clock, CircleCheck, CircleClose
 } from '@element-plus/icons-vue'
 import { usePermissionStore } from '@/store/permission'
+import request from '@/utils/request'
 
 const permissionStore = usePermissionStore()
 
@@ -289,6 +290,12 @@ const searchParams = reactive({
   dateRange: null as [Date, Date] | null
 })
 
+// 排序参数
+const sortParams = reactive({
+  prop: '',
+  order: '' as '' | 'ascending' | 'descending'
+})
+
 // 解析后的信息
 const parsedInfo = computed(() => {
   if (!currentResume.value?.parsed_data) return {}
@@ -310,40 +317,59 @@ const parsedInfo = computed(() => {
 const fetchResumes = async () => {
   loading.value = true
   try {
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 500))
-    resumes.value = generateMockResumes()
-    total.value = 156
+    const params: Record<string, any> = {
+      page: currentPage.value,
+      page_size: pageSize.value
+    }
+    if (searchParams.search) {
+      params.search = searchParams.search
+    }
+    if (searchParams.status) {
+      params.status = searchParams.status
+    }
+    if (sortParams.prop && sortParams.order) {
+      params.sort_by = sortParams.prop
+      params.sort_order = sortParams.order === 'ascending' ? 'asc' : 'desc'
+    }
+    
+    const res = await request.get('/resumes', { params })
+    if (res.data?.code === 0) {
+      resumes.value = res.data.data.resumes || []
+      total.value = res.data.data.total || 0
+      
+      // 更新统计数据
+      updateStats(res.data.data.resumes || [])
+    } else {
+      ElMessage.error(res.data?.message || '获取简历列表失败')
+    }
+  } catch (error) {
+    console.error('获取简历列表失败:', error)
+    ElMessage.error('获取简历列表失败')
   } finally {
     loading.value = false
   }
 }
 
-// 生成模拟数据
-const generateMockResumes = (): Resume[] => {
-  const names = ['张三', '李四', '王五', '赵六', '钱七', '孙八']
-  const fileTypes = ['pdf', 'doc', 'docx']
-  const statuses: Resume['status'][] = ['pending', 'parsed', 'failed']
+// 排序变化处理
+const handleSortChange = ({ prop, order }: { prop: string; order: '' | 'ascending' | 'descending' | null }) => {
+  sortParams.prop = prop || ''
+  sortParams.order = order || ''
+  currentPage.value = 1  // 排序时回到第一页
+  fetchResumes()
+}
 
-  return Array.from({ length: pageSize.value }, (_, i) => ({
-    id: (currentPage.value - 1) * pageSize.value + i + 1,
-    talent_id: i + 1,
-    talent_name: names[i % names.length],
-    file_name: `${names[i % names.length]}_简历_${2024}.${fileTypes[i % fileTypes.length]}`,
-    file_url: `/uploads/resume_${i + 1}.pdf`,
-    file_size: Math.floor(Math.random() * 5000000) + 100000,
-    parsed_data: JSON.stringify({
-      name: names[i % names.length],
-      phone: `138${String(Math.random()).slice(2, 10)}`,
-      email: `user${i}@example.com`,
-      skills: ['JavaScript', 'Vue', 'React'].slice(0, Math.floor(Math.random() * 3) + 1),
-      experience: `${Math.floor(Math.random() * 10) + 1}年`,
-      education: ['本科', '硕士', '博士'][Math.floor(Math.random() * 3)]
-    }),
-    status: statuses[Math.floor(Math.random() * statuses.length)],
-    created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date().toISOString()
-  }))
+// 更新统计数据
+const updateStats = (resumeList: Resume[]) => {
+  const pending = resumeList.filter(r => r.status === 'pending').length
+  const parsed = resumeList.filter(r => r.status === 'parsed').length
+  const failed = resumeList.filter(r => r.status === 'failed').length
+  
+  resumeStats.value = [
+    { label: '总简历', value: total.value, icon: markRaw(FolderOpened), colorClass: 'cyan' },
+    { label: '待解析', value: pending, icon: markRaw(Clock), colorClass: 'teal' },
+    { label: '已解析', value: parsed, icon: markRaw(CircleCheck), colorClass: 'green' },
+    { label: '解析失败', value: failed, icon: markRaw(CircleClose), colorClass: 'red' }
+  ]
 }
 
 // 重置搜索
@@ -376,12 +402,31 @@ const handleFileRemove = (file: UploadFile) => {
 const handleUpload = async () => {
   uploading.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    ElMessage.success(`成功上传 ${fileList.value.length} 份简历`)
-    showUploadDialog.value = false
-    fileList.value = []
-    fetchResumes()
-  } catch {
+    let successCount = 0
+    for (const file of fileList.value) {
+      const formData = new FormData()
+      formData.append('file', file.raw as File)
+      formData.append('talent_id', '0')  // 可以后续关联
+      formData.append('job_id', '0')
+      
+      const res = await request.post('/resumes/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      if (res.data?.code === 0) {
+        successCount++
+      }
+    }
+    
+    if (successCount > 0) {
+      ElMessage.success(`成功上传 ${successCount} 份简历`)
+      showUploadDialog.value = false
+      fileList.value = []
+      fetchResumes()
+    } else {
+      ElMessage.error('上传失败')
+    }
+  } catch (error) {
+    console.error('上传失败:', error)
     ElMessage.error('上传失败')
   } finally {
     uploading.value = false
@@ -403,8 +448,24 @@ const parseResume = async (resume: Resume) => {
 }
 
 // 下载简历
-const downloadResume = (resume: Resume) => {
-  ElMessage.success(`开始下载: ${resume.file_name}`)
+const downloadResume = async (resume: Resume) => {
+  try {
+    const response = await request.get(`/resumes/${resume.id}/download`, {
+      responseType: 'blob'
+    })
+    
+    const blob = new Blob([response.data])
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = resume.file_name
+    link.click()
+    window.URL.revokeObjectURL(url)
+    
+    ElMessage.success(`开始下载: ${resume.file_name}`)
+  } catch (error) {
+    ElMessage.error('下载失败')
+  }
 }
 
 // 删除简历
@@ -413,11 +474,18 @@ const handleDelete = async (id: number) => {
     await ElMessageBox.confirm('确定要删除这份简历吗？', '确认删除', {
       type: 'warning'
     })
-    // 从列表中移除
-    resumeList.value = resumeList.value.filter(r => r.id !== id)
-    ElMessage.success('删除成功')
-  } catch {
-    // 取消
+    
+    const res = await request.delete(`/resumes/${id}`)
+    if (res.data?.code === 0) {
+      ElMessage.success('删除成功')
+      fetchResumes()
+    } else {
+      ElMessage.error(res.data?.message || '删除失败')
+    }
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
   }
 }
 

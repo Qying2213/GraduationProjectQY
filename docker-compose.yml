@@ -200,6 +200,29 @@ services:
     networks:
       - talent-network
 
+  # AI 简历评估系统
+  resume-evaluator:
+    build:
+      context: ./backend/evaluator-service
+      dockerfile: Dockerfile
+    container_name: talent-resume-evaluator
+    ports:
+      - "8090:8090"
+    environment:
+      - RESUME_SERVER_PORT=8090
+      - RESUME_DB_DRIVER=sqlite
+      - RESUME_DB_DSN=file:data/app.db?cache=shared&mode=rwc
+      - RESUME_GRADUATE_API_URL=http://resume-service:8084
+      - RESUME_COZE_BASE_URL=${COZE_BASE_URL:-https://api.coze.cn}
+      - RESUME_COZE_TOKEN=${COZE_TOKEN:-}
+      - RESUME_COZE_WORKFLOW_ID=${COZE_WORKFLOW_ID:-}
+    volumes:
+      - evaluator_data:/app/data
+    depends_on:
+      - resume-service
+    networks:
+      - talent-network
+
 networks:
   talent-network:
     driver: bridge
@@ -207,3 +230,4 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  evaluator_data:

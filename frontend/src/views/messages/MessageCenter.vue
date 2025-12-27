@@ -289,6 +289,7 @@ import {
   Message, Bell, Calendar, Setting, Check, User, Clock,
   Promotion, Document, Close, View, Delete, InfoFilled
 } from '@element-plus/icons-vue'
+import { messageApi } from '@/api/message'
 
 // 类型定义
 interface MessageItem {
@@ -509,13 +510,37 @@ const generateMockMessages = (): MessageItem[] => {
 }
 
 // 加载消息
-const loadMessages = () => {
+const loadMessages = async () => {
   loading.value = true
-  setTimeout(() => {
-    messages.value = generateMockMessages()
-    total.value = messages.value.length
+  try {
+    const res = await messageApi.list({
+      page: currentPage.value,
+      page_size: pageSize.value,
+      type: activeTab.value !== 'all' ? activeTab.value : undefined
+    })
+    
+    if (res.data?.code === 0 && res.data.data) {
+      messages.value = (res.data.data.messages || []).map((m: any) => ({
+        id: m.id,
+        type: m.type || 'system',
+        title: m.title,
+        content: m.content,
+        sender: m.sender_name || '系统',
+        isRead: m.is_read,
+        createdAt: m.created_at
+      }))
+      total.value = res.data.data.total || 0
+    } else {
+      ElMessage.error(res.data?.message || '获取消息失败')
+    }
+  } catch (error) {
+    console.error('获取消息失败:', error)
+    ElMessage.error('获取消息失败')
+    messages.value = []
+    total.value = 0
+  } finally {
     loading.value = false
-  }, 500)
+  }
 }
 
 // 查看消息

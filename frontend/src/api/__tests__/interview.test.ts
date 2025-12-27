@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { interviewApi } from '../interview'
 
 // Mock axios request
-vi.mock('../request', () => ({
+vi.mock('@/utils/request', () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),
@@ -11,7 +10,8 @@ vi.mock('../request', () => ({
   },
 }))
 
-import request from '../request'
+import request from '@/utils/request'
+import { interviewApi } from '../interview'
 
 describe('Interview API', () => {
   beforeEach(() => {

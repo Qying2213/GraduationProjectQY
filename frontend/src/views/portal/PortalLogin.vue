@@ -48,6 +48,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import { Message, Lock, ChatDotRound } from '@element-plus/icons-vue'
+import { authApi } from '@/api/auth'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -77,12 +78,23 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        // 模拟登录
-        await new Promise(r => setTimeout(r, 1000))
-        ElMessage.success('登录成功')
-        router.push('/portal')
+        // 调用真实登录 API
+        const res = await authApi.login({
+          username: loginForm.username,
+          password: loginForm.password
+        })
+        
+        if (res.data?.code === 0 && res.data.data?.token) {
+          // 保存 token
+          localStorage.setItem('token', res.data.data.token)
+          localStorage.setItem('user', JSON.stringify(res.data.data.user))
+          ElMessage.success('登录成功')
+          router.push('/portal')
+        } else {
+          ElMessage.error(res.data?.message || '登录失败')
+        }
       } catch (e: any) {
-        ElMessage.error(e.message || '登录失败')
+        ElMessage.error(e.response?.data?.message || '登录失败')
       } finally {
         loading.value = false
       }

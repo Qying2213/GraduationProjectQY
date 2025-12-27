@@ -20,7 +20,10 @@ func NewInterviewHandler(db *gorm.DB) *InterviewHandler {
 
 // CreateInterview 创建面试安排
 func (h *InterviewHandler) CreateInterview(c *gin.Context) {
-	var req models.InterviewScheduleRequest
+	var req struct {
+		models.InterviewScheduleRequest
+		CreatedBy uint `json:"created_by"`
+	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    1,
@@ -29,9 +32,11 @@ func (h *InterviewHandler) CreateInterview(c *gin.Context) {
 		return
 	}
 
-	// 获取创建人ID
+	// 获取创建人ID（优先从请求体获取，其次从context获取）
 	var createdBy uint
-	if userID, exists := c.Get("user_id"); exists {
+	if req.CreatedBy > 0 {
+		createdBy = req.CreatedBy
+	} else if userID, exists := c.Get("user_id"); exists {
 		createdBy = userID.(uint)
 	}
 

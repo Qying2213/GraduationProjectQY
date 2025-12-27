@@ -464,11 +464,14 @@ const fetchTalents = async () => {
     if (res.data.code === 0 && res.data.data) {
       talents.value = res.data.data.talents || []
       total.value = res.data.data.total || 0
+    } else {
+      ElMessage.error(res.data?.message || '获取人才列表失败')
     }
   } catch (error) {
-    // 使用模拟数据
-    talents.value = generateMockTalents()
-    total.value = 156
+    console.error('获取人才列表失败:', error)
+    ElMessage.error('获取人才列表失败，请检查后端服务是否启动')
+    talents.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }

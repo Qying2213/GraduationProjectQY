@@ -482,11 +482,14 @@ const fetchJobs = async () => {
     if (res.data.code === 0 && res.data.data) {
       jobs.value = res.data.data.jobs || []
       total.value = res.data.data.total || 0
+    } else {
+      ElMessage.error(res.data?.message || '获取职位列表失败')
     }
   } catch (error) {
-    // 使用模拟数据
-    jobs.value = generateMockJobs()
-    total.value = 47
+    console.error('获取职位列表失败:', error)
+    ElMessage.error('获取职位列表失败，请检查后端服务是否启动')
+    jobs.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }

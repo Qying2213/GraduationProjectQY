@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>钉钉机器人配置 - AI简历评估系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 32px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        /* 可编辑字段样式 */
+        .editable-field {
+            margin-bottom: 20px;
+            padding: 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .editable-field:hover {
+            background: #f9fafb;
+        }
+
+        .editable-field.editing {
+            background: #eff6ff;
+            border: 2px solid #6366f1;
+            cursor: default;
+        }
+
+        .field-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .help-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #6b7280;
+            font-size: 11px;
+            cursor: help;
+            position: relative;
+            font-weight: bold;
+        }
+
+        .help-icon:hover {
+            background: #6366f1;
+            color: white;
+        }
+
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            background: #1f2937;
+            color: white;
+            font-size: 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 1000;
+            font-weight: normal;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #1f2937;
+        }
+
+        .help-icon:hover .tooltip {
+            opacity: 1;
+        }
+
+        .field-value {
+            font-size: 15px;
+            color: #111827;
+            min-height: 24px;
+            word-break: break-all;
+        }
+
+        .field-value.empty {
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        .field-input {
+            display: none;
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #6366f1;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            margin-top: 8px;
+        }
+
+        .field-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .editable-field.editing .field-value {
+            display: none;
+        }
+
+        .editable-field.editing .field-input {
+            display: block;
+        }
+
+        .field-actions {
+            display: none;
+            margin-top: 12px;
+            gap: 8px;
+        }
+
+        .editable-field.editing .field-actions {
+            display: flex;
+        }
+
+
+
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: #6366f1;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            opacity: 0.9;
+            font-size: 14px;
+            margin-top: 12px;
+        }
+
+        .back-link:hover {
+            opacity: 1;
+        }
+
+        .checkbox-field {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .checkbox-field:hover {
+            background: #f9fafb;
+        }
+
+        .checkbox-field input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        .checkbox-field label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #111827;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .edit-icon {
+            font-size: 12px;
+            color: #6366f1;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .editable-field:hover .edit-icon {
+            opacity: 1;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 钉钉机器人配置</h1>
+            <p>配置钉钉机器人，实现候选人信息自动推送和交互式查询</p>
+            <a href="/" class="back-link">← 返回主页</a>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <div class="card">
+            <div class="loading" id="loading">加载中...</div>
+
+            <div id="config-form" style="display: none;">
+                <div class="section-title">🤖 机器人信息</div>
+
+                <div class="editable-field" data-field="name">
+                    <div class="field-label">
+                        机器人名称
+                        <span class="help-icon">?
+                            <span class="tooltip">用于区分多个机器人配置，名称必须唯一</span>
+                        </span>
+                        <span class="edit-icon">✏️ 点击编辑</span>
+                    </div>
+                    <div class="field-value empty">未设置</div>
+                    <input type="text" class="field-input" placeholder="例如：HR招聘群机器人">
+                    <div class="field-actions">
+                        <button class="btn btn-primary btn-save">保存</button>
+                        <button class="btn btn-secondary btn-cancel">取消</button>
+                    </div>
+                </div>
+
+                <div class="section-title">🔐 机器人凭据</div>
+
+                <div class="editable-field" data-field="client_id">
+                    <div class="field-label">
+                        Client ID
+                        <span class="help-icon">?
+                            <span class="tooltip">用于 Stream 模式接收消息回调</span>
+                        </span>
+                        <span class="edit-icon">✏️ 点击编辑</span>
+                    </div>
+                    <div class="field-value empty">未设置</div>
+                    <input type="text" class="field-input" placeholder="钉钉应用的 Client ID">
+                    <div class="field-actions">
+                        <button class="btn btn-primary btn-save">保存</button>
+                        <button class="btn btn-secondary btn-cancel">取消</button>
+                    </div>
+                </div>
+
+                <div class="editable-field" data-field="client_secret">
+                    <div class="field-label">
+                        Client Secret
+                        <span class="help-icon">?
+                            <span class="tooltip">用于 Stream 模式接收消息回调</span>
+                        </span>
+                        <span class="edit-icon">✏️ 点击编辑</span>
+                    </div>
+                    <div class="field-value empty">未设置</div>
+                    <input type="password" class="field-input" placeholder="钉钉应用的 Client Secret">
+                    <div class="field-actions">
+                        <button class="btn btn-primary btn-save">保存</button>
+                        <button class="btn btn-secondary btn-cancel">取消</button>
+                    </div>
+                </div>
+
+                <div class="editable-field" data-field="webhook">
+                    <div class="field-label">
+                        Webhook URL
+                        <span class="help-icon">?
+                            <span class="tooltip">用于主动推送消息到钉钉群</span>
+                        </span>
+                        <span class="edit-icon">✏️ 点击编辑</span>
+                    </div>
+                    <div class="field-value empty">未设置</div>
+                    <input type="text" class="field-input" placeholder="https://oapi.dingtalk.com/robot/send?access_token=...">
+                    <div class="field-actions">
+                        <button class="btn btn-primary btn-save">保存</button>
+                        <button class="btn btn-secondary btn-cancel">取消</button>
+                    </div>
+                </div>
+
+                <div class="editable-field" data-field="secret">
+                    <div class="field-label">
+                        Webhook Secret（可选）
+                        <span class="help-icon">?
+                            <span class="tooltip">用于 Webhook 消息签名验证，未启用加签可不填</span>
+                        </span>
+                        <span class="edit-icon">✏️ 点击编辑</span>
+                    </div>
+                    <div class="field-value empty">未设置</div>
+                    <input type="password" class="field-input" placeholder="Webhook 的加签密钥">
+                    <div class="field-actions">
+                        <button class="btn btn-primary btn-save">保存</button>
+                        <button class="btn btn-secondary btn-cancel">取消</button>
+                    </div>
+                </div>
+
+                <div class="section-title">⏰ 推送设置</div>
+
+                <div class="editable-field" data-field="push_time">
+                    <div class="field-label">
+                        推送时间
+                        <span class="help-icon">?
+                            <span class="tooltip">每天定时推送的时间</span>
+                        </span>
+                        <span class="edit-icon">✏️ 点击编辑</span>
+                    </div>
+                    <div class="field-value">09:00</div>
+                    <input type="time" class="field-input" value="09:00">
+                    <div class="field-actions">
+                        <button class="btn btn-primary btn-save">保存</button>
+                        <button class="btn btn-secondary btn-cancel">取消</button>
+                    </div>
+                </div>
+
+                <div class="editable-field" data-field="push_limit">
+                    <div class="field-label">
+                        推送数量
+                        <span class="help-icon">?
+                            <span class="tooltip">每次推送的候选人数量（1-50）</span>
+                        </span>
+                        <span class="edit-icon">✏️ 点击编辑</span>
+                    </div>
+                    <div class="field-value">10</div>
+                    <input type="number" class="field-input" value="10" min="1" max="50">
+                    <div class="field-actions">
+                        <button class="btn btn-primary btn-save">保存</button>
+                        <button class="btn btn-secondary btn-cancel">取消</button>
+                    </div>
+                </div>
+
+                <div class="editable-field" data-field="at_user_ids">
+                    <div class="field-label">
+                        @用户ID列表
+                        <span class="help-icon">?
+                            <span class="tooltip">多个用户ID用逗号分隔，推送时会@这些用户</span>
+                        </span>
+                        <span class="edit-icon">✏️ 点击编辑</span>
+                    </div>
+                    <div class="field-value empty">未设置</div>
+                    <input type="text" class="field-input" placeholder="011513173360959980,022614284471060091">
+                    <div class="field-actions">
+                        <button class="btn btn-primary btn-save">保存</button>
+                        <button class="btn btn-secondary btn-cancel">取消</button>
+                    </div>
+                </div>
+
+                <div class="checkbox-field">
+                    <input type="checkbox" id="enabled" name="enabled">
+                    <label for="enabled">启用钉钉机器人（关闭后将停止定时推送和消息监听）</label>
+                </div>
+
+                <div class="checkbox-field">
+                    <input type="checkbox" id="auto_push_on_complete" name="auto_push_on_complete">
+                    <label for="auto_push_on_complete">评估完成后自动推送（单个或批量评估完成后立即推送结果到钉钉群）</label>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-success" id="test-btn">🧪 测试推送</button>
+                    <button class="btn btn-warning" id="push-now-btn">🚀 立即推送候选人</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentConfig = {};
+        let currentConfigId = null;
+
+        // === 认证相关 ===
+        function checkAuth() {
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                window.location.href = '/static/login.html';
+                return false;
+            }
+            return true;
+        }
+
+        function logout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_info');
+            window.location.href = '/static/login.html';
+        }
+
+        function getAuthHeaders() {
+            const token = localStorage.getItem('auth_token');
+            return token ? { 'Authorization': `Bearer ${token}` } : {};
+        }
+
+        async function authFetch(url, options = {}) {
+            const headers = { ...getAuthHeaders(), ...(options.headers || {}) };
+            const response = await fetch(url, { ...options, headers });
+            if (response.status === 401) {
+                logout();
+                throw new Error('认证已过期，请重新登录');
+            }
+            return response;
+        }
+
+        // 页面加载时检查认证
+        if (!checkAuth()) {
+            throw new Error('未登录');
+        }
+
+        // 页面加载时获取配置
+        window.addEventListener('DOMContentLoaded', loadConfig);
+
+        async function loadConfig() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('config-form').style.display = 'none';
+
+            try {
+                const response = await authFetch(`${API_BASE}/dingtalk/config`);
+                const data = await response.json();
+
+                if (data.id) {
+                    currentConfig = data;
+                    currentConfigId = data.id;
+                    populateFields(data);
+                } else {
+                    // 使用默认值
+                    currentConfig = {
+                        name: '',
+                        client_id: '',
+                        client_secret: '',
+                        webhook: '',
+                        secret: '',
+                        push_time: '09:00',
+                        push_limit: 10,
+                        at_user_ids: '',
+                        enabled: false,
+                        auto_push_on_complete: false
+                    };
+                    populateFields(currentConfig);
+                }
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('config-form').style.display = 'block';
+                initializeEditableFields();
+            } catch (error) {
+                showAlert('加载配置失败: ' + error.message, 'error');
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function populateFields(data) {
+            // 填充所有字段
+            const fields = ['name', 'client_id', 'client_secret', 'webhook', 'secret', 'push_time', 'push_limit', 'at_user_ids'];
+
+            fields.forEach(field => {
+                const fieldEl = document.querySelector(`[data-field="${field}"]`);
+                if (fieldEl) {
+                    const valueEl = fieldEl.querySelector('.field-value');
+                    const inputEl = fieldEl.querySelector('.field-input');
+                    const value = data[field] || '';
+
+                    if (value) {
+                        valueEl.textContent = field.includes('secret') ? '••••••••' : value;
+                        valueEl.classList.remove('empty');
+                    } else {
+                        valueEl.textContent = '未设置';
+                        valueEl.classList.add('empty');
+                    }
+
+                    inputEl.value = value;
+                }
+            });
+
+            // 填充checkbox
+            document.getElementById('enabled').checked = data.enabled || false;
+            document.getElementById('auto_push_on_complete').checked = data.auto_push_on_complete || false;
+        }
+
+        function initializeEditableFields() {
+            document.querySelectorAll('.editable-field').forEach(field => {
+                const valueEl = field.querySelector('.field-value');
+                const inputEl = field.querySelector('.field-input');
+                const saveBtn = field.querySelector('.btn-save');
+                const cancelBtn = field.querySelector('.btn-cancel');
+
+                // 点击字段进入编辑模式
+                valueEl.addEventListener('click', () => {
+                    field.classList.add('editing');
+                    inputEl.focus();
+                });
+
+                // 保存按钮
+                saveBtn.addEventListener('click', async () => {
+                    await saveField(field);
+                });
+
+                // 取消按钮
+                cancelBtn.addEventListener('click', () => {
+                    field.classList.remove('editing');
+                    inputEl.value = currentConfig[field.dataset.field] || '';
+                });
+
+                // 按Enter保存
+                inputEl.addEventListener('keypress', async (e) => {
+                    if (e.key === 'Enter') {
+                        await saveField(field);
+                    }
+                });
+
+                // 按Esc取消
+                inputEl.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        field.classList.remove('editing');
+                        inputEl.value = currentConfig[field.dataset.field] || '';
+                    }
+                });
+            });
+
+            // Checkbox变化时自动保存
+            document.getElementById('enabled').addEventListener('change', async (e) => {
+                currentConfig.enabled = e.target.checked;
+                await saveAllConfig();
+            });
+
+            // 自动推送开关变化时自动保存
+            document.getElementById('auto_push_on_complete').addEventListener('change', async (e) => {
+                currentConfig.auto_push_on_complete = e.target.checked;
+                await saveAllConfig();
+            });
+        }
+
+        async function saveField(fieldEl) {
+            const fieldName = fieldEl.dataset.field;
+            const inputEl = fieldEl.querySelector('.field-input');
+            const valueEl = fieldEl.querySelector('.field-value');
+            let newValue = inputEl.value.trim();
+
+            // 对数字字段进行类型转换
+            if (fieldName === 'push_limit') {
+                newValue = parseInt(newValue, 10) || 10; // 默认值10
+            }
+
+            // 更新当前配置
+            currentConfig[fieldName] = newValue;
+
+            // 保存到服务器
+            const success = await saveAllConfig();
+
+            if (success) {
+                // 更新显示
+                if (newValue) {
+                    valueEl.textContent = fieldName.includes('secret') ? '••••••••' : newValue;
+                    valueEl.classList.remove('empty');
+                } else {
+                    valueEl.textContent = '未设置';
+                    valueEl.classList.add('empty');
+                }
+
+                fieldEl.classList.remove('editing');
+            }
+        }
+
+        async function saveAllConfig() {
+            const config = {
+                ...currentConfig,
+                id: currentConfigId
+            };
+
+            try {
+                const response = await authFetch(`${API_BASE}/dingtalk/config`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showAlert('✅ 配置已保存', 'success');
+                    if (data.config) {
+                        currentConfig = data.config;
+                        currentConfigId = data.config.id;
+                    }
+                    return true;
+                } else {
+                    showAlert('保存失败: ' + (data.error || '未知错误'), 'error');
+                    return false;
+                }
+            } catch (error) {
+                showAlert('保存失败: ' + error.message, 'error');
+                return false;
+            }
+        }
+
+        // 测试推送
+        document.getElementById('test-btn').addEventListener('click', async () => {
+            try {
+                const response = await authFetch(`${API_BASE}/dingtalk/test`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showAlert('✅ 测试推送已触发，请查看钉钉群消息', 'success');
+                } else {
+                    showAlert('测试失败: ' + (data.error || '未知错误'), 'error');
+                }
+            } catch (error) {
+                showAlert('测试失败: ' + error.message, 'error');
+            }
+        });
+
+        // 立即推送候选人
+        document.getElementById('push-now-btn').addEventListener('click', async () => {
+            if (!confirm('确定要立即推送候选人列表到钉钉群吗？')) {
+                return;
+            }
+
+            try {
+                const response = await authFetch(`${API_BASE}/dingtalk/push`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showAlert(`✅ ${data.message}`, 'success');
+                } else {
+                    showAlert('推送失败: ' + (data.error || '未知错误'), 'error');
+                }
+            } catch (error) {
+                showAlert('推送失败: ' + error.message, 'error');
+            }
+        });
+
+        function showAlert(message, type) {
+            const container = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.innerHTML = '';
+            container.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

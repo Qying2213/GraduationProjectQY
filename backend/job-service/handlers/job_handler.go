@@ -51,6 +51,11 @@ func (h *JobHandler) ListJobs(c *gin.Context) {
 	jobType := c.Query("type")
 	location := c.Query("location")
 	search := c.Query("search")
+	keyword := c.Query("keyword")
+	level := c.Query("level")
+	experience := c.Query("experience")
+	sortBy := c.DefaultQuery("sort_by", "created_at")
+	sortOrder := c.DefaultQuery("sort_order", "desc")
 
 	offset := (page - 1) * pageSize
 
@@ -68,14 +73,48 @@ func (h *JobHandler) ListJobs(c *gin.Context) {
 		query = query.Where("location ILIKE ?", "%"+location+"%")
 	}
 
+	// 支持 keyword 搜索（标题、描述、技能）
+	if keyword != "" {
+		query = query.Where("title ILIKE ? OR description ILIKE ?", "%"+keyword+"%", "%"+keyword+"%")
+	}
+
 	if search != "" {
 		query = query.Where("title ILIKE ? OR description ILIKE ?", "%"+search+"%", "%"+search+"%")
+	}
+
+	// 支持级别筛选
+	if level != "" {
+		query = query.Where("level = ?", level)
+	}
+
+	// 支持经验筛选（映射到 level）
+	if experience != "" {
+		switch experience {
+		case "0":
+			query = query.Where("level = ?", "junior")
+		case "1-3":
+			query = query.Where("level IN ?", []string{"junior", "mid"})
+		case "3-5":
+			query = query.Where("level IN ?", []string{"mid", "senior"})
+		case "5-10":
+			query = query.Where("level IN ?", []string{"senior", "expert"})
+		}
 	}
 
 	var total int64
 	query.Count(&total)
 
-	if err := query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&jobs).Error; err != nil {
+	// 排序
+	allowedSortFields := map[string]bool{"created_at": true, "salary": true, "title": true}
+	if !allowedSortFields[sortBy] {
+		sortBy = "created_at"
+	}
+	if sortOrder != "asc" && sortOrder != "desc" {
+		sortOrder = "desc"
+	}
+	orderClause := sortBy + " " + sortOrder
+
+	if err := query.Order(orderClause).Offset(offset).Limit(pageSize).Find(&jobs).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch jobs"})
 		return
 	}
@@ -154,10 +193,10 @@ func (h *JobHandler) DeleteJob(c *gin.Context) {
 // GetJobStats 获取职位统计
 func (h *JobHandler) GetJobStats(c *gin.Context) {
 	var stats struct {
-		TotalJobs   int64 `json:"total_jobs"`
-		OpenJobs    int64 `json:"open_jobs"`
-		ClosedJobs  int64 `json:"closed_jobs"`
-		FilledJobs  int64 `json:"filled_jobs"`
+		TotalJobs  int64 `json:"total_jobs"`
+		OpenJobs   int64 `json:"open_jobs"`
+		ClosedJobs int64 `json:"closed_jobs"`
+		FilledJobs int64 `json:"filled_jobs"`
 	}
 
 	h.DB.Model(&models.Job{}).Count(&stats.TotalJobs)

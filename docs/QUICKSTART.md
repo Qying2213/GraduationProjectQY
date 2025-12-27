@@ -1,194 +1,216 @@
-# 智能人才招聘平台 - 快速启动指南
+# 智能人才运营平台 - 快速启动指南
 
-## 一、项目简介
+## 环境要求
 
-智能人才招聘平台是一个完整的招聘管理系统，包含：
-- **后台管理系统**：HR 管理人才、职位、面试等
-- **前台求职端**：求职者浏览职位、投递简历
+| 软件 | 版本 | 说明 |
+|-----|------|------|
+| Go | 1.21+ | 后端开发语言 |
+| Node.js | 18+ | 前端运行环境 |
+| PostgreSQL | 14+ | 数据库 |
+| npm | 9+ | 包管理器 |
 
-技术栈：Go + Gin + PostgreSQL（后端） | Vue3 + TypeScript + Element Plus（前端）
+## 一、数据库配置
+
+### 1.1 创建数据库
+
+```bash
+# 登录PostgreSQL
+psql -U postgres
+
+# 创建数据库和用户
+CREATE DATABASE talent_platform;
+CREATE USER qinyang WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE talent_platform TO qinyang;
+\q
+```
+
+### 1.2 初始化表结构
+
+```bash
+cd backend/database
+psql -U qinyang -d talent_platform -f schema.sql
+```
+
+### 1.3 导入模拟数据（可选）
+
+```bash
+cd backend/database
+./import_mock_data.sh
+```
 
 ---
 
-## 二、环境要求
+## 二、后端启动
 
-| 软件 | 版本 | 必需 |
-|------|------|------|
-| Node.js | 18.0+ | ✅ |
-| Go | 1.21+ | ✅ |
-| PostgreSQL | 14.0+ | ✅ |
-| Redis | 6.0+ | ❌ 可选 |
-| Docker | 20.0+ | ❌ 可选 |
+### 2.1 一键启动（推荐）
+
+```bash
+cd backend
+./start-all.sh
+```
+
+### 2.2 启动脚本命令
+
+```bash
+./start-all.sh start    # 启动所有服务
+./start-all.sh stop     # 停止所有服务
+./start-all.sh restart  # 重启所有服务
+./start-all.sh status   # 查看服务状态
+```
+
+### 2.3 手动启动（单个服务）
+
+```bash
+# 在不同终端分别启动
+cd backend/user-service && go run main.go      # 端口 8081
+cd backend/job-service && go run main.go       # 端口 8082
+cd backend/interview-service && go run main.go # 端口 8083
+cd backend/resume-service && go run main.go    # 端口 8084
+cd backend/message-service && go run main.go   # 端口 8085
+cd backend/talent-service && go run main.go    # 端口 8086
+```
+
+### 2.4 服务端口
+
+| 服务 | 端口 | 说明 |
+|-----|------|------|
+| user-service | 8081 | 用户认证、权限管理 |
+| job-service | 8082 | 职位CRUD、搜索筛选 |
+| interview-service | 8083 | 面试安排、反馈管理 |
+| resume-service | 8084 | 简历上传、AI评估 |
+| message-service | 8085 | 消息通知、未读统计 |
+| talent-service | 8086 | 人才库管理、搜索 |
 
 ---
 
-## 三、快速启动（3步完成）
+## 三、前端启动
 
-### 步骤 1：初始化数据库
-
-```bash
-# 创建数据库
-psql -U postgres -c "CREATE DATABASE talent_platform;"
-
-# 导入表结构和测试数据
-psql -U postgres -d talent_platform -f backend/database/schema.sql
-psql -U postgres -d talent_platform -f backend/database/mock_data.sql
-```
-
-### 步骤 2：启动后端
-
-```bash
-# 使用启动脚本（推荐）
-chmod +x start-backend.sh
-./start-backend.sh
-```
-
-或手动启动各服务（需要8个终端）：
-```bash
-cd backend/gateway && go run main.go              # 端口 8080
-cd backend/user-service && go run main.go         # 端口 8081
-cd backend/talent-service && go run main.go       # 端口 8082
-cd backend/job-service && go run main.go          # 端口 8083
-cd backend/resume-service && go run main.go       # 端口 8084
-cd backend/recommendation-service && go run main.go # 端口 8085
-cd backend/message-service && go run main.go      # 端口 8086
-cd backend/interview-service && go run main.go    # 端口 8087
-```
-
-### 步骤 3：启动前端
+### 3.1 安装依赖
 
 ```bash
 cd frontend
 npm install
+```
+
+### 3.2 启动开发服务器
+
+```bash
 npm run dev
 ```
 
----
+访问地址: http://localhost:5173
 
-## 四、访问系统
+### 3.3 构建生产版本
 
-| 入口 | 地址 | 说明 |
-|------|------|------|
-| 后台管理 | http://localhost:3000/login | HR/管理员使用 |
-| 前台求职端 | http://localhost:3000/portal | 求职者使用 |
-| API 网关 | http://localhost:8080 | 后端接口 |
+```bash
+npm run build
+```
 
 ---
 
-## 五、测试账号
+## 四、测试账号
 
-| 用户名 | 密码 | 角色 | 权限 |
-|--------|------|------|------|
-| admin | password123 | 超级管理员 | 全部权限 |
-| hr_zhang | password123 | HR主管 | 人才/职位/面试管理 |
-| hr_li | password123 | 招聘专员 | 人才/简历管理 |
-| tech_chen | password123 | 面试官 | 面试/反馈 |
-| viewer_test | password123 | 只读用户 | 仅查看 |
+| 用户名 | 密码 | 角色 |
+|-------|------|------|
+| admin | password123 | 管理员 |
+| hr_zhang | password123 | HR |
+| hr_wang | password123 | HR |
+| interviewer1 | password123 | 面试官 |
 
 ---
 
-## 六、运行测试
+## 五、运行测试
 
-### 前端测试
+### 5.1 后端API测试
+
+```bash
+cd backend
+./test_api.sh
+```
+
+测试覆盖: 74个测试用例
+
+### 5.2 前端测试
+
 ```bash
 cd frontend
-npm run test              # 运行测试
-npm run test:coverage     # 生成覆盖率报告
+npm test -- --run
 ```
 
-### 后端测试
-```bash
-# 简历解析模块
-cd backend/resume-service && go test ./parser/... -v
-
-# 用户服务
-cd backend/user-service && go test ./handlers/... -v
-
-# 面试服务
-cd backend/interview-service && go test ./handlers/... -v
-
-# 推荐服务
-cd backend/recommendation-service && go test ./handlers/... -v
-```
+测试覆盖: 81个测试用例
 
 ---
 
-## 七、Docker 部署（可选）
+## 六、AI评估配置（可选）
+
+### 6.1 获取Coze API Key
+
+1. 访问 [Coze平台](https://www.coze.cn)
+2. 创建工作流
+3. 获取API Token和Workflow ID
+
+### 6.2 配置环境变量
 
 ```bash
-# 一键启动
-docker-compose up -d
+cd backend/resume-service
+cp .env.example .env
 
-# 查看状态
-docker-compose ps
-
-# 停止服务
-docker-compose down
+# 编辑 .env 文件
+COZE_API_TOKEN=pat_xxxxxxxxxxxxxxxx
+COZE_WORKFLOW_ID=7xxxxxxxxxxxxxxxxxx
 ```
 
 ---
 
-## 八、服务端口一览
-
-| 服务 | 端口 | 说明 |
-|------|------|------|
-| 前端 | 3000 | Vue3 应用 |
-| API网关 | 8080 | 统一入口 |
-| 用户服务 | 8081 | 认证/用户管理 |
-| 人才服务 | 8082 | 人才库 |
-| 职位服务 | 8083 | 职位管理 |
-| 简历服务 | 8084 | 简历解析 |
-| 推荐服务 | 8085 | AI推荐 |
-| 消息服务 | 8086 | 通知 |
-| 面试服务 | 8087 | 面试管理 |
-| PostgreSQL | 5432 | 数据库 |
-
----
-
-## 九、常见问题
+## 七、常见问题
 
 ### Q1: 数据库连接失败
-```bash
-# 检查 PostgreSQL 是否运行
-pg_isready
 
-# 检查数据库是否存在
-psql -U postgres -c "\l" | grep talent_platform
+检查PostgreSQL服务是否启动:
+```bash
+brew services start postgresql  # macOS
+sudo systemctl start postgresql # Linux
 ```
 
 ### Q2: 端口被占用
-```bash
-# 查看端口占用
-lsof -i :8080
 
-# 终止进程
+查看并关闭占用端口的进程:
+```bash
+lsof -i :8081
 kill -9 <PID>
 ```
 
-### Q3: 前端依赖安装失败
+### Q3: Go模块下载失败
+
+设置Go代理:
+```bash
+go env -w GOPROXY=https://goproxy.cn,direct
+```
+
+### Q4: 前端依赖安装失败
+
+清除缓存重试:
 ```bash
 rm -rf node_modules package-lock.json
-npm cache clean --force
 npm install
 ```
 
-### Q4: 登录失败
-```bash
-# 重新导入测试数据
-psql -U postgres -d talent_platform -f backend/database/mock_data.sql
+---
+
+## 八、项目结构
+
 ```
-
----
-
-## 十、项目文档
-
-| 文档 | 路径 | 说明 |
-|------|------|------|
-| 系统架构 | docs/ARCHITECTURE.md | 架构图、ER图、流程图 |
-| 部署文档 | docs/DEPLOYMENT.md | 详细部署指南 |
-| API文档 | backend/docs/swagger.yaml | 接口说明 |
-
----
-
-**版本**: v1.0  
-**更新日期**: 2024年12月
+graduate/
+├── frontend/           # 前端项目 (Vue3 + TypeScript)
+├── backend/            # 后端项目 (Go + Gin)
+│   ├── user-service/       # 用户服务 :8081
+│   ├── job-service/        # 职位服务 :8082
+│   ├── interview-service/  # 面试服务 :8083
+│   ├── resume-service/     # 简历服务 :8084
+│   ├── message-service/    # 消息服务 :8085
+│   ├── talent-service/     # 人才服务 :8086
+│   ├── database/           # 数据库脚本
+│   ├── start-all.sh        # 一键启动脚本
+│   └── test_api.sh         # API测试脚本
+└── docs/               # 文档
+```

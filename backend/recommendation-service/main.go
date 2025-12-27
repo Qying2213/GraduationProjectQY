@@ -31,8 +31,8 @@ func main() {
 		api.GET("/stats", recommendHandler.GetRecommendationStats)
 	}
 
-	log.Println("Recommendation service is running on :8085")
-	if err := r.Run(":8085"); err != nil {
+	log.Println("Recommendation service is running on :8087")
+	if err := r.Run(":8087"); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }

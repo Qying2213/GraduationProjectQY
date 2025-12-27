@@ -25,13 +25,8 @@ func (h *TalentHandler) CreateTalent(c *gin.Context) {
 		return
 	}
 
-	// 从JWT中获取用户ID
-	if userID, exists := c.Get("user_id"); exists {
-		talent.UserID = userID.(uint)
-	}
-
 	if err := h.DB.Create(&talent).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create talent"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create talent: " + err.Error()})
 		return
 	}
 
@@ -110,13 +105,14 @@ func (h *TalentHandler) UpdateTalent(c *gin.Context) {
 		return
 	}
 
-	if err := c.ShouldBindJSON(&talent); err != nil {
+	var updateData map[string]interface{}
+	if err := c.ShouldBindJSON(&updateData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := h.DB.Save(&talent).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update talent"})
+	if err := h.DB.Model(&talent).Updates(updateData).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update talent: " + err.Error()})
 		return
 	}
 
@@ -146,6 +142,7 @@ func (h *TalentHandler) DeleteTalent(c *gin.Context) {
 func (h *TalentHandler) SearchTalents(c *gin.Context) {
 	var talents []models.Talent
 
+	keyword := c.Query("keyword")
 	skills := c.QueryArray("skills")
 	minExp, _ := strconv.Atoi(c.DefaultQuery("min_experience", "0"))
 	maxExp, _ := strconv.Atoi(c.DefaultQuery("max_experience", "100"))
@@ -157,6 +154,12 @@ func (h *TalentHandler) SearchTalents(c *gin.Context) {
 	offset := (page - 1) * pageSize
 
 	query := h.DB.Model(&models.Talent{})
+
+	// 关键词搜索（搜索姓名、技能、职位等）
+	if keyword != "" {
+		query = query.Where("name ILIKE ? OR current_position ILIKE ? OR summary ILIKE ? OR ? = ANY(skills)",
+			"%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%", keyword)
+	}
 
 	if len(skills) > 0 {
 		query = query.Where("skills && ?", skills)

@@ -46,8 +46,8 @@ func main() {
 		api.DELETE("/:id", messageHandler.DeleteMessage)
 	}
 
-	log.Println("Message service is running on :8086")
-	if err := r.Run(":8086"); err != nil {
+	log.Println("Message service is running on :8085")
+	if err := r.Run(":8085"); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }

@@ -40,6 +40,12 @@ const routes: RouteRecordRaw[] = [
                 meta: { title: '职位详情' }
             },
             {
+                path: 'companies',
+                name: 'PortalCompanies',
+                component: () => import('@/views/portal/PortalCompanies.vue'),
+                meta: { title: '企业招聘' }
+            },
+            {
                 path: 'login',
                 name: 'PortalLogin',
                 component: () => import('@/views/portal/PortalLogin.vue'),

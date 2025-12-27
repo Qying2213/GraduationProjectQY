@@ -1,7 +1,7 @@
 .PHONY: all build test clean docker-build docker-up docker-down help
 
 # 变量
-SERVICES := gateway user-service talent-service job-service resume-service recommendation-service message-service interview-service
+SERVICES := gateway user-service talent-service job-service resume-service recommendation-service message-service interview-service evaluator-service
 
 # 默认目标
 all: help
@@ -15,7 +15,9 @@ help:
 	@echo "开发命令:"
 	@echo "  dev-backend     启动所有后端服务（开发模式）"
 	@echo "  dev-frontend    启动前端开发服务器"
+	@echo "  dev-evaluator   启动 AI 简历评估系统"
 	@echo "  dev             同时启动前后端"
+	@echo "  dev-all         启动所有服务（含评估系统）"
 	@echo ""
 	@echo "构建命令:"
 	@echo "  build           构建所有服务"
@@ -30,7 +32,7 @@ help:
 	@echo ""
 	@echo "Docker 命令:"
 	@echo "  docker-build    构建 Docker 镜像"
-	@echo "  docker-up       启动 Docker 容器"
+	@echo "  docker-up       启动 Docker 容器（含评估系统）"
 	@echo "  docker-down     停止 Docker 容器"
 	@echo "  docker-logs     查看 Docker 日志"
 	@echo ""
@@ -53,9 +55,17 @@ dev-frontend:
 	@echo "启动前端开发服务器..."
 	cd frontend && npm run dev
 
+dev-evaluator:
+	@echo "启动 AI 简历评估系统..."
+	cd backend/evaluator-service && go run ./cmd/server
+
 dev:
 	@echo "启动开发环境..."
 	@make -j2 dev-backend dev-frontend
+
+dev-all:
+	@echo "启动所有服务（含评估系统）..."
+	@make -j3 dev-backend dev-frontend dev-evaluator
 
 # 构建
 build: build-backend build-frontend

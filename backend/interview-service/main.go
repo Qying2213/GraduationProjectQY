@@ -82,7 +82,7 @@ func main() {
 	}
 
 	// 启动服务
-	port := getEnv("PORT", "8087")
+	port := getEnv("PORT", "8083")
 	log.Printf("Interview Service is running on :%s", port)
 	if err := r.Run(":" + port); err != nil {
 		log.Fatal("Failed to start server:", err)
