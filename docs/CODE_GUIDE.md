@@ -1,414 +1,247 @@
-# 项目代码指南 - 快速上手
+# 智能人才招聘管理平台 - 代码规范
 
-本文档帮助你快速理解项目代码结构，方便修改和扩展。
-
----
-
-## 一、项目整体结构
-
-```
-├── backend/                 # 后端（Go 微服务）
-│   ├── gateway/            # API 网关 - 所有请求入口
-│   ├── user-service/       # 用户服务 - 登录注册
-│   ├── talent-service/     # 人才服务 - 人才库管理
-│   ├── job-service/        # 职位服务 - 职位管理
-│   ├── resume-service/     # 简历服务 - 简历上传解析
-│   ├── recommendation-service/  # 推荐服务 - AI匹配
-│   ├── interview-service/  # 面试服务 - 面试安排
-│   ├── message-service/    # 消息服务 - 通知
-│   ├── common/             # 公共模块
-│   └── database/           # 数据库脚本
-│
-├── frontend/               # 前端（Vue3）
-│   └── src/
-│       ├── api/           # 接口请求
-│       ├── views/         # 页面
-│       ├── components/    # 组件
-│       ├── store/         # 状态管理
-│       ├── router/        # 路由
-│       └── utils/         # 工具函数
-│
-└── docs/                   # 文档
-```
+> 📖 返回 [项目首页](../README.md) | 相关文档：[系统架构](ARCHITECTURE.md) | [快速启动](QUICKSTART.md)
 
 ---
 
-## 二、后端代码结构
+## 1. 项目结构
 
-### 每个微服务的结构（以 user-service 为例）
-
-```
-backend/user-service/
-├── main.go              # 入口文件，启动服务
-├── handlers/            # 处理 HTTP 请求
-│   └── user_handler.go  # 用户相关接口
-├── models/              # 数据模型
-│   └── user.go          # User 结构体
-├── go.mod               # Go 依赖
-└── go.sum
-```
-
-### 核心文件说明
-
-#### 1. main.go - 服务入口
-```go
-// 每个服务的 main.go 做3件事：
-// 1. 连接数据库
-// 2. 注册路由
-// 3. 启动 HTTP 服务
-
-func main() {
-    // 连接数据库
-    db, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-    
-    // 创建 Gin 路由
-    r := gin.Default()
-    
-    // 注册接口
-    handler := handlers.NewUserHandler(db)
-    r.POST("/api/v1/login", handler.Login)
-    r.GET("/api/v1/users", handler.ListUsers)
-    
-    // 启动服务
-    r.Run(":8081")
-}
-```
-
-#### 2. handlers/ - 接口处理
-```go
-// handlers/user_handler.go
-type UserHandler struct {
-    DB *gorm.DB
-}
-
-// 登录接口
-func (h *UserHandler) Login(c *gin.Context) {
-    var req LoginRequest
-    c.ShouldBindJSON(&req)  // 解析请求体
-    
-    // 查询数据库
-    var user models.User
-    h.DB.Where("username = ?", req.Username).First(&user)
-    
-    // 返回响应
-    c.JSON(200, gin.H{"token": token, "user": user})
-}
-```
-
-#### 3. models/ - 数据模型
-```go
-// models/user.go
-type User struct {
-    ID        uint   `json:"id" gorm:"primaryKey"`
-    Username  string `json:"username"`
-    Email     string `json:"email"`
-    Password  string `json:"-"`  // json:"-" 表示不返回给前端
-    Role      string `json:"role"`
-    CreatedAt time.Time `json:"created_at"`
-}
-```
-
-### 各服务端口
-
-| 服务 | 端口 | 主要接口 |
-|------|------|----------|
-| gateway | 8080 | 转发所有请求 |
-| user-service | 8081 | /api/v1/login, /api/v1/users |
-| talent-service | 8082 | /api/v1/talents |
-| job-service | 8083 | /api/v1/jobs |
-| resume-service | 8084 | /api/v1/resumes |
-| recommendation-service | 8085 | /api/v1/recommend |
-| message-service | 8086 | /api/v1/messages |
-| interview-service | 8087 | /api/v1/interviews |
-
----
-
-## 三、前端代码结构
+### 1.1 前端结构
 
 ```
 frontend/src/
 ├── api/                    # API 接口封装
-│   ├── auth.ts            # 登录注册接口
-│   ├── talent.ts          # 人才接口
-│   ├── job.ts             # 职位接口
-│   └── ...
-│
-├── views/                  # 页面组件
-│   ├── auth/              # 登录注册页
-│   │   └── Login.vue
-│   ├── dashboard/         # 仪表板
-│   │   └── Dashboard.vue
-│   ├── talents/           # 人才管理
-│   │   ├── TalentList.vue
-│   │   └── TalentDetail.vue
-│   ├── jobs/              # 职位管理
-│   ├── portal/            # 前台求职端
-│   │   ├── PortalHome.vue
-│   │   ├── PortalJobList.vue
-│   │   └── ...
-│   └── ...
-│
-├── components/             # 可复用组件
+│   ├── user.ts            # 用户相关接口
+│   ├── job.ts             # 职位相关接口
+│   ├── talent.ts          # 人才相关接口
+│   ├── resume.ts          # 简历相关接口
+│   ├── interview.ts       # 面试相关接口
+│   ├── message.ts         # 消息相关接口
+│   └── recommendation.ts  # 推荐相关接口
+├── components/             # 公共组件
 │   ├── layout/            # 布局组件
-│   │   ├── MainLayout.vue    # 后台布局
-│   │   └── PortalLayout.vue  # 前台布局
-│   └── common/            # 通用组件
-│
+│   ├── common/            # 通用组件
+│   └── charts/            # 图表组件
+├── views/                  # 页面视图
+│   ├── auth/              # 认证页面
+│   ├── dashboard/         # 仪表板
+│   ├── talents/           # 人才管理
+│   ├── jobs/              # 职位管理
+│   ├── resumes/           # 简历管理
+│   ├── recommend/         # 智能推荐
+│   ├── interviews/        # 面试管理
+│   ├── calendar/          # 面试日历
+│   ├── kanban/            # 招聘看板
+│   ├── messages/          # 消息中心
+│   ├── reports/           # 数据报表
+│   ├── portal/            # 求职者门户
+│   ├── profile/           # 个人中心
+│   └── system/            # 系统设置
 ├── store/                  # Pinia 状态管理
-│   ├── user.ts            # 用户状态
-│   ├── permission.ts      # 权限状态
-│   └── theme.ts           # 主题状态
-│
 ├── router/                 # 路由配置
-│   └── index.ts
-│
-├── types/                  # TypeScript 类型
-│   └── index.ts
-│
-├── styles/                 # 全局样式
-│   └── global.scss
-│
-└── utils/                  # 工具函数
-    └── request.ts         # Axios 封装
+├── types/                  # TypeScript 类型定义
+├── utils/                  # 工具函数
+└── styles/                 # 全局样式
 ```
 
-### 核心文件说明
+### 1.2 后端结构
 
-#### 1. api/ - 接口封装
+```
+backend/
+├── gateway/                # API 网关
+├── user-service/           # 用户服务
+│   ├── handlers/          # 请求处理器
+│   ├── models/            # 数据模型
+│   └── main.go            # 入口文件
+├── job-service/            # 职位服务
+├── interview-service/      # 面试服务
+├── resume-service/         # 简历服务
+├── message-service/        # 消息服务
+├── talent-service/         # 人才服务
+├── recommendation-service/ # 推荐服务
+├── log-service/            # 日志服务
+├── evaluator-service/      # AI评估服务
+│   ├── cmd/server/        # 入口
+│   ├── internal/          # 内部模块
+│   │   ├── api/          # API 路由
+│   │   ├── config/       # 配置
+│   │   ├── database/     # 数据库
+│   │   ├── repository/   # 数据访问
+│   │   ├── service/      # 业务逻辑
+│   │   └── thirdparty/   # 第三方集成
+│   └── pkg/               # 公共包
+├── common/                 # 公共模块
+│   ├── config/            # 配置管理
+│   ├── elasticsearch/     # ES 客户端
+│   ├── middleware/        # 中间件
+│   └── response/          # 统一响应
+└── database/               # 数据库脚本
+```
+
+---
+
+## 2. 命名规范
+
+### 2.1 前端
+
+| 类型 | 规范 | 示例 |
+|------|------|------|
+| 文件名 | PascalCase | `TalentList.vue` |
+| 组件名 | PascalCase | `TalentCard` |
+| 变量 | camelCase | `talentList` |
+| 常量 | UPPER_SNAKE_CASE | `API_BASE_URL` |
+| 类型 | PascalCase | `TalentInfo` |
+| 接口 | PascalCase + I前缀 | `ITalent` |
+
+### 2.2 后端
+
+| 类型 | 规范 | 示例 |
+|------|------|------|
+| 包名 | 小写 | `handlers` |
+| 文件名 | snake_case | `talent_handler.go` |
+| 结构体 | PascalCase | `TalentHandler` |
+| 方法 | PascalCase | `CreateTalent` |
+| 变量 | camelCase | `talentList` |
+| 常量 | PascalCase | `DefaultPageSize` |
+
+---
+
+## 3. 代码风格
+
+### 3.1 TypeScript/Vue
+
 ```typescript
-// api/talent.ts
-import request from '@/utils/request'
+// 组件定义
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import type { TalentInfo } from '@/types'
 
-export const talentApi = {
-  // 获取人才列表
-  getList(params: any) {
-    return request.get('/api/v1/talents', { params })
-  },
-  
-  // 创建人才
-  create(data: any) {
-    return request.post('/api/v1/talents', data)
-  },
-  
-  // 更新人才
-  update(id: number, data: any) {
-    return request.put(`/api/v1/talents/${id}`, data)
-  },
-  
-  // 删除人才
-  delete(id: number) {
-    return request.delete(`/api/v1/talents/${id}`)
+// Props
+const props = defineProps<{
+  talentId: number
+}>()
+
+// Emits
+const emit = defineEmits<{
+  (e: 'update', talent: TalentInfo): void
+}>()
+
+// 响应式数据
+const loading = ref(false)
+const talent = ref<TalentInfo | null>(null)
+
+// 计算属性
+const fullName = computed(() => talent.value?.name || '')
+
+// 方法
+const fetchTalent = async () => {
+  loading.value = true
+  try {
+    // ...
+  } finally {
+    loading.value = false
   }
 }
-```
 
-#### 2. views/ - 页面组件
-```vue
-<!-- views/talents/TalentList.vue -->
-<template>
-  <div class="talent-list">
-    <!-- 搜索栏 -->
-    <el-form :model="searchForm" inline>
-      <el-form-item label="姓名">
-        <el-input v-model="searchForm.name" />
-      </el-form-item>
-      <el-button @click="handleSearch">搜索</el-button>
-    </el-form>
-    
-    <!-- 表格 -->
-    <el-table :data="tableData">
-      <el-table-column prop="name" label="姓名" />
-      <el-table-column prop="skills" label="技能" />
-      <el-table-column label="操作">
-        <template #default="{ row }">
-          <el-button @click="handleEdit(row)">编辑</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { talentApi } from '@/api/talent'
-
-const tableData = ref([])
-const searchForm = ref({ name: '' })
-
-// 获取数据
-const fetchData = async () => {
-  const res = await talentApi.getList(searchForm.value)
-  tableData.value = res.data.data.talents
-}
-
+// 生命周期
 onMounted(() => {
-  fetchData()
+  fetchTalent()
 })
 </script>
 ```
 
-#### 3. store/ - 状态管理
-```typescript
-// store/user.ts
-import { defineStore } from 'pinia'
+### 3.2 Go
 
-export const useUserStore = defineStore('user', {
-  state: () => ({
-    user: null,
-    token: localStorage.getItem('token') || ''
-  }),
-  
-  getters: {
-    isLoggedIn: (state) => !!state.token,
-    isAdmin: (state) => state.user?.role === 'admin'
-  },
-  
-  actions: {
-    async login(username: string, password: string) {
-      const res = await authApi.login({ username, password })
-      this.token = res.data.data.token
-      this.user = res.data.data.user
-      localStorage.setItem('token', this.token)
-    },
-    
-    logout() {
-      this.token = ''
-      this.user = null
-      localStorage.removeItem('token')
+```go
+// Handler 定义
+type TalentHandler struct {
+    db *gorm.DB
+}
+
+func NewTalentHandler(db *gorm.DB) *TalentHandler {
+    return &TalentHandler{db: db}
+}
+
+// 方法实现
+func (h *TalentHandler) CreateTalent(c *gin.Context) {
+    var talent models.Talent
+    if err := c.ShouldBindJSON(&talent); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "code":    1,
+            "message": err.Error(),
+        })
+        return
     }
-  }
-})
-```
 
-#### 4. router/ - 路由配置
-```typescript
-// router/index.ts
-const routes = [
-  {
-    path: '/login',
-    component: () => import('@/views/auth/Login.vue')
-  },
-  {
-    path: '/',
-    component: () => import('@/components/layout/MainLayout.vue'),
-    children: [
-      { path: 'dashboard', component: () => import('@/views/dashboard/Dashboard.vue') },
-      { path: 'talents', component: () => import('@/views/talents/TalentList.vue') },
-      // ...
-    ]
-  },
-  {
-    path: '/portal',
-    component: () => import('@/components/layout/PortalLayout.vue'),
-    children: [
-      { path: '', component: () => import('@/views/portal/PortalHome.vue') },
-      // ...
-    ]
-  }
-]
+    if err := h.db.Create(&talent).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "code":    1,
+            "message": "创建失败",
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "code":    0,
+        "message": "success",
+        "data":    talent,
+    })
+}
 ```
 
 ---
 
-## 四、常见修改场景
+## 4. API 规范
 
-### 场景1：修改页面样式
+### 4.1 RESTful 设计
 
-找到对应的 `.vue` 文件，修改 `<style>` 部分：
-```
-frontend/src/views/xxx/XxxPage.vue
-```
+| 操作 | HTTP 方法 | 路径示例 |
+|------|----------|---------|
+| 列表 | GET | /api/v1/talents |
+| 详情 | GET | /api/v1/talents/:id |
+| 创建 | POST | /api/v1/talents |
+| 更新 | PUT | /api/v1/talents/:id |
+| 删除 | DELETE | /api/v1/talents/:id |
 
-### 场景2：修改接口返回数据
+### 4.2 响应格式
 
-找到对应服务的 handler：
-```
-backend/xxx-service/handlers/xxx_handler.go
-```
-
-### 场景3：添加新页面
-
-1. 创建页面文件：`frontend/src/views/xxx/NewPage.vue`
-2. 添加路由：`frontend/src/router/index.ts`
-3. 如需新接口，添加 API：`frontend/src/api/xxx.ts`
-
-### 场景4：添加新接口
-
-1. 后端添加 handler 方法
-2. 在 main.go 注册路由
-3. 前端 api/ 目录添加调用方法
-
-### 场景5：修改数据库表
-
-1. 修改 `backend/database/schema.sql`
-2. 修改对应服务的 `models/xxx.go`
-3. 重新导入数据库
-
----
-
-## 五、关键文件速查表
-
-| 要改什么 | 文件位置 |
-|----------|----------|
-| 登录逻辑 | `backend/user-service/handlers/user_handler.go` |
-| 登录页面 | `frontend/src/views/auth/Login.vue` |
-| 权限控制 | `frontend/src/store/permission.ts` |
-| 路由配置 | `frontend/src/router/index.ts` |
-| 全局样式 | `frontend/src/styles/global.scss` |
-| 主题颜色 | `frontend/src/store/theme.ts` |
-| 数据库表 | `backend/database/schema.sql` |
-| 测试数据 | `backend/database/mock_data.sql` |
-| 简历解析 | `backend/resume-service/parser/resume_parser.go` |
-| AI智能评估 | `backend/resume-service/evaluator/coze_evaluator.go` |
-| 推荐算法 | `backend/recommendation-service/handlers/` |
-
----
-
-## 六、调试技巧
-
-### 前端调试
-```bash
-# 启动开发服务器（支持热更新）
-cd frontend && npm run dev
-
-# 浏览器打开 F12 查看 Console 和 Network
-```
-
-### 后端调试
-```bash
-# 查看某个服务的日志
-cd backend/user-service && go run main.go
-
-# 日志会打印在终端
-```
-
-### 数据库调试
-```bash
-# 连接数据库
-psql -U postgres -d talent_platform
-
-# 查看表
-\dt
-
-# 查询数据
-SELECT * FROM users;
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": { ... }
+}
 ```
 
 ---
 
-## 七、技术栈速查
+## 5. Git 规范
 
-| 技术 | 用途 | 文档 |
+### 5.1 分支命名
+
+| 类型 | 格式 | 示例 |
 |------|------|------|
-| Vue 3 | 前端框架 | https://vuejs.org |
-| Element Plus | UI 组件 | https://element-plus.org |
-| Pinia | 状态管理 | https://pinia.vuejs.org |
-| TypeScript | 类型检查 | https://typescriptlang.org |
-| Go | 后端语言 | https://go.dev |
-| Gin | Web 框架 | https://gin-gonic.com |
-| GORM | ORM | https://gorm.io |
-| PostgreSQL | 数据库 | https://postgresql.org |
+| 功能 | feature/xxx | feature/talent-search |
+| 修复 | fix/xxx | fix/login-error |
+| 优化 | refactor/xxx | refactor/api-structure |
+
+### 5.2 提交信息
+
+```
+<type>(<scope>): <subject>
+
+feat(talent): 添加人才搜索功能
+fix(auth): 修复登录token过期问题
+docs(readme): 更新部署文档
+```
 
 ---
 
-有问题随时问！
+## 📚 相关文档
+
+| 文档 | 说明 |
+|------|------|
+| [📖 项目首页](../README.md) | 项目概述 |
+| [📐 系统架构](ARCHITECTURE.md) | 架构设计 |
+| [🚀 快速启动](QUICKSTART.md) | 环境配置 |
+| [🧪 测试指南](TEST_GUIDE.md) | 测试方法 |

@@ -1,149 +1,144 @@
-# 数据库设计文档
+# 智能人才招聘管理平台 - 数据库设计文档
+
+> 📖 返回 [项目首页](../README.md) | 相关文档：[系统架构](ARCHITECTURE.md) | [系统设计](SYSTEM_DESIGN.md) | [快速启动](QUICKSTART.md)
+
+---
 
 ## 1. 数据库概述
 
-### 1.1 数据库选型
-- **主数据库**：PostgreSQL 14+
-- **日志存储**：Elasticsearch 8.x
+- **数据库类型**：PostgreSQL 14+
 - **字符集**：UTF-8
-
-### 1.2 数据库信息
-- **数据库名**：talent_platform
-- **用户名**：qinyang
-- **端口**：5432
+- **时区**：Asia/Shanghai
+- **核心表数量**：10张
 
 ---
 
-## 2. ER 图
+## 2. ER图
 
 ```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│    users    │     │    roles    │     │    jobs     │
-├─────────────┤     ├─────────────┤     ├─────────────┤
-│ id (PK)     │     │ id (PK)     │     │ id (PK)     │
-│ username    │────>│ name        │     │ title       │
-│ email       │     │ code        │     │ description │
-│ password    │     │ permissions │     │ salary      │
-│ role (FK)   │     └─────────────┘     │ location    │
-│ status      │                         │ created_by  │──┐
-└─────────────┘                         └─────────────┘  │
-       │                                       │         │
-       │                                       │         │
-       ▼                                       ▼         │
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐  │
-│   talents   │     │   resumes   │     │ applications│  │
-├─────────────┤     ├─────────────┤     ├─────────────┤  │
-│ id (PK)     │<────│ talent_id   │     │ id (PK)     │  │
-│ name        │     │ id (PK)     │     │ resume_id   │──┘
-│ email       │     │ file_path   │     │ job_id      │
-│ skills      │     │ status      │     │ status      │
-│ experience  │     │ ai_score    │     │ created_at  │
-└─────────────┘     └─────────────┘     └─────────────┘
-       │                   │
-       │                   │
-       ▼                   ▼
-┌─────────────┐     ┌─────────────┐
-│  interviews │     │  feedbacks  │
-├─────────────┤     ├─────────────┤
-│ id (PK)     │<────│interview_id │
-│ candidate_id│     │ id (PK)     │
-│ position_id │     │ score       │
-│ interviewer │     │ comment     │
-│ date/time   │     │ result      │
-│ status      │     └─────────────┘
-└─────────────┘
+┌─────────────┐       ┌─────────────┐       ┌─────────────┐
+│    users    │       │    roles    │       │    jobs     │
+├─────────────┤       ├─────────────┤       ├─────────────┤
+│ id (PK)     │       │ id (PK)     │       │ id (PK)     │
+│ username    │──────>│ name        │       │ title       │
+│ email       │       │ code        │       │ description │
+│ password    │       │ permissions │       │ requirements│
+│ role        │       └─────────────┘       │ salary      │
+│ department  │                             │ location    │
+│ status      │                             │ type        │
+└──────┬──────┘                             │ status      │
+       │                                    │ skills[]    │
+       │                                    │ created_by  │──┐
+       │                                    └──────┬──────┘  │
+       │                                           │         │
+       ▼                                           ▼         │
+┌─────────────┐       ┌─────────────┐       ┌─────────────┐  │
+│   talents   │       │   resumes   │       │applications │  │
+├─────────────┤       ├─────────────┤       ├─────────────┤  │
+│ id (PK)     │<──────│ talent_id   │       │ id (PK)     │  │
+│ name        │       │ id (PK)     │       │ talent_id   │  │
+│ email       │       │ job_id      │       │ job_id      │──┘
+│ phone       │       │ file_path   │       │ resume_id   │
+│ skills[]    │       │ status      │       │ stage       │
+│ experience  │       │ match_score │       │ status      │
+│ education   │       │ parse_result│       │ source      │
+│ location    │       └─────────────┘       └─────────────┘
+│ salary      │
+└──────┬──────┘
        │
        ▼
-┌─────────────┐
-│  messages   │
-├─────────────┤
-│ id (PK)     │
-│ sender_id   │
-│ receiver_id │
-│ type        │
-│ content     │
-│ is_read     │
+┌─────────────┐       ┌─────────────┐       ┌─────────────┐
+│  interviews │       │  feedbacks  │       │  messages   │
+├─────────────┤       ├─────────────┤       ├─────────────┤
+│ id (PK)     │<──────│interview_id │       │ id (PK)     │
+│ candidate_id│       │ id (PK)     │       │ sender_id   │
+│ position_id │       │interviewer_id│      │ receiver_id │
+│ interviewer │       │ rating      │       │ type        │
+│ type        │       │ strengths   │       │ title       │
+│ date/time   │       │ weaknesses  │       │ content     │
+│ method      │       │ comments    │       │ is_read     │
+│ status      │       │recommendation│      │ created_at  │
+│ feedback    │       └─────────────┘       └─────────────┘
 └─────────────┘
+
+┌─────────────────┐
+│ operation_logs  │
+├─────────────────┤
+│ id (PK)         │
+│ user_id         │
+│ action          │
+│ resource_type   │
+│ resource_id     │
+│ details (JSONB) │
+│ ip_address      │
+│ created_at      │
+└─────────────────┘
 ```
 
 ---
 
-## 3. 数据表设计
+## 3. 数据表详细设计
 
 ### 3.1 用户表 (users)
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| id | SERIAL | PRIMARY KEY | 用户ID |
-| username | VARCHAR(50) | UNIQUE, NOT NULL | 用户名 |
-| email | VARCHAR(100) | UNIQUE, NOT NULL | 邮箱 |
-| password | VARCHAR(255) | NOT NULL | 密码(bcrypt) |
-| role | VARCHAR(20) | NOT NULL | 角色代码 |
-| avatar | VARCHAR(255) | | 头像URL |
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | SERIAL | PRIMARY KEY | 主键 |
+| username | VARCHAR(50) | NOT NULL UNIQUE | 用户名 |
+| email | VARCHAR(100) | NOT NULL UNIQUE | 邮箱 |
+| password | VARCHAR(255) | NOT NULL | 密码（bcrypt加密） |
+| role | VARCHAR(20) | NOT NULL DEFAULT 'viewer' | 角色 |
+| avatar | VARCHAR(500) | | 头像URL |
 | phone | VARCHAR(20) | | 手机号 |
 | department | VARCHAR(50) | | 部门 |
 | position | VARCHAR(50) | | 职位 |
-| status | VARCHAR(20) | DEFAULT 'active' | 状态 |
-| real_name | VARCHAR(50) | | 真实姓名 |
-| created_at | TIMESTAMP | DEFAULT NOW() | 创建时间 |
-| updated_at | TIMESTAMP | DEFAULT NOW() | 更新时间 |
+| status | VARCHAR(20) | NOT NULL DEFAULT 'active' | 状态 |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 更新时间 |
 
-```sql
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role VARCHAR(20) NOT NULL DEFAULT 'viewer',
-    avatar VARCHAR(255),
-    phone VARCHAR(20),
-    department VARCHAR(50),
-    position VARCHAR(50),
-    status VARCHAR(20) DEFAULT 'active',
-    real_name VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+**索引**：
+- idx_users_email (email)
+- idx_users_role (role)
+- idx_users_status (status)
 
-CREATE INDEX idx_users_username ON users(username);
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_role ON users(role);
-```
+**角色枚举**：admin, hr_manager, recruiter, interviewer, viewer
+
+**状态枚举**：active, inactive, suspended
+
 
 ### 3.2 角色表 (roles)
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| id | SERIAL | PRIMARY KEY | 角色ID |
-| name | VARCHAR(50) | NOT NULL | 角色名称 |
-| code | VARCHAR(20) | UNIQUE, NOT NULL | 角色代码 |
-| description | TEXT | | 角色描述 |
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | SERIAL | PRIMARY KEY | 主键 |
+| name | VARCHAR(50) | NOT NULL UNIQUE | 角色名称 |
+| code | VARCHAR(50) | NOT NULL UNIQUE | 角色代码 |
+| description | TEXT | | 描述 |
 | permissions | TEXT[] | | 权限列表 |
-| created_at | TIMESTAMP | DEFAULT NOW() | 创建时间 |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 更新时间 |
 
-```sql
-CREATE TABLE roles (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    code VARCHAR(20) UNIQUE NOT NULL,
-    description TEXT,
-    permissions TEXT[],
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+**预设角色**：
+| code | name | permissions |
+|------|------|-------------|
+| admin | 超级管理员 | ['*'] |
+| hr_manager | HR主管 | ['talent:*', 'job:*', 'resume:*', 'interview:*', 'message:*'] |
+| recruiter | 招聘专员 | ['talent:view', 'talent:create', 'talent:edit', 'job:view', 'resume:*', 'interview:*'] |
+| interviewer | 面试官 | ['talent:view', 'job:view', 'interview:view', 'interview:feedback'] |
+| viewer | 只读用户 | ['talent:view', 'job:view', 'resume:view', 'interview:view'] |
 
 ### 3.3 职位表 (jobs)
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| id | SERIAL | PRIMARY KEY | 职位ID |
-| title | VARCHAR(100) | NOT NULL | 职位名称 |
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | SERIAL | PRIMARY KEY | 主键 |
+| title | VARCHAR(200) | NOT NULL | 职位名称 |
 | description | TEXT | | 职位描述 |
-| requirements | TEXT[] | | 任职要求 |
+| requirements | TEXT[] | | 职位要求 |
 | salary | VARCHAR(50) | | 薪资范围 |
 | location | VARCHAR(50) | | 工作地点 |
-| type | VARCHAR(20) | | 工作类型 |
-| status | VARCHAR(20) | DEFAULT 'open' | 状态 |
+| type | VARCHAR(20) | NOT NULL DEFAULT 'full-time' | 职位类型 |
+| status | VARCHAR(20) | NOT NULL DEFAULT 'open' | 状态 |
 | created_by | INTEGER | REFERENCES users(id) | 创建人 |
 | department | VARCHAR(50) | | 所属部门 |
 | level | VARCHAR(20) | | 职级 |
@@ -152,405 +147,252 @@ CREATE TABLE roles (
 | headcount | INTEGER | DEFAULT 1 | 招聘人数 |
 | urgent | BOOLEAN | DEFAULT FALSE | 是否紧急 |
 | deadline | DATE | | 截止日期 |
-| created_at | TIMESTAMP | DEFAULT NOW() | 创建时间 |
-| updated_at | TIMESTAMP | DEFAULT NOW() | 更新时间 |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 更新时间 |
 
-```sql
-CREATE TABLE jobs (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(100) NOT NULL,
-    description TEXT,
-    requirements TEXT[],
-    salary VARCHAR(50),
-    location VARCHAR(50),
-    type VARCHAR(20),
-    status VARCHAR(20) DEFAULT 'open',
-    created_by INTEGER REFERENCES users(id),
-    department VARCHAR(50),
-    level VARCHAR(20),
-    skills TEXT[],
-    benefits TEXT[],
-    headcount INTEGER DEFAULT 1,
-    urgent BOOLEAN DEFAULT FALSE,
-    deadline DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+**索引**：
+- idx_jobs_status (status)
+- idx_jobs_type (type)
+- idx_jobs_location (location)
+- idx_jobs_created_by (created_by)
 
-CREATE INDEX idx_jobs_status ON jobs(status);
-CREATE INDEX idx_jobs_location ON jobs(location);
-CREATE INDEX idx_jobs_department ON jobs(department);
-```
+**类型枚举**：full-time, part-time, contract, internship
+
+**状态枚举**：open, closed, filled, paused
+
+**职级枚举**：junior, mid, senior, expert, management
 
 ### 3.4 人才表 (talents)
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| id | SERIAL | PRIMARY KEY | 人才ID |
-| name | VARCHAR(50) | NOT NULL | 姓名 |
-| email | VARCHAR(100) | UNIQUE | 邮箱 |
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | SERIAL | PRIMARY KEY | 主键 |
+| name | VARCHAR(100) | NOT NULL | 姓名 |
+| email | VARCHAR(100) | NOT NULL | 邮箱 |
 | phone | VARCHAR(20) | | 手机号 |
 | skills | TEXT[] | | 技能列表 |
-| experience | INTEGER | | 工作年限 |
-| education | VARCHAR(50) | | 学历 |
-| status | VARCHAR(20) | DEFAULT 'active' | 状态 |
+| experience | INTEGER | DEFAULT 0 | 工作年限 |
+| education | VARCHAR(20) | | 学历 |
+| status | VARCHAR(20) | NOT NULL DEFAULT 'active' | 状态 |
+| tags | TEXT[] | | 标签 |
+| user_id | INTEGER | REFERENCES users(id) | 关联用户 |
 | location | VARCHAR(50) | | 所在地 |
 | salary | VARCHAR(50) | | 期望薪资 |
+| summary | TEXT | | 个人简介 |
+| gender | VARCHAR(10) | | 性别 |
+| age | INTEGER | | 年龄 |
+| current_company | VARCHAR(100) | | 当前公司 |
+| current_position | VARCHAR(100) | | 当前职位 |
 | source | VARCHAR(50) | | 来源渠道 |
-| created_at | TIMESTAMP | DEFAULT NOW() | 创建时间 |
-| updated_at | TIMESTAMP | DEFAULT NOW() | 更新时间 |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 更新时间 |
 
-```sql
-CREATE TABLE talents (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    email VARCHAR(100) UNIQUE,
-    phone VARCHAR(20),
-    skills TEXT[],
-    experience INTEGER,
-    education VARCHAR(50),
-    status VARCHAR(20) DEFAULT 'active',
-    location VARCHAR(50),
-    salary VARCHAR(50),
-    source VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+**索引**：
+- idx_talents_email (email)
+- idx_talents_status (status)
+- idx_talents_skills (skills) - GIN索引
+- idx_talents_location (location)
 
-CREATE INDEX idx_talents_status ON talents(status);
-CREATE INDEX idx_talents_location ON talents(location);
-CREATE INDEX idx_talents_skills ON talents USING GIN(skills);
-```
+**状态枚举**：active, hired, pending, rejected
+
+**学历枚举**：高中, 大专, 本科, 硕士, 博士
+
 
 ### 3.5 简历表 (resumes)
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| id | SERIAL | PRIMARY KEY | 简历ID |
-| talent_id | INTEGER | REFERENCES talents(id) | 人才ID |
-| file_path | VARCHAR(255) | | 文件路径 |
-| file_name | VARCHAR(100) | | 文件名 |
-| status | VARCHAR(20) | DEFAULT 'pending' | 状态 |
-| ai_score | DECIMAL(5,2) | | AI评分 |
-| ai_analysis | JSONB | | AI分析结果 |
-| created_at | TIMESTAMP | DEFAULT NOW() | 创建时间 |
-| updated_at | TIMESTAMP | DEFAULT NOW() | 更新时间 |
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | SERIAL | PRIMARY KEY | 主键 |
+| talent_id | INTEGER | REFERENCES talents(id) ON DELETE CASCADE | 人才ID |
+| job_id | INTEGER | REFERENCES jobs(id) ON DELETE SET NULL | 职位ID |
+| file_path | VARCHAR(500) | | 文件路径 |
+| file_name | VARCHAR(200) | | 文件名 |
+| status | VARCHAR(20) | NOT NULL DEFAULT 'pending' | 状态 |
+| match_score | INTEGER | DEFAULT 0 | AI匹配分数(0-100) |
+| parse_result | JSONB | | 解析结果 |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 更新时间 |
 
-```sql
-CREATE TABLE resumes (
-    id SERIAL PRIMARY KEY,
-    talent_id INTEGER REFERENCES talents(id),
-    file_path VARCHAR(255),
-    file_name VARCHAR(100),
-    status VARCHAR(20) DEFAULT 'pending',
-    ai_score DECIMAL(5,2),
-    ai_analysis JSONB,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+**索引**：
+- idx_resumes_talent_id (talent_id)
+- idx_resumes_job_id (job_id)
+- idx_resumes_status (status)
 
-CREATE INDEX idx_resumes_status ON resumes(status);
-CREATE INDEX idx_resumes_talent_id ON resumes(talent_id);
-```
+**状态枚举**：pending, reviewing, interviewed, offered, hired, rejected
 
-### 3.6 申请表 (applications)
+### 3.6 面试表 (interviews)
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| id | SERIAL | PRIMARY KEY | 申请ID |
-| resume_id | INTEGER | REFERENCES resumes(id) | 简历ID |
-| job_id | INTEGER | REFERENCES jobs(id) | 职位ID |
-| status | VARCHAR(20) | DEFAULT 'pending' | 状态 |
-| match_score | DECIMAL(5,2) | | 匹配度 |
-| created_at | TIMESTAMP | DEFAULT NOW() | 创建时间 |
-| updated_at | TIMESTAMP | DEFAULT NOW() | 更新时间 |
-
-```sql
-CREATE TABLE applications (
-    id SERIAL PRIMARY KEY,
-    resume_id INTEGER REFERENCES resumes(id),
-    job_id INTEGER REFERENCES jobs(id),
-    status VARCHAR(20) DEFAULT 'pending',
-    match_score DECIMAL(5,2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_applications_status ON applications(status);
-CREATE INDEX idx_applications_job_id ON applications(job_id);
-```
-
-### 3.7 面试表 (interviews)
-
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| id | SERIAL | PRIMARY KEY | 面试ID |
-| candidate_id | INTEGER | | 候选人ID |
-| candidate_name | VARCHAR(50) | | 候选人姓名 |
-| position_id | INTEGER | | 职位ID |
-| position | VARCHAR(100) | | 职位名称 |
-| type | VARCHAR(20) | | 面试类型 |
-| date | DATE | NOT NULL | 面试日期 |
-| time | VARCHAR(10) | | 面试时间 |
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | SERIAL | PRIMARY KEY | 主键 |
+| candidate_id | INTEGER | NOT NULL | 候选人ID |
+| candidate_name | VARCHAR(100) | NOT NULL | 候选人姓名 |
+| position_id | INTEGER | NOT NULL | 职位ID |
+| position | VARCHAR(200) | NOT NULL | 职位名称 |
+| type | VARCHAR(20) | NOT NULL DEFAULT 'initial' | 面试类型 |
+| date | VARCHAR(20) | NOT NULL | 面试日期 |
+| time | VARCHAR(10) | NOT NULL | 面试时间 |
 | duration | INTEGER | DEFAULT 60 | 时长(分钟) |
-| interviewer_id | INTEGER | | 面试官ID |
-| interviewer | VARCHAR(50) | | 面试官姓名 |
-| method | VARCHAR(20) | | 面试方式 |
-| location | VARCHAR(255) | | 面试地点/链接 |
-| status | VARCHAR(20) | DEFAULT 'scheduled' | 状态 |
-| created_by | INTEGER | | 创建人ID |
-| created_at | TIMESTAMP | DEFAULT NOW() | 创建时间 |
-| updated_at | TIMESTAMP | DEFAULT NOW() | 更新时间 |
+| interviewer_id | INTEGER | REFERENCES users(id) | 面试官ID |
+| interviewer | VARCHAR(100) | NOT NULL | 面试官姓名 |
+| method | VARCHAR(20) | NOT NULL DEFAULT 'onsite' | 面试方式 |
+| location | VARCHAR(500) | | 面试地点/链接 |
+| status | VARCHAR(20) | NOT NULL DEFAULT 'scheduled' | 状态 |
+| notes | TEXT | | 备注 |
+| feedback | TEXT | | 反馈 |
+| rating | INTEGER | DEFAULT 0 | 评分(1-5) |
+| created_by | INTEGER | REFERENCES users(id) | 创建人 |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 更新时间 |
 
-```sql
-CREATE TABLE interviews (
-    id SERIAL PRIMARY KEY,
-    candidate_id INTEGER,
-    candidate_name VARCHAR(50),
-    position_id INTEGER,
-    position VARCHAR(100),
-    type VARCHAR(20),
-    date DATE NOT NULL,
-    time VARCHAR(10),
-    duration INTEGER DEFAULT 60,
-    interviewer_id INTEGER,
-    interviewer VARCHAR(50),
-    method VARCHAR(20),
-    location VARCHAR(255),
-    status VARCHAR(20) DEFAULT 'scheduled',
-    created_by INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+**索引**：
+- idx_interviews_candidate_id (candidate_id)
+- idx_interviews_interviewer_id (interviewer_id)
+- idx_interviews_date (date)
+- idx_interviews_status (status)
 
-CREATE INDEX idx_interviews_date ON interviews(date);
-CREATE INDEX idx_interviews_status ON interviews(status);
-CREATE INDEX idx_interviews_interviewer_id ON interviews(interviewer_id);
-```
+**类型枚举**：initial(初试), second(复试), final(终面), hr(HR面)
 
-### 3.8 面试反馈表 (interview_feedbacks)
+**方式枚举**：onsite(现场), video(视频), phone(电话)
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| id | SERIAL | PRIMARY KEY | 反馈ID |
-| interview_id | INTEGER | REFERENCES interviews(id) | 面试ID |
-| interviewer_id | INTEGER | | 面试官ID |
-| score | INTEGER | | 评分(1-5) |
-| technical_score | INTEGER | | 技术评分 |
-| communication_score | INTEGER | | 沟通评分 |
-| culture_fit_score | INTEGER | | 文化匹配 |
+**状态枚举**：scheduled, completed, cancelled, no_show
+
+### 3.7 面试反馈表 (interview_feedbacks)
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | SERIAL | PRIMARY KEY | 主键 |
+| interview_id | INTEGER | REFERENCES interviews(id) ON DELETE CASCADE | 面试ID |
+| interviewer_id | INTEGER | REFERENCES users(id) | 面试官ID |
+| rating | INTEGER | NOT NULL CHECK (1-5) | 评分 |
 | strengths | TEXT | | 优势 |
 | weaknesses | TEXT | | 不足 |
-| comment | TEXT | | 评语 |
-| result | VARCHAR(20) | | 结果 |
-| created_at | TIMESTAMP | DEFAULT NOW() | 创建时间 |
+| comments | TEXT | | 评语 |
+| recommendation | VARCHAR(50) | | 建议 |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 更新时间 |
 
-```sql
-CREATE TABLE interview_feedbacks (
-    id SERIAL PRIMARY KEY,
-    interview_id INTEGER REFERENCES interviews(id),
-    interviewer_id INTEGER,
-    score INTEGER CHECK (score >= 1 AND score <= 5),
-    technical_score INTEGER,
-    communication_score INTEGER,
-    culture_fit_score INTEGER,
-    strengths TEXT,
-    weaknesses TEXT,
-    comment TEXT,
-    result VARCHAR(20),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+**索引**：
+- idx_interview_feedbacks_interview_id (interview_id)
 
-CREATE INDEX idx_feedbacks_interview_id ON interview_feedbacks(interview_id);
-```
+**建议枚举**：pass, fail, pending
 
-### 3.9 消息表 (messages)
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| id | SERIAL | PRIMARY KEY | 消息ID |
-| sender_id | INTEGER | | 发送者ID |
-| receiver_id | INTEGER | NOT NULL | 接收者ID |
-| type | VARCHAR(20) | | 消息类型 |
-| title | VARCHAR(100) | | 标题 |
+### 3.8 消息表 (messages)
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | SERIAL | PRIMARY KEY | 主键 |
+| sender_id | INTEGER | REFERENCES users(id) | 发送者ID |
+| receiver_id | INTEGER | REFERENCES users(id) NOT NULL | 接收者ID |
+| type | VARCHAR(20) | NOT NULL DEFAULT 'system' | 消息类型 |
+| title | VARCHAR(200) | NOT NULL | 标题 |
 | content | TEXT | | 内容 |
 | is_read | BOOLEAN | DEFAULT FALSE | 是否已读 |
-| created_at | TIMESTAMP | DEFAULT NOW() | 创建时间 |
+| read_at | TIMESTAMP | | 阅读时间 |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+**索引**：
+- idx_messages_receiver_id (receiver_id)
+- idx_messages_sender_id (sender_id)
+- idx_messages_is_read (is_read)
+- idx_messages_type (type)
+
+**类型枚举**：system, interview, feedback, offer, reminder, chat
+
+### 3.9 应聘记录表 (applications)
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | SERIAL | PRIMARY KEY | 主键 |
+| talent_id | INTEGER | REFERENCES talents(id) ON DELETE CASCADE | 人才ID |
+| job_id | INTEGER | REFERENCES jobs(id) ON DELETE CASCADE | 职位ID |
+| resume_id | INTEGER | REFERENCES resumes(id) | 简历ID |
+| stage | VARCHAR(50) | NOT NULL DEFAULT 'applied' | 阶段 |
+| status | VARCHAR(20) | NOT NULL DEFAULT 'active' | 状态 |
+| source | VARCHAR(50) | | 来源 |
+| notes | TEXT | | 备注 |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 更新时间 |
+
+**约束**：UNIQUE(talent_id, job_id)
+
+**索引**：
+- idx_applications_talent_id (talent_id)
+- idx_applications_job_id (job_id)
+- idx_applications_stage (stage)
+
+**阶段枚举**：applied, screening, interview, offer, hired, rejected
+
+### 3.10 操作日志表 (operation_logs)
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | SERIAL | PRIMARY KEY | 主键 |
+| user_id | INTEGER | REFERENCES users(id) | 用户ID |
+| action | VARCHAR(50) | NOT NULL | 操作类型 |
+| resource_type | VARCHAR(50) | | 资源类型 |
+| resource_id | INTEGER | | 资源ID |
+| details | JSONB | | 详细信息 |
+| ip_address | VARCHAR(50) | | IP地址 |
+| user_agent | TEXT | | 用户代理 |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+**索引**：
+- idx_operation_logs_user_id (user_id)
+- idx_operation_logs_action (action)
+- idx_operation_logs_created_at (created_at)
+
+---
+
+## 4. 触发器
+
+### 4.1 自动更新 updated_at
+
+所有包含 `updated_at` 字段的表都配置了触发器，在更新记录时自动更新该字段：
 
 ```sql
-CREATE TABLE messages (
-    id SERIAL PRIMARY KEY,
-    sender_id INTEGER,
-    receiver_id INTEGER NOT NULL,
-    type VARCHAR(20),
-    title VARCHAR(100),
-    content TEXT,
-    is_read BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_messages_receiver_id ON messages(receiver_id);
-CREATE INDEX idx_messages_is_read ON messages(is_read);
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
 ```
 
-### 3.10 操作日志表 (operation_logs) - Elasticsearch
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | keyword | 日志ID |
-| timestamp | date | 时间戳 |
-| service | keyword | 服务名称 |
-| user_id | integer | 用户ID |
-| username | keyword | 用户名 |
-| ip | ip | IP地址 |
-| method | keyword | 请求方法 |
-| path | keyword | 请求路径 |
-| query | text | 查询参数 |
-| status_code | integer | 状态码 |
-| duration | integer | 耗时(ms) |
-| user_agent | text | 用户代理 |
-| action | keyword | 操作类型 |
-| module | keyword | 模块 |
-| level | keyword | 日志级别 |
-
 ---
 
-## 4. 索引设计
+## 5. 数据库初始化
 
-### 4.1 主键索引
-所有表都使用 SERIAL 类型的自增主键。
+### 5.1 创建数据库
 
-### 4.2 唯一索引
-- users.username
-- users.email
-- talents.email
-- roles.code
-
-### 4.3 普通索引
-- 状态字段 (status)
-- 外键字段 (xxx_id)
-- 时间字段 (created_at)
-- 常用查询字段 (location, department)
-
-### 4.4 GIN 索引
-- talents.skills (数组字段全文搜索)
-
----
-
-## 5. 数据字典
-
-### 5.1 用户状态 (user.status)
-| 值 | 说明 |
-|-----|------|
-| active | 活跃 |
-| inactive | 停用 |
-| locked | 锁定 |
-
-### 5.2 职位状态 (job.status)
-| 值 | 说明 |
-|-----|------|
-| open | 招聘中 |
-| closed | 已关闭 |
-| filled | 已招满 |
-| paused | 已暂停 |
-
-### 5.3 人才状态 (talent.status)
-| 值 | 说明 |
-|-----|------|
-| active | 活跃 |
-| hired | 已雇佣 |
-| pending | 待处理 |
-| rejected | 已拒绝 |
-
-### 5.4 简历状态 (resume.status)
-| 值 | 说明 |
-|-----|------|
-| pending | 待处理 |
-| reviewing | 审核中 |
-| interviewed | 已面试 |
-| hired | 已录用 |
-| rejected | 已拒绝 |
-
-### 5.5 面试状态 (interview.status)
-| 值 | 说明 |
-|-----|------|
-| scheduled | 已安排 |
-| completed | 已完成 |
-| cancelled | 已取消 |
-| no_show | 未出席 |
-
-### 5.6 消息类型 (message.type)
-| 值 | 说明 |
-|-----|------|
-| system | 系统通知 |
-| interview | 面试邀约 |
-| application | 简历投递 |
-| notification | 提醒通知 |
-| chat | 聊天消息 |
-
-### 5.7 角色代码 (role.code)
-| 值 | 说明 | 权限 |
-|-----|------|------|
-| admin | 超级管理员 | 所有权限 |
-| hr_manager | HR主管 | 招聘全流程 |
-| recruiter | 招聘专员 | 日常招聘 |
-| interviewer | 面试官 | 面试评估 |
-| viewer | 只读用户 | 仅查看 |
-
----
-
-## 6. 数据初始化
-
-### 6.1 初始化脚本
 ```bash
-# 创建数据库
-psql -U qinyang -c "CREATE DATABASE talent_platform;"
-
-# 导入表结构
-psql -U qinyang -d talent_platform -f backend/database/schema.sql
-
-# 导入模拟数据
-psql -U qinyang -d talent_platform -f backend/database/mock_data.sql
-psql -U qinyang -d talent_platform -f backend/database/mock_data_2_talents.sql
-psql -U qinyang -d talent_platform -f backend/database/mock_data_3_resumes.sql
-psql -U qinyang -d talent_platform -f backend/database/mock_data_4_interviews.sql
-psql -U qinyang -d talent_platform -f backend/database/mock_data_5_messages.sql
+psql -U postgres -c "CREATE DATABASE talent_platform;"
 ```
 
-### 6.2 测试账号
-| 用户名 | 密码 | 角色 |
-|--------|------|------|
-| admin | password123 | 超级管理员 |
-| hr_zhang | password123 | HR主管 |
-| hr_li | password123 | 招聘专员 |
-| tech_chen | password123 | 面试官 |
-| viewer_test | password123 | 只读用户 |
+### 5.2 导入表结构
 
----
-
-## 7. 备份与恢复
-
-### 7.1 备份命令
 ```bash
-# 完整备份
-pg_dump -U qinyang -d talent_platform > backup_$(date +%Y%m%d).sql
-
-# 仅数据备份
-pg_dump -U qinyang -d talent_platform --data-only > data_backup.sql
+psql -U postgres -d talent_platform -f backend/database/schema.sql
 ```
 
-### 7.2 恢复命令
+### 5.3 导入模拟数据
+
 ```bash
-# 恢复数据库
-psql -U qinyang -d talent_platform < backup_20250101.sql
+psql -U postgres -d talent_platform -f backend/database/mock_data.sql
 ```
 
 ---
 
-## 8. 性能优化建议
+## 📚 相关文档
 
-1. **定期 VACUUM**：清理死元组
-2. **定期 ANALYZE**：更新统计信息
-3. **监控慢查询**：开启 pg_stat_statements
-4. **连接池**：使用 PgBouncer
-5. **读写分离**：主从复制（生产环境）
+| 文档 | 说明 |
+|------|------|
+| [📖 项目首页](../README.md) | 项目概述和快速入门 |
+| [📐 系统架构](ARCHITECTURE.md) | 微服务架构设计 |
+| [📋 系统设计](SYSTEM_DESIGN.md) | 功能模块设计 |
+| [🚀 快速启动](QUICKSTART.md) | 环境配置、安装步骤 |
+| [🐳 部署文档](DEPLOYMENT.md) | Docker部署、生产环境 |
+| [🧪 测试指南](TEST_GUIDE.md) | API测试、功能测试 |
+| [📝 代码规范](CODE_GUIDE.md) | 目录结构、开发指南 |
