@@ -9,6 +9,18 @@ chmod +x test_api.sh
 ./test_api.sh
 ```
 
+**预期结果**：90个测试用例全部通过，通过率100%
+
+测试覆盖：
+- 用户服务（10个）：登录、注册、用户列表
+- 职位服务（14个）：职位CRUD、筛选、搜索
+- 人才服务（14个）：人才CRUD、搜索
+- 简历服务（14个）：简历管理、状态更新
+- 面试服务（16个）：面试安排、反馈
+- 消息服务（10个）：消息发送、已读标记
+- 日志服务（8个）：ES日志查询、统计
+- 综合测试（4个）：ES日志验证
+
 ## 二、手动功能测试清单
 
 ### 1. 用户认证模块
@@ -157,12 +169,38 @@ SELECT id, name, email, status FROM talents;
 
 | 服务 | 端口 | 说明 |
 |------|------|------|
-| frontend | 3000 | 前端页面 |
+| frontend | 5173 | 前端页面 (Vite) |
 | user-service | 8081 | 用户认证服务 |
 | job-service | 8082 | 职位管理服务 |
 | interview-service | 8083 | 面试管理服务 |
 | resume-service | 8084 | 简历管理服务 |
 | message-service | 8085 | 消息服务 |
 | talent-service | 8086 | 人才管理服务 |
+| log-service | 8088 | 日志查询服务 |
 | evaluator-service | 8090 | AI评估服务 |
 | PostgreSQL | 5432 | 数据库 |
+| Elasticsearch | 9200 | 日志存储 |
+| Kibana | 5601 | 日志可视化 |
+
+## 七、前端单元测试
+
+```bash
+cd frontend
+npm run test
+```
+
+## 八、常见问题排查
+
+### Q: API测试失败
+1. 检查所有后端服务是否启动
+2. 检查数据库连接是否正常
+3. 检查模拟数据是否导入
+
+### Q: 前端页面报错
+1. 检查浏览器控制台错误信息
+2. 确认后端服务正常运行
+3. 清除浏览器缓存后重试
+
+### Q: ES日志功能不可用
+1. 确认Elasticsearch已启动：`curl http://localhost:9200`
+2. 日志功能会自动降级，不影响其他功能

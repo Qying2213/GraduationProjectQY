@@ -243,7 +243,11 @@ npm run test
 |------|------|
 | [快速启动](docs/QUICKSTART.md) | 详细启动步骤 |
 | [系统架构](docs/ARCHITECTURE.md) | 架构设计、ER图、流程图 |
+| [系统设计](docs/SYSTEM_DESIGN.md) | 系统设计文档（毕业设计） |
+| [数据库设计](docs/DATABASE_DESIGN.md) | 数据库设计文档 |
 | [部署文档](docs/DEPLOYMENT.md) | Docker/Nginx部署 |
+| [测试指南](docs/TEST_GUIDE.md) | 测试用例与方法 |
+| [代码规范](docs/CODE_GUIDE.md) | 代码规范与目录结构 |
 
 ---
 
