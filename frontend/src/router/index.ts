@@ -71,6 +71,13 @@ const routes: RouteRecordRaw[] = [
             }
         ]
     },
+    // 数据大屏（全屏独立页面）
+    {
+        path: '/data-screen',
+        name: 'DataScreen',
+        component: () => import('@/views/dashboard/DataScreen.vue'),
+        meta: { title: '数据大屏', requiresAuth: true }
+    },
     // 后台管理系统
     {
         path: '/',

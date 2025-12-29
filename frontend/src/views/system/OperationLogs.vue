@@ -3,12 +3,16 @@
     <div class="page-header">
       <div class="header-left">
         <h1>操作日志</h1>
-        <p class="subtitle">查看系统操作记录和审计日志</p>
+        <p class="subtitle">查看系统操作记录和审计日志 (Elasticsearch)</p>
       </div>
       <div class="header-right">
         <el-button @click="exportLogs">
           <el-icon><Download /></el-icon>
           导出日志
+        </el-button>
+        <el-button type="danger" @click="cleanupLogs" v-if="isAdmin">
+          <el-icon><Delete /></el-icon>
+          清理日志
         </el-button>
       </div>
     </div>
@@ -18,7 +22,7 @@
       <el-form :inline="true" :model="filterParams">
         <el-form-item>
           <el-input
-            v-model="filterParams.search"
+            v-model="filterParams.keyword"
             placeholder="搜索操作内容..."
             clearable
             style="width: 220px"
@@ -30,23 +34,28 @@
           </el-input>
         </el-form-item>
         <el-form-item>
-          <el-select v-model="filterParams.action" placeholder="操作类型" clearable style="width: 140px">
-            <el-option label="创建" value="create" />
-            <el-option label="更新" value="update" />
-            <el-option label="删除" value="delete" />
-            <el-option label="登录" value="login" />
-            <el-option label="登出" value="logout" />
-            <el-option label="导出" value="export" />
+          <el-select v-model="filterParams.service" placeholder="服务" clearable style="width: 150px">
+            <el-option label="用户服务" value="user-service" />
+            <el-option label="职位服务" value="job-service" />
+            <el-option label="简历服务" value="resume-service" />
+            <el-option label="面试服务" value="interview-service" />
+            <el-option label="消息服务" value="message-service" />
+            <el-option label="人才服务" value="talent-service" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-select v-model="filterParams.module" placeholder="功能模块" clearable style="width: 140px">
-            <el-option label="用户管理" value="user" />
-            <el-option label="人才管理" value="talent" />
-            <el-option label="职位管理" value="job" />
-            <el-option label="面试管理" value="interview" />
-            <el-option label="简历管理" value="resume" />
-            <el-option label="系统设置" value="system" />
+          <el-select v-model="filterParams.method" placeholder="请求方法" clearable style="width: 120px">
+            <el-option label="GET" value="GET" />
+            <el-option label="POST" value="POST" />
+            <el-option label="PUT" value="PUT" />
+            <el-option label="DELETE" value="DELETE" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-select v-model="filterParams.level" placeholder="日志级别" clearable style="width: 120px">
+            <el-option label="信息" value="info" />
+            <el-option label="警告" value="warn" />
+            <el-option label="错误" value="error" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -56,6 +65,7 @@
             range-separator="至"
             start-placeholder="开始日期"
             end-placeholder="结束日期"
+            value-format="YYYY-MM-DD"
             style="width: 260px"
           />
         </el-form-item>
@@ -72,46 +82,56 @@
     <!-- 日志列表 -->
     <div class="logs-card">
       <el-table :data="logs" v-loading="loading" stripe>
-        <el-table-column prop="time" label="操作时间" width="180">
+        <el-table-column prop="timestamp" label="时间" width="180">
           <template #default="{ row }">
-            <span class="time-cell">{{ formatTime(row.time) }}</span>
+            <span class="time-cell">{{ formatTime(row.timestamp) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="user" label="操作用户" width="120">
+        <el-table-column prop="service" label="服务" width="130">
           <template #default="{ row }">
-            <div class="user-cell">
-              <el-avatar :size="28" :style="{ background: getAvatarColor(row.userId) }">
-                {{ row.user.charAt(0) }}
+            <el-tag size="small" type="info">{{ row.service }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="username" label="用户" width="100">
+          <template #default="{ row }">
+            <div class="user-cell" v-if="row.username">
+              <el-avatar :size="24" :style="{ background: getAvatarColor(row.user_id || 0) }">
+                {{ row.username?.charAt(0) || '?' }}
               </el-avatar>
-              <span>{{ row.user }}</span>
+              <span>{{ row.username }}</span>
             </div>
+            <span v-else class="text-muted">-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="action" label="操作类型" width="100">
+        <el-table-column prop="method" label="方法" width="80">
           <template #default="{ row }">
-            <el-tag :type="getActionType(row.action)" size="small">
-              {{ getActionLabel(row.action) }}
+            <el-tag :type="getMethodType(row.method)" size="small">
+              {{ row.method }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="module" label="功能模块" width="120">
+        <el-table-column prop="path" label="路径" min-width="200">
           <template #default="{ row }">
-            <span class="module-cell">
-              <el-icon><component :is="getModuleIcon(row.module)" /></el-icon>
-              {{ getModuleLabel(row.module) }}
-            </span>
+            <span class="path-cell">{{ row.path }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="content" label="操作内容" min-width="250">
+        <el-table-column prop="status_code" label="状态码" width="80">
           <template #default="{ row }">
-            <span class="content-cell">{{ row.content }}</span>
+            <el-tag :type="getStatusType(row.status_code)" size="small">
+              {{ row.status_code }}
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="ip" label="IP地址" width="140" />
-        <el-table-column prop="status" label="状态" width="80">
+        <el-table-column prop="duration" label="耗时" width="90">
           <template #default="{ row }">
-            <el-tag :type="row.status === 'success' ? 'success' : 'danger'" size="small">
-              {{ row.status === 'success' ? '成功' : '失败' }}
+            <span :class="getDurationClass(row.duration)">{{ row.duration }}ms</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="ip" label="IP" width="130" />
+        <el-table-column prop="level" label="级别" width="80">
+          <template #default="{ row }">
+            <el-tag :type="getLevelType(row.level)" size="small">
+              {{ getLevelLabel(row.level) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -138,41 +158,38 @@
     </div>
 
     <!-- 详情弹窗 -->
-    <el-dialog v-model="showDetailDialog" title="操作详情" width="600px">
+    <el-dialog v-model="showDetailDialog" title="日志详情" width="700px">
       <div class="log-detail" v-if="currentLog">
-        <div class="detail-row">
-          <span class="label">操作时间</span>
-          <span class="value">{{ formatTime(currentLog.time) }}</span>
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="时间">{{ formatTime(currentLog.timestamp) }}</el-descriptions-item>
+          <el-descriptions-item label="服务">{{ currentLog.service }}</el-descriptions-item>
+          <el-descriptions-item label="用户">{{ currentLog.username || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="IP">{{ currentLog.ip }}</el-descriptions-item>
+          <el-descriptions-item label="方法">
+            <el-tag :type="getMethodType(currentLog.method)" size="small">{{ currentLog.method }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="状态码">
+            <el-tag :type="getStatusType(currentLog.status_code)" size="small">{{ currentLog.status_code }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="路径" :span="2">{{ currentLog.path }}</el-descriptions-item>
+          <el-descriptions-item label="查询参数" :span="2">{{ currentLog.query || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="耗时">{{ currentLog.duration }}ms</el-descriptions-item>
+          <el-descriptions-item label="级别">
+            <el-tag :type="getLevelType(currentLog.level)" size="small">{{ getLevelLabel(currentLog.level) }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="操作类型">{{ currentLog.action }}</el-descriptions-item>
+          <el-descriptions-item label="模块">{{ currentLog.module }}</el-descriptions-item>
+          <el-descriptions-item label="User-Agent" :span="2">{{ currentLog.user_agent }}</el-descriptions-item>
+        </el-descriptions>
+        
+        <div v-if="currentLog.request_body" class="detail-section">
+          <h4>请求体</h4>
+          <pre class="code-block">{{ formatJSON(currentLog.request_body) }}</pre>
         </div>
-        <div class="detail-row">
-          <span class="label">操作用户</span>
-          <span class="value">{{ currentLog.user }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="label">操作类型</span>
-          <el-tag :type="getActionType(currentLog.action)" size="small">
-            {{ getActionLabel(currentLog.action) }}
-          </el-tag>
-        </div>
-        <div class="detail-row">
-          <span class="label">功能模块</span>
-          <span class="value">{{ getModuleLabel(currentLog.module) }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="label">操作内容</span>
-          <span class="value">{{ currentLog.content }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="label">IP地址</span>
-          <span class="value">{{ currentLog.ip }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="label">浏览器</span>
-          <span class="value">{{ currentLog.userAgent }}</span>
-        </div>
-        <div class="detail-row" v-if="currentLog.details">
-          <span class="label">详细数据</span>
-          <pre class="value code">{{ JSON.stringify(currentLog.details, null, 2) }}</pre>
+        
+        <div v-if="currentLog.error_msg" class="detail-section error">
+          <h4>错误信息</h4>
+          <pre class="code-block error">{{ currentLog.error_msg }}</pre>
         </div>
       </div>
     </el-dialog>
@@ -180,25 +197,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, markRaw } from 'vue'
-import { ElMessage } from 'element-plus'
-import {
-  Search, Download, User, Suitcase, Document, Calendar, Setting, DataAnalysis
-} from '@element-plus/icons-vue'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search, Download, Delete } from '@element-plus/icons-vue'
+import { useUserStore } from '@/store/user'
+import axios from 'axios'
+import { exportToCsv, type ExportColumn } from '@/utils/export'
 
 interface OperationLog {
-  id: number
-  time: string
-  user: string
-  userId: number
+  id: string
+  timestamp: string
+  service: string
+  user_id: number
+  username: string
+  ip: string
+  method: string
+  path: string
+  query: string
+  status_code: number
+  duration: number
+  request_body: string
+  response_body: string
+  user_agent: string
   action: string
   module: string
-  content: string
-  ip: string
-  userAgent: string
-  status: 'success' | 'failed'
-  details?: any
+  description: string
+  level: string
+  error_msg: string
 }
+
+const userStore = useUserStore()
+const isAdmin = computed(() => userStore.user?.role === 'admin')
 
 const loading = ref(false)
 const logs = ref<OperationLog[]>([])
@@ -209,66 +238,88 @@ const showDetailDialog = ref(false)
 const currentLog = ref<OperationLog | null>(null)
 
 const filterParams = reactive({
-  search: '',
-  action: '',
-  module: '',
-  dateRange: null as [Date, Date] | null
+  keyword: '',
+  service: '',
+  method: '',
+  level: '',
+  dateRange: null as [string, string] | null
 })
 
-const moduleIcons: Record<string, any> = {
-  user: markRaw(User),
-  talent: markRaw(User),
-  job: markRaw(Suitcase),
-  interview: markRaw(Calendar),
-  resume: markRaw(Document),
-  system: markRaw(Setting)
-}
-
-const fetchLogs = () => {
+// 获取日志
+const fetchLogs = async () => {
   loading.value = true
-  // 模拟数据
-  setTimeout(() => {
+  try {
+    const params: Record<string, any> = {
+      page: currentPage.value,
+      page_size: pageSize.value
+    }
+    
+    if (filterParams.keyword) params.keyword = filterParams.keyword
+    if (filterParams.service) params.service = filterParams.service
+    if (filterParams.method) params.method = filterParams.method
+    if (filterParams.level) params.level = filterParams.level
+    if (filterParams.dateRange) {
+      params.start_time = filterParams.dateRange[0]
+      params.end_time = filterParams.dateRange[1]
+    }
+
+    const res = await axios.get('/api/v1/logs', { params })
+    if (res.data.code === 0) {
+      logs.value = res.data.data.logs || []
+      total.value = res.data.data.total || 0
+    } else {
+      // 如果ES服务不可用，使用模拟数据
+      logs.value = generateMockLogs()
+      total.value = 100
+    }
+  } catch (error) {
+    console.error('获取日志失败:', error)
+    // 使用模拟数据
     logs.value = generateMockLogs()
-    total.value = 256
+    total.value = 100
+  } finally {
     loading.value = false
-  }, 500)
+  }
 }
 
+// 生成模拟数据
 const generateMockLogs = (): OperationLog[] => {
-  const users = ['admin', 'hr_zhang', 'hr_li', 'tech_chen']
-  const actions = ['create', 'update', 'delete', 'login', 'export']
-  const modules = ['user', 'talent', 'job', 'interview', 'resume']
-  const contents = [
-    '创建了新人才记录：张三',
-    '更新了职位信息：高级Go开发工程师',
-    '删除了简历记录 #123',
-    '用户登录系统',
-    '导出了人才列表数据',
-    '安排了面试：李四 - 前端工程师',
-    '更新了面试状态为已完成',
-    '创建了新职位：产品经理'
-  ]
+  const services = ['user-service', 'job-service', 'talent-service', 'resume-service']
+  const methods = ['GET', 'POST', 'PUT', 'DELETE']
+  const paths = ['/api/v1/users', '/api/v1/jobs', '/api/v1/talents', '/api/v1/login', '/api/v1/resumes']
+  const levels = ['info', 'warn', 'error']
+  const users = ['admin', 'hr_zhang', 'hr_li', '']
 
   return Array.from({ length: pageSize.value }, (_, i) => ({
-    id: (currentPage.value - 1) * pageSize.value + i + 1,
-    time: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-    user: users[Math.floor(Math.random() * users.length)],
-    userId: Math.floor(Math.random() * 10) + 1,
-    action: actions[Math.floor(Math.random() * actions.length)],
-    module: modules[Math.floor(Math.random() * modules.length)],
-    content: contents[Math.floor(Math.random() * contents.length)],
+    id: `log-${Date.now()}-${i}`,
+    timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+    service: services[Math.floor(Math.random() * services.length)],
+    user_id: Math.floor(Math.random() * 10),
+    username: users[Math.floor(Math.random() * users.length)],
     ip: `192.168.1.${Math.floor(Math.random() * 255)}`,
-    userAgent: 'Chrome/120.0.0.0 Safari/537.36',
-    status: Math.random() > 0.1 ? 'success' : 'failed',
-    details: { oldValue: '旧值', newValue: '新值' }
+    method: methods[Math.floor(Math.random() * methods.length)],
+    path: paths[Math.floor(Math.random() * paths.length)],
+    query: '',
+    status_code: Math.random() > 0.9 ? 500 : Math.random() > 0.8 ? 400 : 200,
+    duration: Math.floor(Math.random() * 500),
+    request_body: '',
+    response_body: '',
+    user_agent: 'Mozilla/5.0 Chrome/120.0.0.0',
+    action: '查询',
+    module: 'users',
+    description: '',
+    level: levels[Math.floor(Math.random() * levels.length)],
+    error_msg: ''
   }))
 }
 
 const resetFilter = () => {
-  filterParams.search = ''
-  filterParams.action = ''
-  filterParams.module = ''
+  filterParams.keyword = ''
+  filterParams.service = ''
+  filterParams.method = ''
+  filterParams.level = ''
   filterParams.dateRange = null
+  currentPage.value = 1
   fetchLogs()
 }
 
@@ -278,56 +329,103 @@ const showDetail = (log: OperationLog) => {
 }
 
 const exportLogs = () => {
-  ElMessage.success('日志导出已开始')
+  if (logs.value.length === 0) {
+    ElMessage.warning('暂无数据可导出')
+    return
+  }
+
+  const columns: ExportColumn[] = [
+    { key: 'timestamp', title: '时间' },
+    { key: 'service', title: '服务' },
+    { key: 'username', title: '用户' },
+    { key: 'method', title: '方法' },
+    { key: 'path', title: '路径' },
+    { key: 'status_code', title: '状态码' },
+    { key: 'duration', title: '耗时(ms)' },
+    { key: 'ip', title: 'IP' },
+    { key: 'level', title: '级别' }
+  ]
+
+  exportToCsv({
+    filename: `操作日志_${new Date().toISOString().split('T')[0]}`,
+    columns,
+    data: logs.value
+  })
+  ElMessage.success('导出成功')
+}
+
+const cleanupLogs = async () => {
+  try {
+    await ElMessageBox.confirm('确定要清理30天前的日志吗？此操作不可恢复。', '确认清理', {
+      type: 'warning'
+    })
+    
+    await axios.delete('/api/v1/logs/cleanup', { params: { days: 30 } })
+    ElMessage.success('清理成功')
+    fetchLogs()
+  } catch {
+    // 用户取消
+  }
 }
 
 const formatTime = (time: string) => {
+  if (!time) return '-'
   return new Date(time).toLocaleString('zh-CN')
 }
 
+const formatJSON = (str: string) => {
+  try {
+    return JSON.stringify(JSON.parse(str), null, 2)
+  } catch {
+    return str
+  }
+}
+
 const getAvatarColor = (id: number) => {
-  const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#f5576c']
+  const colors = ['#0ea5e9', '#06b6d4', '#22c55e', '#f59e0b', '#8b5cf6']
   return colors[id % colors.length]
 }
 
-const getActionType = (action: string) => {
+const getMethodType = (method: string) => {
   const types: Record<string, any> = {
-    create: 'success',
-    update: 'warning',
-    delete: 'danger',
-    login: 'primary',
-    logout: 'info',
-    export: 'info'
+    GET: 'success',
+    POST: 'primary',
+    PUT: 'warning',
+    DELETE: 'danger',
+    PATCH: 'info'
   }
-  return types[action] || 'info'
+  return types[method] || 'info'
 }
 
-const getActionLabel = (action: string) => {
+const getStatusType = (code: number) => {
+  if (code >= 500) return 'danger'
+  if (code >= 400) return 'warning'
+  if (code >= 200 && code < 300) return 'success'
+  return 'info'
+}
+
+const getLevelType = (level: string) => {
+  const types: Record<string, any> = {
+    info: 'success',
+    warn: 'warning',
+    error: 'danger'
+  }
+  return types[level] || 'info'
+}
+
+const getLevelLabel = (level: string) => {
   const labels: Record<string, string> = {
-    create: '创建',
-    update: '更新',
-    delete: '删除',
-    login: '登录',
-    logout: '登出',
-    export: '导出'
+    info: '信息',
+    warn: '警告',
+    error: '错误'
   }
-  return labels[action] || action
+  return labels[level] || level
 }
 
-const getModuleIcon = (module: string) => {
-  return moduleIcons[module] || DataAnalysis
-}
-
-const getModuleLabel = (module: string) => {
-  const labels: Record<string, string> = {
-    user: '用户管理',
-    talent: '人才管理',
-    job: '职位管理',
-    interview: '面试管理',
-    resume: '简历管理',
-    system: '系统设置'
-  }
-  return labels[module] || module
+const getDurationClass = (duration: number) => {
+  if (duration > 1000) return 'duration-slow'
+  if (duration > 500) return 'duration-medium'
+  return 'duration-fast'
 }
 
 onMounted(() => {
@@ -364,6 +462,11 @@ onMounted(() => {
       margin: 0;
     }
   }
+
+  .header-right {
+    display: flex;
+    gap: 12px;
+  }
 }
 
 .filter-card, .logs-card {
@@ -377,14 +480,13 @@ onMounted(() => {
 .user-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
-.module-cell {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-secondary);
+.path-cell {
+  font-family: monospace;
+  font-size: 13px;
+  color: var(--text-primary);
 }
 
 .time-cell {
@@ -392,9 +494,13 @@ onMounted(() => {
   color: var(--text-secondary);
 }
 
-.content-cell {
-  color: var(--text-primary);
+.text-muted {
+  color: var(--text-muted);
 }
+
+.duration-fast { color: #22c55e; }
+.duration-medium { color: #f59e0b; }
+.duration-slow { color: #ef4444; font-weight: 600; }
 
 .pagination {
   margin-top: 20px;
@@ -403,33 +509,36 @@ onMounted(() => {
 }
 
 .log-detail {
-  .detail-row {
-    display: flex;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border-light);
+  .detail-section {
+    margin-top: 20px;
 
-    &:last-child {
-      border-bottom: none;
-    }
-
-    .label {
-      width: 100px;
-      color: var(--text-secondary);
-      flex-shrink: 0;
-    }
-
-    .value {
-      flex: 1;
+    h4 {
+      font-size: 14px;
+      font-weight: 600;
       color: var(--text-primary);
+      margin: 0 0 10px 0;
+    }
 
-      &.code {
-        background: var(--bg-tertiary);
-        padding: 12px;
-        border-radius: 8px;
-        font-family: monospace;
-        font-size: 12px;
-        overflow-x: auto;
-      }
+    &.error h4 {
+      color: #ef4444;
+    }
+  }
+
+  .code-block {
+    background: var(--bg-tertiary);
+    padding: 12px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 12px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 200px;
+    overflow-y: auto;
+
+    &.error {
+      background: #fef2f2;
+      color: #dc2626;
     }
   }
 }

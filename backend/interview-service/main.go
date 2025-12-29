@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	"interview-service/handlers"
-	"interview-service/models"
 	"log"
 	"os"
+
+	"common/middleware"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
@@ -28,10 +29,10 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	// 自动迁移
-	if err := db.AutoMigrate(&models.Interview{}, &models.InterviewFeedback{}); err != nil {
-		log.Fatal("Failed to migrate database:", err)
-	}
+	// 数据库表已通过SQL脚本创建，跳过自动迁移
+	// if err := db.AutoMigrate(&models.Interview{}, &models.InterviewFeedback{}); err != nil {
+	// 	log.Fatal("Failed to migrate database:", err)
+	// }
 
 	// 初始化处理器
 	interviewHandler := handlers.NewInterviewHandler(db)
@@ -39,20 +40,8 @@ func main() {
 	// 创建路由
 	r := gin.Default()
 
-	// CORS 中间件
-	r.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-
-		c.Next()
-	})
+	r.Use(middleware.CORS())
+	r.Use(middleware.SimpleOperationLog("interview-service"))
 
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {

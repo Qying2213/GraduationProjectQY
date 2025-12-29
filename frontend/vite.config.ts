@@ -71,6 +71,11 @@ export default defineConfig({
             '/api/v1/stats': {
                 target: 'http://localhost:8082',
                 changeOrigin: true
+            },
+            // 日志服务 (Elasticsearch)
+            '/api/v1/logs': {
+                target: 'http://localhost:8088',
+                changeOrigin: true
             }
         }
     }

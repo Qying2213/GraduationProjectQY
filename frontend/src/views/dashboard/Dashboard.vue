@@ -7,6 +7,10 @@
         <p class="page-subtitle">欢迎回来，{{ userStore.user?.username || '用户' }}！这是您的数据概览</p>
       </div>
       <div class="header-right">
+        <el-button type="success" @click="$router.push('/data-screen')">
+          <el-icon><DataAnalysis /></el-icon>
+          数据大屏
+        </el-button>
         <el-date-picker
           v-model="dateRange"
           type="daterange"
@@ -138,7 +142,8 @@
             <el-button type="primary" size="small" @click="$router.push('/talents')">查看更多</el-button>
           </div>
           <div class="talent-list">
-            <div class="talent-item" v-for="(talent, index) in topTalents" :key="index">
+            <div class="talent-item" v-for="(talent, index) in topTalents" :key="index"
+                 @click="goToTalent(talent.id)" style="cursor: pointer;">
               <div class="talent-rank" :class="{ top: index < 3 }">{{ index + 1 }}</div>
               <el-avatar :size="40" :style="{ background: getAvatarColor(index) }">
                 {{ talent.name.charAt(0) }}
@@ -167,7 +172,8 @@
             <el-button type="primary" size="small" @click="$router.push('/jobs')">查看更多</el-button>
           </div>
           <div class="job-list">
-            <div class="job-item" v-for="(job, index) in hotJobs" :key="index">
+            <div class="job-item" v-for="(job, index) in hotJobs" :key="index"
+                 @click="goToJob(job.id)" style="cursor: pointer;">
               <div class="job-icon" :style="{ background: job.color }">
                 <el-icon :size="20"><Suitcase /></el-icon>
               </div>
@@ -198,7 +204,7 @@ import * as echarts from 'echarts'
 import {
   User, Suitcase, Document, MagicStick, ArrowUp, ArrowDown,
   Refresh, MoreFilled, ArrowRight, Plus, Search, Bell, Location, Money,
-  EditPen, Upload, ChatDotRound, UserFilled, Briefcase, TrendCharts
+  EditPen, Upload, ChatDotRound, UserFilled, Briefcase, TrendCharts, DataAnalysis
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -325,21 +331,31 @@ const recentActivities = ref([
 
 // 热门人才
 const topTalents = ref([
-  { name: '张三', skills: ['Go', 'Python', 'Kubernetes'], score: 95 },
-  { name: '李四', skills: ['React', 'TypeScript', 'Node.js'], score: 92 },
-  { name: '王五', skills: ['Java', 'Spring', 'MySQL'], score: 88 },
-  { name: '赵六', skills: ['Python', 'TensorFlow', 'PyTorch'], score: 85 },
-  { name: '钱七', skills: ['Vue', 'Element Plus', 'Vite'], score: 82 }
+  { id: 1, name: '张三', skills: ['Go', 'Python', 'Kubernetes'], score: 95 },
+  { id: 2, name: '李四', skills: ['React', 'TypeScript', 'Node.js'], score: 92 },
+  { id: 3, name: '王五', skills: ['Java', 'Spring', 'MySQL'], score: 88 },
+  { id: 4, name: '赵六', skills: ['Python', 'TensorFlow', 'PyTorch'], score: 85 },
+  { id: 5, name: '钱七', skills: ['Vue', 'Element Plus', 'Vite'], score: 82 }
 ])
 
 // 热门职位 - 天蓝色系
 const hotJobs = ref([
-  { title: '高级Go开发工程师', location: '北京', salary: '30-50K', applicants: 128, color: '#0ea5e9' },
-  { title: '前端架构师', location: '上海', salary: '40-60K', applicants: 96, color: '#06b6d4' },
-  { title: 'AI算法工程师', location: '深圳', salary: '50-80K', applicants: 87, color: '#38bdf8' },
-  { title: '产品经理', location: '杭州', salary: '25-40K', applicants: 156, color: '#22c55e' },
-  { title: 'DevOps工程师', location: '广州', salary: '30-45K', applicants: 64, color: '#14b8a6' }
+  { id: 1, title: '高级Go开发工程师', location: '北京', salary: '30-50K', applicants: 128, color: '#0ea5e9' },
+  { id: 2, title: '前端架构师', location: '上海', salary: '40-60K', applicants: 96, color: '#06b6d4' },
+  { id: 3, title: 'AI算法工程师', location: '深圳', salary: '50-80K', applicants: 87, color: '#38bdf8' },
+  { id: 4, title: '产品经理', location: '杭州', salary: '25-40K', applicants: 156, color: '#22c55e' },
+  { id: 5, title: 'DevOps工程师', location: '广州', salary: '30-45K', applicants: 64, color: '#14b8a6' }
 ])
+
+// 跳转到人才详情
+const goToTalent = (id: number) => {
+  router.push(`/talents/${id}`)
+}
+
+// 跳转到职位详情
+const goToJob = (id: number) => {
+  router.push(`/jobs/${id}`)
+}
 
 // 获取头像颜色 - 天蓝色系
 const getAvatarColor = (index: number) => {

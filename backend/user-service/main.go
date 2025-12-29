@@ -5,6 +5,8 @@ import (
 	"os"
 	"user-service/handlers"
 
+	"common/middleware"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -35,32 +37,26 @@ func main() {
 		log.Fatal("Failed to connect database:", err)
 	}
 
-	// 自动迁移（表已存在则跳过）
-	// 注意：数据库表已通过 SQL 脚本创建，这里只做兼容性检查
-	// if err := db.AutoMigrate(&models.User{}); err != nil {
-	// 	log.Fatal("Failed to migrate database:", err)
-	// }
-
 	// 初始化路由
 	r := gin.Default()
 
 	// CORS中间件
-	r.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
+	r.Use(middleware.CORS())
 
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-
-		c.Next()
-	})
+	// 操作日志中间件（ES）
+	r.Use(middleware.SimpleOperationLog("user-service"))
 
 	// 初始化处理器
 	userHandler := handlers.NewUserHandler(db)
+
+	// 健康检查
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status":  "healthy",
+			"service": "user-service",
+			"port":    8081,
+		})
+	})
 
 	// 公开路由
 	public := r.Group("/api/v1")
@@ -71,11 +67,10 @@ func main() {
 
 	// 需要认证的路由
 	auth := r.Group("/api/v1")
-	// auth.Use(middleware.JWTAuth()) // 暂时注释，待实现JWT中间件
 	{
 		auth.GET("/profile", userHandler.GetProfile)
 		auth.PUT("/profile", userHandler.UpdateProfile)
-		auth.GET("/users", userHandler.ListUsers) // 管理员功能
+		auth.GET("/users", userHandler.ListUsers)
 	}
 
 	log.Println("User service is running on :8081")

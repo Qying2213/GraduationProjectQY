@@ -6,6 +6,8 @@ import (
 	"resume-service/handlers"
 	"resume-service/models"
 
+	"common/middleware"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -42,20 +44,16 @@ func main() {
 
 	r := gin.Default()
 
-	r.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-		c.Next()
-	})
+	r.Use(middleware.CORS())
+	r.Use(middleware.SimpleOperationLog("resume-service"))
 
 	resumeHandler := handlers.NewResumeHandler(db)
 	aiHandler := handlers.NewAIEvaluateHandler(db)
+
+	// 健康检查
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "healthy", "service": "resume-service", "port": 8084})
+	})
 
 	api := r.Group("/api/v1")
 	{
