@@ -1,0 +1,3 @@
+-- 添加 resumes 表缺失的字段
+ALTER TABLE resumes ADD COLUMN IF NOT EXISTS file_size BIGINT DEFAULT 0;
+ALTER TABLE resumes ADD COLUMN IF NOT EXISTS file_type VARCHAR(20) DEFAULT '';

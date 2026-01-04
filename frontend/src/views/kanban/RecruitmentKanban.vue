@@ -252,7 +252,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   Plus, MoreFilled, Location, Suitcase, Clock, Box
@@ -290,12 +290,7 @@ const stages = ref<Stage[]>([
 ])
 
 // 职位列表
-const jobs = ref([
-  { id: 1, title: '高级前端工程师' },
-  { id: 2, title: '产品经理' },
-  { id: 3, title: '后端工程师' },
-  { id: 4, title: 'UI设计师' }
-])
+const jobs = ref<any[]>([])
 
 // 状态
 const selectedJob = ref<number | null>(null)
@@ -314,126 +309,63 @@ const newCandidateForm = reactive({
 })
 
 // 候选人数据
-const candidates = ref<Candidate[]>([
-  {
-    id: 1,
-    name: '张伟',
-    position: '高级前端工程师',
-    skills: ['Vue', 'React', 'TypeScript'],
-    location: '北京',
-    experience: 5,
-    salary: '30-40K',
-    matchScore: 92,
-    stage: 'interview',
-    applyTime: '2024-01-10',
-    history: [
-      { time: '2024-01-10 10:00', action: '投递简历' },
-      { time: '2024-01-11 14:00', action: '通过简历筛选' },
-      { time: '2024-01-12 09:00', action: '安排技术面试' }
-    ]
-  },
-  {
-    id: 2,
-    name: '李娜',
-    position: '前端工程师',
-    skills: ['Vue', 'JavaScript', 'CSS'],
-    location: '上海',
-    experience: 3,
-    salary: '20-28K',
-    matchScore: 85,
-    stage: 'screening',
-    applyTime: '2024-01-12',
-    history: [
-      { time: '2024-01-12 15:00', action: '投递简历' }
-    ]
-  },
-  {
-    id: 3,
-    name: '王强',
-    position: '全栈工程师',
-    skills: ['Vue', 'Node.js', 'Python'],
-    location: '深圳',
-    experience: 4,
-    salary: '25-35K',
-    matchScore: 78,
-    stage: 'applied',
-    applyTime: '2024-01-13',
-    history: [
-      { time: '2024-01-13 09:30', action: '投递简历' }
-    ]
-  },
-  {
-    id: 4,
-    name: '刘芳',
-    position: '资深前端',
-    skills: ['React', 'TypeScript', 'Webpack'],
-    location: '杭州',
-    experience: 6,
-    salary: '35-45K',
-    matchScore: 88,
-    stage: 'offer',
-    applyTime: '2024-01-08',
-    history: [
-      { time: '2024-01-08 11:00', action: '投递简历' },
-      { time: '2024-01-09 10:00', action: '通过简历筛选' },
-      { time: '2024-01-10 14:00', action: '完成技术面试' },
-      { time: '2024-01-11 16:00', action: '完成HR面试' },
-      { time: '2024-01-12 10:00', action: '进入Offer阶段' }
-    ]
-  },
-  {
-    id: 5,
-    name: '陈明',
-    position: '前端开发',
-    skills: ['Vue', 'Element Plus', 'Git'],
-    location: '成都',
-    experience: 2,
-    salary: '15-22K',
-    matchScore: 72,
-    stage: 'applied',
-    applyTime: '2024-01-14',
-    history: [
-      { time: '2024-01-14 08:00', action: '投递简历' }
-    ]
-  },
-  {
-    id: 6,
-    name: '赵雪',
-    position: '中级前端',
-    skills: ['React', 'Redux', 'Ant Design'],
-    location: '广州',
-    experience: 3,
-    salary: '22-30K',
-    matchScore: 80,
-    stage: 'interview',
-    applyTime: '2024-01-09',
-    history: [
-      { time: '2024-01-09 10:00', action: '投递简历' },
-      { time: '2024-01-10 11:00', action: '通过简历筛选' },
-      { time: '2024-01-11 15:00', action: '安排技术面试' }
-    ]
-  },
-  {
-    id: 7,
-    name: '孙磊',
-    position: '前端架构师',
-    skills: ['Vue', 'React', '微前端', '性能优化'],
-    location: '北京',
-    experience: 8,
-    salary: '45-60K',
-    matchScore: 95,
-    stage: 'hired',
-    applyTime: '2024-01-05',
-    history: [
-      { time: '2024-01-05 09:00', action: '投递简历' },
-      { time: '2024-01-05 14:00', action: '通过简历筛选' },
-      { time: '2024-01-06 10:00', action: '完成技术面试' },
-      { time: '2024-01-07 14:00', action: '完成HR面试' },
-      { time: '2024-01-08 10:00', action: '发送Offer' },
-      { time: '2024-01-09 10:00', action: '接受Offer，已录用' }
-    ]
+const candidates = ref<Candidate[]>([])
+
+// 从后端获取职位列表
+const fetchJobs = async () => {
+  try {
+    const res = await fetch('/api/v1/jobs?page=1&page_size=20')
+    const data = await res.json()
+    if (data.code === 0 && data.data?.jobs) {
+      jobs.value = data.data.jobs.map((j: any) => ({
+        id: j.id,
+        title: j.title
+      }))
+    }
+  } catch (error) {
+    console.error('获取职位列表失败:', error)
   }
-])
+}
+
+// 从后端获取申请列表（候选人）
+const fetchCandidates = async () => {
+  try {
+    const res = await fetch('/api/v1/applications?page=1&page_size=50')
+    const data = await res.json()
+    if (data.code === 0 && data.data?.applications) {
+      candidates.value = data.data.applications.map((app: any) => ({
+        id: app.id,
+        name: app.talent_name || '未知',
+        position: app.job_title || '未知职位',
+        skills: app.skills || [],
+        location: app.location || '未知',
+        experience: app.experience || 0,
+        salary: app.salary || '面议',
+        matchScore: app.match_score || 75,
+        stage: mapStatus(app.status),
+        applyTime: app.created_at?.split('T')[0] || '',
+        history: [
+          { time: app.created_at || '', action: '投递简历' }
+        ]
+      }))
+    }
+  } catch (error) {
+    console.error('获取候选人列表失败:', error)
+  }
+}
+
+// 映射状态到看板阶段
+const mapStatus = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    'pending': 'applied',
+    'reviewing': 'screening',
+    'interviewing': 'interview',
+    'offered': 'offer',
+    'hired': 'hired',
+    'rejected': 'applied'
+  }
+  return statusMap[status] || 'applied'
+}
 
 // 获取阶段候选人
 const getCandidatesByStage = (stageId: string) => {
@@ -548,7 +480,7 @@ const addCandidate = () => {
     return
   }
 
-  const newId = Math.max(...candidates.value.map(c => c.id)) + 1
+  const newId = candidates.value.length > 0 ? Math.max(...candidates.value.map(c => c.id)) + 1 : 1
   candidates.value.push({
     id: newId,
     name: newCandidateForm.name,
@@ -557,7 +489,7 @@ const addCandidate = () => {
     location: newCandidateForm.location || '未知',
     experience: newCandidateForm.experience,
     salary: '面议',
-    matchScore: Math.floor(Math.random() * 30) + 70,
+    matchScore: 75, // 默认匹配度
     stage: 'applied',
     applyTime: new Date().toISOString().split('T')[0],
     history: [
@@ -574,6 +506,11 @@ const addCandidate = () => {
 
   ElMessage.success('添加成功')
 }
+
+onMounted(() => {
+  fetchJobs()
+  fetchCandidates()
+})
 </script>
 
 <style scoped lang="scss">

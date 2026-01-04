@@ -119,11 +119,27 @@ func (h *JobHandler) ListJobs(c *gin.Context) {
 		return
 	}
 
+	// 查询每个职位的申请人数
+	type JobWithApplicants struct {
+		models.Job
+		Applicants int64 `json:"applicants"`
+	}
+
+	jobsWithApplicants := make([]JobWithApplicants, len(jobs))
+	for i, job := range jobs {
+		var count int64
+		h.DB.Table("applications").Where("job_id = ?", job.ID).Count(&count)
+		jobsWithApplicants[i] = JobWithApplicants{
+			Job:        job,
+			Applicants: count,
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "success",
 		"data": gin.H{
-			"jobs":      jobs,
+			"jobs":      jobsWithApplicants,
 			"total":     total,
 			"page":      page,
 			"page_size": pageSize,

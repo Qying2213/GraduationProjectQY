@@ -57,9 +57,12 @@ func OperationLog(config *OperationLogConfig) gin.HandlerFunc {
 
 		start := time.Now()
 
-		// 读取请求体
+		// 读取请求体 - 跳过 multipart/form-data（文件上传）
 		var requestBody string
-		if config.LogRequestBody && c.Request.Body != nil {
+		contentType := c.GetHeader("Content-Type")
+		isMultipart := strings.HasPrefix(contentType, "multipart/form-data")
+
+		if config.LogRequestBody && c.Request.Body != nil && !isMultipart {
 			bodyBytes, _ := io.ReadAll(c.Request.Body)
 			if len(bodyBytes) > config.MaxBodySize {
 				bodyBytes = bodyBytes[:config.MaxBodySize]
@@ -67,6 +70,8 @@ func OperationLog(config *OperationLogConfig) gin.HandlerFunc {
 			requestBody = string(bodyBytes)
 			// 重新设置请求体
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+		} else if isMultipart {
+			requestBody = "[multipart/form-data - skipped]"
 		}
 
 		// 包装响应写入器

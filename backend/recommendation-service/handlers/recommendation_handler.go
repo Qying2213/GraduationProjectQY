@@ -7,12 +7,15 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-type RecommendationHandler struct{}
+type RecommendationHandler struct {
+	DB *gorm.DB
+}
 
-func NewRecommendationHandler() *RecommendationHandler {
-	return &RecommendationHandler{}
+func NewRecommendationHandler(db *gorm.DB) *RecommendationHandler {
+	return &RecommendationHandler{DB: db}
 }
 
 type TalentProfile struct {
@@ -271,14 +274,47 @@ func (h *RecommendationHandler) RecommendJobsForTalent(c *gin.Context) {
 		return
 	}
 
-	// 模拟职位数据（实际应该从job-service获取）
-	jobs := []JobProfile{
-		{ID: 1, Title: "高级Go开发工程师", Skills: []string{"Go", "Docker", "Kubernetes", "微服务"}, Location: "北京", Level: "senior", Salary: "30-50K", Department: "技术部"},
-		{ID: 2, Title: "前端架构师", Skills: []string{"Vue", "TypeScript", "React", "Webpack"}, Location: "上海", Level: "senior", Salary: "35-55K", Department: "技术部"},
-		{ID: 3, Title: "全栈开发工程师", Skills: []string{"Go", "Vue", "PostgreSQL", "Redis"}, Location: "深圳", Level: "mid", Salary: "25-40K", Department: "产品部"},
-		{ID: 4, Title: "后端开发工程师", Skills: []string{"Go", "Redis", "MySQL", "消息队列"}, Location: "杭州", Level: "mid", Salary: "20-35K", Department: "技术部"},
-		{ID: 5, Title: "AI算法工程师", Skills: []string{"Python", "机器学习", "深度学习", "TensorFlow"}, Location: "北京", Level: "senior", Salary: "40-70K", Department: "AI部"},
-		{ID: 6, Title: "DevOps工程师", Skills: []string{"Docker", "Kubernetes", "Jenkins", "AWS"}, Location: "广州", Level: "mid", Salary: "25-40K", Department: "运维部"},
+	// 从数据库获取职位数据
+	var jobs []JobProfile
+	if h.DB != nil {
+		var dbJobs []struct {
+			ID         uint   `json:"id"`
+			Title      string `json:"title"`
+			Skills     string `json:"skills"`
+			Location   string `json:"location"`
+			Level      string `json:"level"`
+			Salary     string `json:"salary"`
+			Department string `json:"department"`
+		}
+		h.DB.Table("jobs").Where("status = ?", "open").Limit(20).Find(&dbJobs)
+		for _, j := range dbJobs {
+			skills := []string{}
+			if j.Skills != "" {
+				// 解析 PostgreSQL 数组格式 {skill1,skill2}
+				skillStr := strings.Trim(j.Skills, "{}")
+				if skillStr != "" {
+					skills = strings.Split(skillStr, ",")
+				}
+			}
+			jobs = append(jobs, JobProfile{
+				ID:         j.ID,
+				Title:      j.Title,
+				Skills:     skills,
+				Location:   j.Location,
+				Level:      j.Level,
+				Salary:     j.Salary,
+				Department: j.Department,
+			})
+		}
+	}
+
+	// 如果数据库没有数据，使用默认数据
+	if len(jobs) == 0 {
+		jobs = []JobProfile{
+			{ID: 1, Title: "高级Go开发工程师", Skills: []string{"Go", "Docker", "Kubernetes", "微服务"}, Location: "北京", Level: "senior", Salary: "30-50K", Department: "技术部"},
+			{ID: 2, Title: "前端架构师", Skills: []string{"Vue", "TypeScript", "React", "Webpack"}, Location: "上海", Level: "senior", Salary: "35-55K", Department: "技术部"},
+			{ID: 3, Title: "全栈开发工程师", Skills: []string{"Go", "Vue", "PostgreSQL", "Redis"}, Location: "深圳", Level: "mid", Salary: "25-40K", Department: "产品部"},
+		}
 	}
 
 	var recommendations []Recommendation
@@ -334,14 +370,47 @@ func (h *RecommendationHandler) RecommendTalentsForJob(c *gin.Context) {
 		return
 	}
 
-	// 模拟人才数据（实际应该从talent-service获取）
-	talents := []TalentProfile{
-		{ID: 1, Name: "张三", Skills: []string{"Go", "Docker", "Kubernetes", "Redis", "微服务"}, Experience: 5, Education: "本科", Location: "北京", Salary: "30-40K"},
-		{ID: 2, Name: "李四", Skills: []string{"Vue", "TypeScript", "React", "Node.js", "Webpack"}, Experience: 3, Education: "硕士", Location: "上海", Salary: "25-35K"},
-		{ID: 3, Name: "王五", Skills: []string{"Go", "Vue", "PostgreSQL", "Docker", "Redis"}, Experience: 4, Education: "本科", Location: "深圳", Salary: "25-35K"},
-		{ID: 4, Name: "赵六", Skills: []string{"Java", "Spring", "MySQL", "Redis"}, Experience: 2, Education: "本科", Location: "北京", Salary: "15-25K"},
-		{ID: 5, Name: "钱七", Skills: []string{"Python", "机器学习", "TensorFlow", "PyTorch"}, Experience: 6, Education: "博士", Location: "北京", Salary: "50-70K"},
-		{ID: 6, Name: "孙八", Skills: []string{"Go", "Kubernetes", "AWS", "Terraform"}, Experience: 7, Education: "硕士", Location: "杭州", Salary: "40-55K"},
+	// 从数据库获取人才数据
+	var talents []TalentProfile
+	if h.DB != nil {
+		var dbTalents []struct {
+			ID         uint   `json:"id"`
+			Name       string `json:"name"`
+			Skills     string `json:"skills"`
+			Experience int    `json:"experience"`
+			Education  string `json:"education"`
+			Location   string `json:"location"`
+			Salary     string `json:"salary"`
+		}
+		h.DB.Table("talents").Where("status = ?", "active").Limit(20).Find(&dbTalents)
+		for _, t := range dbTalents {
+			skills := []string{}
+			if t.Skills != "" {
+				// 解析 PostgreSQL 数组格式 {skill1,skill2}
+				skillStr := strings.Trim(t.Skills, "{}")
+				if skillStr != "" {
+					skills = strings.Split(skillStr, ",")
+				}
+			}
+			talents = append(talents, TalentProfile{
+				ID:         t.ID,
+				Name:       t.Name,
+				Skills:     skills,
+				Experience: t.Experience,
+				Education:  t.Education,
+				Location:   t.Location,
+				Salary:     t.Salary,
+			})
+		}
+	}
+
+	// 如果数据库没有数据，使用默认数据
+	if len(talents) == 0 {
+		talents = []TalentProfile{
+			{ID: 1, Name: "张三", Skills: []string{"Go", "Docker", "Kubernetes", "Redis", "微服务"}, Experience: 5, Education: "本科", Location: "北京", Salary: "30-40K"},
+			{ID: 2, Name: "李四", Skills: []string{"Vue", "TypeScript", "React", "Node.js", "Webpack"}, Experience: 3, Education: "硕士", Location: "上海", Salary: "25-35K"},
+			{ID: 3, Name: "王五", Skills: []string{"Go", "Vue", "PostgreSQL", "Docker", "Redis"}, Experience: 4, Education: "本科", Location: "深圳", Salary: "25-35K"},
+		}
 	}
 
 	var recommendations []Recommendation
@@ -392,16 +461,38 @@ func (h *RecommendationHandler) RecommendTalentsForJob(c *gin.Context) {
 // GetRecommendationStats 获取推荐统计
 func (h *RecommendationHandler) GetRecommendationStats(c *gin.Context) {
 	stats := gin.H{
-		"total_recommendations":   256,
-		"successful_matches":      78,
-		"pending_reviews":         34,
-		"success_rate":            30.5,
-		"avg_match_score":         72.3,
-		"high_match_count":        45,
-		"medium_match_count":      89,
-		"low_match_count":         122,
-		"top_matched_skills":      []string{"Go", "Vue", "Docker", "Kubernetes", "Python"},
-		"recommendations_by_dept": map[string]int{"技术部": 120, "产品部": 56, "运维部": 45, "AI部": 35},
+		"total_recommendations":   0,
+		"successful_matches":      0,
+		"pending_reviews":         0,
+		"success_rate":            0.0,
+		"avg_match_score":         0.0,
+		"high_match_count":        0,
+		"medium_match_count":      0,
+		"low_match_count":         0,
+		"top_matched_skills":      []string{},
+		"recommendations_by_dept": map[string]int{},
+	}
+
+	if h.DB != nil {
+		// 获取申请总数
+		var totalApplications int64
+		h.DB.Table("applications").Count(&totalApplications)
+		stats["total_recommendations"] = totalApplications
+
+		// 获取成功匹配数（已录用）
+		var hiredCount int64
+		h.DB.Table("applications").Where("status = ?", "hired").Count(&hiredCount)
+		stats["successful_matches"] = hiredCount
+
+		// 获取待审核数
+		var pendingCount int64
+		h.DB.Table("applications").Where("status = ?", "pending").Count(&pendingCount)
+		stats["pending_reviews"] = pendingCount
+
+		// 计算成功率
+		if totalApplications > 0 {
+			stats["success_rate"] = float64(hiredCount) / float64(totalApplications) * 100
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{

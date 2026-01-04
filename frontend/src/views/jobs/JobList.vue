@@ -154,7 +154,7 @@
           </div>
           <div class="applicants-count">
             <el-icon><User /></el-icon>
-            <span>{{ job.applicants || Math.floor(Math.random() * 50) + 10 }} 人申请</span>
+            <span>{{ job.applicants || 0 }} 人申请</span>
           </div>
         </div>
       </div>
@@ -495,37 +495,6 @@ const fetchJobs = async () => {
   }
 }
 
-// 生成模拟数据
-const generateMockJobs = (): Job[] => {
-  const titles = [
-    '高级前端工程师', '后端开发工程师', 'Go语言开发', 'Python开发工程师',
-    '全栈工程师', '产品经理', 'UI设计师', 'DevOps工程师', '数据分析师', '测试工程师'
-  ]
-  const departments = ['技术部', '产品部', '设计部', '数据部', '运维部']
-  const locations = ['北京', '上海', '深圳', '杭州', '广州']
-  const types: Job['type'][] = ['full-time', 'part-time', 'contract', 'internship']
-  const statuses: Job['status'][] = ['open', 'closed', 'filled']
-  const skills = ['Go', 'Python', 'Java', 'Vue', 'React', 'TypeScript', 'Node.js', 'MySQL', 'Redis', 'Docker']
-
-  return Array.from({ length: pageSize.value }, (_, i) => ({
-    id: (currentPage.value - 1) * pageSize.value + i + 1,
-    title: titles[i % titles.length],
-    description: '负责公司核心业务系统的开发与维护，参与系统架构设计，编写高质量的代码。需要具备良好的沟通能力和团队协作精神，能够独立完成复杂功能的开发工作。',
-    requirements: ['3年以上相关经验', '本科及以上学历', '熟悉常用设计模式', '有大型项目经验优先'],
-    salary: `${Math.floor(Math.random() * 30) + 15}-${Math.floor(Math.random() * 30) + 45}K`,
-    location: locations[Math.floor(Math.random() * locations.length)],
-    type: types[Math.floor(Math.random() * types.length)],
-    status: statuses[Math.floor(Math.random() * statuses.length)],
-    created_by: 1,
-    department: departments[Math.floor(Math.random() * departments.length)],
-    level: ['junior', 'mid', 'senior'][Math.floor(Math.random() * 3)],
-    skills: skills.sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 4) + 2),
-    benefits: ['五险一金', '年终奖', '带薪年假', '弹性工作'],
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }))
-}
-
 // 重置搜索
 const resetSearch = () => {
   searchParams.search = ''
@@ -546,7 +515,12 @@ const openCreateDialog = () => {
 // 打开编辑弹窗
 const openEditDialog = (job: Job) => {
   isEdit.value = true
-  Object.assign(jobForm, job)
+  Object.assign(jobForm, {
+    ...job,
+    skills: job.skills || [],
+    requirements: job.requirements || [],
+    benefits: job.benefits || []
+  })
   dialogVisible.value = true
 }
 

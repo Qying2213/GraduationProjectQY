@@ -477,32 +477,6 @@ const fetchTalents = async () => {
   }
 }
 
-// 生成模拟数据
-const generateMockTalents = (): Talent[] => {
-  const names = ['张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十']
-  const locations = ['北京', '上海', '深圳', '杭州', '广州', '成都', '南京', '武汉']
-  const skills = ['Go', 'Python', 'Java', 'Vue', 'React', 'TypeScript', 'Node.js', 'MySQL', 'Redis', 'Docker']
-  const statuses: Talent['status'][] = ['active', 'hired', 'pending', 'rejected']
-
-  return Array.from({ length: pageSize.value }, (_, i) => ({
-    id: (currentPage.value - 1) * pageSize.value + i + 1,
-    name: names[i % names.length],
-    email: `user${i + 1}@example.com`,
-    phone: `138${String(Math.random()).slice(2, 10)}`,
-    skills: skills.sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 4) + 2),
-    experience: Math.floor(Math.random() * 10) + 1,
-    education: ['本科', '硕士', '博士'][Math.floor(Math.random() * 3)],
-    status: statuses[Math.floor(Math.random() * statuses.length)],
-    tags: [],
-    location: locations[Math.floor(Math.random() * locations.length)],
-    salary: `${Math.floor(Math.random() * 30) + 10}-${Math.floor(Math.random() * 30) + 40}K`,
-    summary: '资深工程师，具有丰富的项目经验和团队协作能力。',
-    user_id: i + 1,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }))
-}
-
 // 重置搜索
 const resetSearch = () => {
   searchParams.search = ''

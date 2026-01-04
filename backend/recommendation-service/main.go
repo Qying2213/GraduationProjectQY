@@ -2,12 +2,26 @@ package main
 
 import (
 	"log"
+	"os"
 	"recommendation-service/handlers"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func main() {
+	// 连接数据库
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		dsn = "host=localhost user=postgres password=postgres dbname=talent_platform port=5432 sslmode=disable"
+	}
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Printf("Warning: Failed to connect to database: %v", err)
+	}
+
 	r := gin.Default()
 
 	r.Use(func(c *gin.Context) {
@@ -22,7 +36,7 @@ func main() {
 		c.Next()
 	})
 
-	recommendHandler := handlers.NewRecommendationHandler()
+	recommendHandler := handlers.NewRecommendationHandler(db)
 
 	api := r.Group("/api/v1/recommendations")
 	{

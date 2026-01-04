@@ -45,6 +45,7 @@ func (h *TalentHandler) ListTalents(c *gin.Context) {
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
 	status := c.Query("status")
 	search := c.Query("search")
+	experience := c.Query("experience")
 
 	offset := (page - 1) * pageSize
 
@@ -55,13 +56,29 @@ func (h *TalentHandler) ListTalents(c *gin.Context) {
 	}
 
 	if search != "" {
-		query = query.Where("name ILIKE ? OR email ILIKE ?", "%"+search+"%", "%"+search+"%")
+		query = query.Where("name ILIKE ? OR email ILIKE ? OR ? = ANY(skills)", "%"+search+"%", "%"+search+"%", search)
+	}
+
+	// 经验筛选
+	if experience != "" {
+		switch experience {
+		case "0":
+			query = query.Where("experience = 0")
+		case "1-3":
+			query = query.Where("experience >= 1 AND experience <= 3")
+		case "3-5":
+			query = query.Where("experience >= 3 AND experience <= 5")
+		case "5-10":
+			query = query.Where("experience >= 5 AND experience <= 10")
+		case "10+":
+			query = query.Where("experience > 10")
+		}
 	}
 
 	var total int64
 	query.Count(&total)
 
-	if err := query.Offset(offset).Limit(pageSize).Find(&talents).Error; err != nil {
+	if err := query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&talents).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch talents"})
 		return
 	}

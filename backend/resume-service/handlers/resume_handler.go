@@ -3,12 +3,14 @@ package handlers
 import (
 	"encoding/base64"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"resume-service/models"
 	"resume-service/parser"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +18,7 @@ import (
 )
 
 // 文件存储目录
-const UploadDir = "./uploads/resumes"
+var UploadDir string
 
 type ResumeHandler struct {
 	DB     *gorm.DB
@@ -24,8 +26,16 @@ type ResumeHandler struct {
 }
 
 func NewResumeHandler(db *gorm.DB) *ResumeHandler {
+	// 获取当前工作目录
+	wd, _ := os.Getwd()
+	UploadDir = filepath.Join(wd, "uploads")
+
 	// 确保上传目录存在
-	os.MkdirAll(UploadDir, 0755)
+	if err := os.MkdirAll(UploadDir, 0755); err != nil {
+		log.Printf("Warning: Failed to create upload dir: %v", err)
+	}
+	log.Printf("Upload directory: %s", UploadDir)
+
 	return &ResumeHandler{
 		DB:     db,
 		Parser: parser.NewResumeParser(),
@@ -34,45 +44,90 @@ func NewResumeHandler(db *gorm.DB) *ResumeHandler {
 
 // UploadResumeFile 上传简历文件
 func (h *ResumeHandler) UploadResumeFile(c *gin.Context) {
+	log.Println("========== UploadResumeFile START ==========")
+	log.Printf("[上传] 请求方法: %s", c.Request.Method)
+	log.Printf("[上传] Content-Type: %s", c.GetHeader("Content-Type"))
+	log.Printf("[上传] Content-Length: %s", c.GetHeader("Content-Length"))
+
 	// 获取上传的文件
 	file, err := c.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "请选择要上传的文件"})
+		log.Printf("[上传] ❌ FormFile 错误: %v", err)
+		log.Printf("[上传] 可能原因: Content-Type 不是 multipart/form-data 或 file 字段不存在")
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "请选择要上传的文件: " + err.Error()})
 		return
 	}
 
-	// 检查文件类型
-	ext := filepath.Ext(file.Filename)
+	log.Printf("[上传] ✓ 文件接收成功: 文件名=%s, 大小=%d bytes", file.Filename, file.Size)
+
+	// 检查文件类型（不区分大小写）
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	log.Printf("[上传] 文件扩展名: %s", ext)
+
 	allowedExts := map[string]bool{".pdf": true, ".doc": true, ".docx": true}
 	if !allowedExts[ext] {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "只支持 PDF、DOC、DOCX 格式"})
+		log.Printf("[上传] ❌ 文件类型不支持: %s", ext)
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "只支持 PDF、DOC、DOCX 格式，当前格式: " + ext})
 		return
 	}
+	log.Printf("[上传] ✓ 文件类型检查通过")
 
 	// 检查文件大小（最大10MB）
 	if file.Size > 10*1024*1024 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "文件大小不能超过10MB"})
+		log.Printf("[上传] ❌ 文件太大: %d bytes", file.Size)
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "文件大小不能超过10MB"})
 		return
 	}
+	log.Printf("[上传] ✓ 文件大小检查通过")
 
 	// 生成唯一文件名
 	filename := fmt.Sprintf("%d_%s", time.Now().UnixNano(), file.Filename)
 	filePath := filepath.Join(UploadDir, filename)
+	log.Printf("[上传] 目标路径: %s", filePath)
+	log.Printf("[上传] UploadDir: %s", UploadDir)
+
+	// 检查目录是否存在
+	if _, err := os.Stat(UploadDir); os.IsNotExist(err) {
+		log.Printf("[上传] 目录不存在，创建目录: %s", UploadDir)
+		if err := os.MkdirAll(UploadDir, 0755); err != nil {
+			log.Printf("[上传] ❌ 创建目录失败: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "创建上传目录失败"})
+			return
+		}
+	}
 
 	// 保存文件
 	if err := c.SaveUploadedFile(file, filePath); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "文件保存失败"})
+		log.Printf("[上传] ❌ 保存文件失败: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "文件保存失败: " + err.Error()})
 		return
+	}
+	log.Printf("[上传] ✓ 文件保存成功")
+
+	// 验证文件是否真的保存了
+	if info, err := os.Stat(filePath); err != nil {
+		log.Printf("[上传] ❌ 文件验证失败: %v", err)
+	} else {
+		log.Printf("[上传] ✓ 文件验证成功: 大小=%d bytes", info.Size())
 	}
 
 	// 获取其他表单数据
-	talentID, _ := strconv.Atoi(c.PostForm("talent_id"))
-	jobID, _ := strconv.Atoi(c.PostForm("job_id"))
+	talentIDStr := c.PostForm("talent_id")
+	jobIDStr := c.PostForm("job_id")
+	log.Printf("[上传] 表单数据: talent_id=%s, job_id=%s", talentIDStr, jobIDStr)
 
-	// 创建简历记录（talent_id 和 job_id 为 0 时设为 nil）
+	talentID, _ := strconv.Atoi(talentIDStr)
+	jobID, _ := strconv.Atoi(jobIDStr)
+
+	// 生成访问URL
+	fileURL := "/api/v1/resumes/file/" + filename
+	log.Printf("[上传] 文件访问URL: %s", fileURL)
+
+	// 创建简历记录
 	resume := models.Resume{
 		FilePath: filePath,
 		FileName: file.Filename,
+		FileURL:  fileURL,
 		FileSize: file.Size,
 		FileType: ext,
 		Status:   "pending",
@@ -86,12 +141,16 @@ func (h *ResumeHandler) UploadResumeFile(c *gin.Context) {
 		resume.JobID = &jid
 	}
 
+	log.Printf("[上传] 准备写入数据库...")
 	if err := h.DB.Create(&resume).Error; err != nil {
-		// 删除已上传的文件
+		log.Printf("[上传] ❌ 数据库写入失败: %v", err)
 		os.Remove(filePath)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "简历记录创建失败"})
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "简历记录创建失败: " + err.Error()})
 		return
 	}
+
+	log.Printf("[上传] ✓ 数据库写入成功, ID=%d", resume.ID)
+	log.Println("========== UploadResumeFile SUCCESS ==========")
 
 	c.JSON(http.StatusCreated, gin.H{
 		"code":    0,
@@ -100,19 +159,47 @@ func (h *ResumeHandler) UploadResumeFile(c *gin.Context) {
 	})
 }
 
+// ServeResumeFile 提供简历文件访问
+func (h *ResumeHandler) ServeResumeFile(c *gin.Context) {
+	filename := c.Param("filename")
+	filePath := filepath.Join(UploadDir, filename)
+
+	log.Printf("ServeResumeFile: filename=%s, UploadDir=%s, filePath=%s", filename, UploadDir, filePath)
+
+	// 检查文件是否存在
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		log.Printf("File not found: %s", filePath)
+		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "文件不存在"})
+		return
+	}
+
+	// 设置响应头
+	ext := strings.ToLower(filepath.Ext(filename))
+	switch ext {
+	case ".pdf":
+		c.Header("Content-Type", "application/pdf")
+	case ".doc":
+		c.Header("Content-Type", "application/msword")
+	case ".docx":
+		c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+	}
+
+	c.File(filePath)
+}
+
 // DownloadResume 下载简历文件
 func (h *ResumeHandler) DownloadResume(c *gin.Context) {
 	id := c.Param("id")
 	var resume models.Resume
 
 	if err := h.DB.First(&resume, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "简历不存在"})
+		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "简历不存在"})
 		return
 	}
 
 	// 检查文件是否存在
 	if _, err := os.Stat(resume.FilePath); os.IsNotExist(err) {
-		c.JSON(http.StatusNotFound, gin.H{"error": "文件不存在"})
+		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "文件不存在"})
 		return
 	}
 
@@ -120,16 +207,16 @@ func (h *ResumeHandler) DownloadResume(c *gin.Context) {
 	c.File(resume.FilePath)
 }
 
-// UploadResume 上传简历
+// UploadResume 上传简历（JSON方式）
 func (h *ResumeHandler) UploadResume(c *gin.Context) {
 	var resume models.Resume
 	if err := c.ShouldBindJSON(&resume); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": err.Error()})
 		return
 	}
 
 	if err := h.DB.Create(&resume).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload resume"})
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "Failed to upload resume"})
 		return
 	}
 
@@ -146,7 +233,7 @@ func (h *ResumeHandler) GetResume(c *gin.Context) {
 	var resume models.Resume
 
 	if err := h.DB.First(&resume, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Resume not found"})
+		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "Resume not found"})
 		return
 	}
 
@@ -159,16 +246,20 @@ func (h *ResumeHandler) GetResume(c *gin.Context) {
 
 // ListResumes 获取简历列表
 func (h *ResumeHandler) ListResumes(c *gin.Context) {
-	var resumes []models.Resume
-
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
 	talentID := c.Query("talent_id")
 	status := c.Query("status")
+	search := c.Query("search")
 	sortBy := c.DefaultQuery("sort_by", "created_at")
 	sortOrder := c.DefaultQuery("sort_order", "desc")
 
 	offset := (page - 1) * pageSize
+
+	type ResumeWithTalent struct {
+		models.Resume
+		TalentName string `json:"talent_name"`
+	}
 
 	query := h.DB.Model(&models.Resume{})
 
@@ -180,10 +271,13 @@ func (h *ResumeHandler) ListResumes(c *gin.Context) {
 		query = query.Where("status = ?", status)
 	}
 
+	if search != "" {
+		query = query.Where("file_name ILIKE ? OR talent_id IN (SELECT id FROM talents WHERE name ILIKE ?)", "%"+search+"%", "%"+search+"%")
+	}
+
 	var total int64
 	query.Count(&total)
 
-	// 构建排序
 	allowedSortFields := map[string]bool{"created_at": true, "status": true, "file_name": true}
 	if !allowedSortFields[sortBy] {
 		sortBy = "created_at"
@@ -193,16 +287,29 @@ func (h *ResumeHandler) ListResumes(c *gin.Context) {
 	}
 	orderClause := sortBy + " " + sortOrder
 
+	var resumes []models.Resume
 	if err := query.Order(orderClause).Offset(offset).Limit(pageSize).Find(&resumes).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch resumes"})
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "Failed to fetch resumes"})
 		return
+	}
+
+	result := make([]ResumeWithTalent, len(resumes))
+	for i, resume := range resumes {
+		result[i].Resume = resume
+		if resume.TalentID != nil {
+			var talent struct {
+				Name string `json:"name"`
+			}
+			h.DB.Table("talents").Where("id = ?", *resume.TalentID).First(&talent)
+			result[i].TalentName = talent.Name
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "success",
 		"data": gin.H{
-			"resumes":   resumes,
+			"resumes":   result,
 			"total":     total,
 			"page":      page,
 			"page_size": pageSize,
@@ -213,9 +320,20 @@ func (h *ResumeHandler) ListResumes(c *gin.Context) {
 // DeleteResume 删除简历
 func (h *ResumeHandler) DeleteResume(c *gin.Context) {
 	id := c.Param("id")
+	var resume models.Resume
 
-	if err := h.DB.Delete(&models.Resume{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete resume"})
+	if err := h.DB.First(&resume, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "Resume not found"})
+		return
+	}
+
+	// 删除文件
+	if resume.FilePath != "" {
+		os.Remove(resume.FilePath)
+	}
+
+	if err := h.DB.Delete(&resume).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "Failed to delete resume"})
 		return
 	}
 
@@ -225,18 +343,16 @@ func (h *ResumeHandler) DeleteResume(c *gin.Context) {
 	})
 }
 
-// Application handlers
-
 // CreateApplication 创建申请
 func (h *ResumeHandler) CreateApplication(c *gin.Context) {
 	var app models.Application
 	if err := c.ShouldBindJSON(&app); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": err.Error()})
 		return
 	}
 
 	if err := h.DB.Create(&app).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create application"})
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "Failed to create application"})
 		return
 	}
 
@@ -249,8 +365,6 @@ func (h *ResumeHandler) CreateApplication(c *gin.Context) {
 
 // ListApplications 获取申请列表
 func (h *ResumeHandler) ListApplications(c *gin.Context) {
-	var applications []models.Application
-
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
 	jobID := c.Query("job_id")
@@ -259,33 +373,67 @@ func (h *ResumeHandler) ListApplications(c *gin.Context) {
 
 	offset := (page - 1) * pageSize
 
+	type ApplicationWithDetails struct {
+		models.Application
+		TalentName string   `json:"talent_name"`
+		JobTitle   string   `json:"job_title"`
+		Location   string   `json:"location"`
+		Experience int      `json:"experience"`
+		Salary     string   `json:"salary"`
+		Skills     []string `json:"skills"`
+		MatchScore int      `json:"match_score"`
+	}
+
 	query := h.DB.Model(&models.Application{})
 
 	if jobID != "" {
-		query = query.Where("job_id = ?", jobID)
+		query = query.Where("applications.job_id = ?", jobID)
 	}
-
 	if talentID != "" {
-		query = query.Where("talent_id = ?", talentID)
+		query = query.Where("applications.talent_id = ?", talentID)
 	}
-
 	if status != "" {
-		query = query.Where("status = ?", status)
+		query = query.Where("applications.status = ?", status)
 	}
 
 	var total int64
 	query.Count(&total)
 
+	var applications []models.Application
 	if err := query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&applications).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch applications"})
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "Failed to fetch applications"})
 		return
+	}
+
+	result := make([]ApplicationWithDetails, len(applications))
+	for i, app := range applications {
+		result[i].Application = app
+		result[i].MatchScore = 75
+
+		var talent struct {
+			Name       string `json:"name"`
+			Location   string `json:"location"`
+			Experience int    `json:"experience"`
+			Salary     string `json:"salary"`
+		}
+		h.DB.Table("talents").Where("id = ?", app.TalentID).First(&talent)
+		result[i].TalentName = talent.Name
+		result[i].Location = talent.Location
+		result[i].Experience = talent.Experience
+		result[i].Salary = talent.Salary
+
+		var job struct {
+			Title string `json:"title"`
+		}
+		h.DB.Table("jobs").Where("id = ?", app.JobID).First(&job)
+		result[i].JobTitle = job.Title
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "success",
 		"data": gin.H{
-			"applications": applications,
+			"applications": result,
 			"total":        total,
 			"page":         page,
 			"page_size":    pageSize,
@@ -299,7 +447,7 @@ func (h *ResumeHandler) UpdateApplication(c *gin.Context) {
 	var app models.Application
 
 	if err := h.DB.First(&app, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Application not found"})
+		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "Application not found"})
 		return
 	}
 
@@ -309,7 +457,7 @@ func (h *ResumeHandler) UpdateApplication(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": err.Error()})
 		return
 	}
 
@@ -317,7 +465,7 @@ func (h *ResumeHandler) UpdateApplication(c *gin.Context) {
 	app.Notes = req.Notes
 
 	if err := h.DB.Save(&app).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update application"})
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "Failed to update application"})
 		return
 	}
 
@@ -335,14 +483,13 @@ func (h *ResumeHandler) ParseResume(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "请提供简历文本内容"})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "请提供简历文本内容"})
 		return
 	}
 
-	// 解析简历
 	result, err := h.Parser.Parse(req.Text)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "简历解析失败"})
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "简历解析失败"})
 		return
 	}
 
@@ -363,18 +510,16 @@ func (h *ResumeHandler) MatchResumeToJob(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": err.Error()})
 		return
 	}
 
-	// 解析简历
 	parsedResume, err := h.Parser.Parse(req.ResumeText)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "简历解析失败"})
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "简历解析失败"})
 		return
 	}
 
-	// 计算匹配度
 	score := h.Parser.CalculateMatchScore(parsedResume, req.JobSkills, req.JobExperience, req.JobEducation)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -388,19 +533,14 @@ func (h *ResumeHandler) MatchResumeToJob(c *gin.Context) {
 }
 
 // ListResumesForEvaluation 获取简历列表（用于自动评估系统）
-// 返回包含简历文件内容的完整数据
 func (h *ResumeHandler) ListResumesForEvaluation(c *gin.Context) {
-	var resumes []models.Resume
-
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "100"))
-	status := c.DefaultQuery("status", "pending") // 默认只获取待评估的简历
+	status := c.DefaultQuery("status", "pending")
 
 	offset := (page - 1) * pageSize
 
 	query := h.DB.Model(&models.Resume{})
-
-	// 只获取有文件的简历
 	query = query.Where("file_path != '' AND file_path IS NOT NULL")
 
 	if status != "" && status != "all" {
@@ -410,12 +550,12 @@ func (h *ResumeHandler) ListResumesForEvaluation(c *gin.Context) {
 	var total int64
 	query.Count(&total)
 
+	var resumes []models.Resume
 	if err := query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&resumes).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch resumes"})
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "Failed to fetch resumes"})
 		return
 	}
 
-	// 构建返回数据，包含文件内容
 	type ResumeWithFile struct {
 		ID         uint   `json:"id"`
 		TalentID   *uint  `json:"talent_id"`
@@ -439,7 +579,6 @@ func (h *ResumeHandler) ListResumesForEvaluation(c *gin.Context) {
 			HasFile:  false,
 		}
 
-		// 读取文件内容并转为 base64
 		if resume.FilePath != "" {
 			if fileBytes, err := os.ReadFile(resume.FilePath); err == nil {
 				item.HasFile = true
@@ -462,13 +601,13 @@ func (h *ResumeHandler) ListResumesForEvaluation(c *gin.Context) {
 	})
 }
 
-// UpdateResumeStatus 更新简历状态（用于自动评估系统标记已评估）
+// UpdateResumeStatus 更新简历状态
 func (h *ResumeHandler) UpdateResumeStatus(c *gin.Context) {
 	id := c.Param("id")
 	var resume models.Resume
 
 	if err := h.DB.First(&resume, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Resume not found"})
+		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "Resume not found"})
 		return
 	}
 
@@ -477,13 +616,13 @@ func (h *ResumeHandler) UpdateResumeStatus(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": err.Error()})
 		return
 	}
 
 	resume.Status = req.Status
 	if err := h.DB.Save(&resume).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update resume status"})
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "Failed to update resume status"})
 		return
 	}
 

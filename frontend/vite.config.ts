@@ -42,7 +42,13 @@ export default defineConfig({
             // 简历服务
             '/api/v1/resumes': {
                 target: 'http://localhost:8084',
-                changeOrigin: true
+                changeOrigin: true,
+                // 配置代理以支持大文件上传
+                configure: (proxy, options) => {
+                    proxy.on('proxyReq', (proxyReq, req, res) => {
+                        // 不要修改 content-length
+                    })
+                }
             },
             '/api/v1/applications': {
                 target: 'http://localhost:8084',
@@ -67,9 +73,9 @@ export default defineConfig({
                 target: 'http://localhost:8087',
                 changeOrigin: true
             },
-            // 统计服务 (暂时指向job-service，后续可调整)
+            // 统计服务 (gateway)
             '/api/v1/stats': {
-                target: 'http://localhost:8082',
+                target: 'http://localhost:8080',
                 changeOrigin: true
             },
             // 日志服务 (Elasticsearch)

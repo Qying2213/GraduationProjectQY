@@ -200,6 +200,7 @@
 import { ref, onMounted, onUnmounted, watch, markRaw } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import { statsApi } from '@/api/stats'
 import * as echarts from 'echarts'
 import {
   User, Suitcase, Document, MagicStick, ArrowUp, ArrowDown,
@@ -222,41 +223,61 @@ const trendType = ref('week')
 const statsCards = ref([
   {
     label: '总人才数',
-    value: 1560,
+    value: 0,
     displayValue: 0,
     suffix: '',
     icon: markRaw(User),
     colorClass: 'sky',
-    trend: 12.5
+    trend: 0
   },
   {
     label: '在招职位',
-    value: 48,
+    value: 0,
     displayValue: 0,
     suffix: '个',
     icon: markRaw(Suitcase),
     colorClass: 'cyan',
-    trend: 8.2
+    trend: 0
   },
   {
     label: '本月申请',
-    value: 326,
+    value: 0,
     displayValue: 0,
     suffix: '',
     icon: markRaw(Document),
     colorClass: 'blue',
-    trend: -3.1
+    trend: 0
   },
   {
     label: '成功匹配',
-    value: 89,
+    value: 0,
     displayValue: 0,
     suffix: '%',
     icon: markRaw(MagicStick),
     colorClass: 'teal',
-    trend: 5.8
+    trend: 0
   }
 ])
+
+// 从后端获取统计数据
+const fetchDashboardStats = async () => {
+  try {
+    const res = await statsApi.getDashboardStats()
+    if (res.data.code === 0) {
+      const data = res.data.data
+      statsCards.value[0].value = data.total_talents
+      statsCards.value[0].trend = data.talent_trend
+      statsCards.value[1].value = data.total_jobs
+      statsCards.value[1].trend = data.job_trend
+      statsCards.value[2].value = data.total_applications
+      statsCards.value[2].trend = data.application_trend
+      statsCards.value[3].value = data.match_rate
+      animateNumbers()
+    }
+  } catch (error) {
+    console.error('获取统计数据失败:', error)
+  }
+}
 
 // 快捷操作 - 天蓝色系
 const quickActions = [
@@ -290,62 +311,88 @@ const quickActions = [
   }
 ]
 
-// 最近活动 - 天蓝色系
-const recentActivities = ref([
-  {
-    title: '新增候选人',
-    description: '张三已加入人才库',
-    time: '5分钟前',
-    icon: markRaw(UserFilled),
-    color: '#0ea5e9'
-  },
-  {
-    title: '职位发布',
-    description: '高级Go开发工程师职位已上线',
-    time: '15分钟前',
-    icon: markRaw(Briefcase),
-    color: '#06b6d4'
-  },
-  {
-    title: '简历审核',
-    description: '李四的简历已通过初审',
-    time: '1小时前',
-    icon: markRaw(Document),
-    color: '#38bdf8'
-  },
-  {
-    title: '智能匹配',
-    description: '为前端开发岗位推荐了5位候选人',
-    time: '2小时前',
-    icon: markRaw(TrendCharts),
-    color: '#22c55e'
-  },
-  {
-    title: '面试安排',
-    description: '王五的面试已安排在明天下午3点',
-    time: '3小时前',
-    icon: markRaw(ChatDotRound),
-    color: '#14b8a6'
+// 最近活动 - 从后端获取
+const recentActivities = ref<any[]>([])
+
+// 从后端获取最近活动（消息/操作日志）
+const fetchRecentActivities = async () => {
+  const colors = ['#0ea5e9', '#06b6d4', '#38bdf8', '#22c55e', '#14b8a6']
+  const icons = [markRaw(UserFilled), markRaw(Briefcase), markRaw(Document), markRaw(TrendCharts), markRaw(ChatDotRound)]
+  try {
+    const res = await fetch('/api/v1/messages?page=1&page_size=5')
+    const data = await res.json()
+    if (data.code === 0 && data.data?.list) {
+      recentActivities.value = data.data.list.map((m: any, i: number) => ({
+        title: m.title || '系统消息',
+        description: m.content?.slice(0, 30) || '',
+        time: formatTime(m.created_at),
+        icon: icons[i % icons.length],
+        color: colors[i % colors.length]
+      }))
+    }
+  } catch (error) {
+    console.error('获取最近活动失败:', error)
   }
-])
+}
+
+// 格式化时间
+const formatTime = (dateStr: string) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const minutes = Math.floor(diff / 60000)
+  if (minutes < 60) return `${minutes}分钟前`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}小时前`
+  const days = Math.floor(hours / 24)
+  return `${days}天前`
+}
 
 // 热门人才
-const topTalents = ref([
-  { id: 1, name: '张三', skills: ['Go', 'Python', 'Kubernetes'], score: 95 },
-  { id: 2, name: '李四', skills: ['React', 'TypeScript', 'Node.js'], score: 92 },
-  { id: 3, name: '王五', skills: ['Java', 'Spring', 'MySQL'], score: 88 },
-  { id: 4, name: '赵六', skills: ['Python', 'TensorFlow', 'PyTorch'], score: 85 },
-  { id: 5, name: '钱七', skills: ['Vue', 'Element Plus', 'Vite'], score: 82 }
-])
+const topTalents = ref<any[]>([])
 
-// 热门职位 - 天蓝色系
-const hotJobs = ref([
-  { id: 1, title: '高级Go开发工程师', location: '北京', salary: '30-50K', applicants: 128, color: '#0ea5e9' },
-  { id: 2, title: '前端架构师', location: '上海', salary: '40-60K', applicants: 96, color: '#06b6d4' },
-  { id: 3, title: 'AI算法工程师', location: '深圳', salary: '50-80K', applicants: 87, color: '#38bdf8' },
-  { id: 4, title: '产品经理', location: '杭州', salary: '25-40K', applicants: 156, color: '#22c55e' },
-  { id: 5, title: 'DevOps工程师', location: '广州', salary: '30-45K', applicants: 64, color: '#14b8a6' }
-])
+// 热门职位
+const hotJobs = ref<any[]>([])
+
+// 从后端获取热门人才
+const fetchTopTalents = async () => {
+  try {
+    const res = await fetch('/api/v1/talents?page=1&page_size=5')
+    const data = await res.json()
+    if (data.code === 0 && data.data?.list) {
+      topTalents.value = data.data.list.map((t: any) => ({
+        id: t.id,
+        name: t.name,
+        skills: t.skills || [],
+        score: t.experience ? t.experience * 10 : 80
+      }))
+    }
+  } catch (error) {
+    console.error('获取热门人才失败:', error)
+  }
+}
+
+// 从后端获取热门职位
+const fetchHotJobs = async () => {
+  const colors = ['#0ea5e9', '#06b6d4', '#38bdf8', '#22c55e', '#14b8a6']
+  try {
+    const res = await fetch('/api/v1/jobs?page=1&page_size=5')
+    const data = await res.json()
+    if (data.code === 0 && data.data?.jobs) {
+      hotJobs.value = data.data.jobs.map((j: any, i: number) => ({
+        id: j.id,
+        title: j.title,
+        location: j.location,
+        salary: j.salary,
+        applicants: j.applicants || 0,
+        color: colors[i % colors.length]
+      }))
+    }
+  } catch (error) {
+    console.error('获取热门职位失败:', error)
+  }
+}
 
 // 跳转到人才详情
 const goToTalent = (id: number) => {
@@ -565,7 +612,7 @@ const handleAction = (route: string) => {
 
 // 刷新数据
 const refreshData = () => {
-  animateNumbers()
+  fetchDashboardStats()
 }
 
 // 监听图表类型变化
@@ -590,7 +637,10 @@ const handleResize = () => {
 }
 
 onMounted(() => {
-  animateNumbers()
+  fetchDashboardStats()
+  fetchTopTalents()
+  fetchHotJobs()
+  fetchRecentActivities()
   initTrendChart()
   initJobChart()
   window.addEventListener('resize', handleResize)

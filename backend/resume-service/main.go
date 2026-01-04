@@ -64,6 +64,7 @@ func main() {
 			resumes.POST("/upload", resumeHandler.UploadResumeFile)
 			resumes.GET("", resumeHandler.ListResumes)
 			resumes.GET("/evaluation", resumeHandler.ListResumesForEvaluation) // 用于自动评估系统
+			resumes.GET("/file/:filename", resumeHandler.ServeResumeFile)      // 提供文件访问
 			resumes.GET("/:id", resumeHandler.GetResume)
 			resumes.GET("/:id/download", resumeHandler.DownloadResume)
 			resumes.DELETE("/:id", resumeHandler.DeleteResume)

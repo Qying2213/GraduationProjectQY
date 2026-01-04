@@ -17,13 +17,17 @@ open_terminal() {
     osascript -e "tell application \"Terminal\" to do script \"cd '$SCRIPT_DIR/backend/$service' && echo '=== $name (端口 $port) ===' && go run main.go\""
 }
 
-# 启动7个核心后端服务
+# 启动API网关（必须先启动）
+open_terminal "gateway" "8080" "gateway"
+
+# 启动核心后端服务
 open_terminal "user-service" "8081" "user-service"
 open_terminal "job-service" "8082" "job-service"
 open_terminal "interview-service" "8083" "interview-service"
 open_terminal "resume-service" "8084" "resume-service"
 open_terminal "message-service" "8085" "message-service"
 open_terminal "talent-service" "8086" "talent-service"
+open_terminal "recommendation-service" "8087" "recommendation-service"
 open_terminal "log-service" "8088" "log-service"
 
 # 启动AI评估服务（需要配置Coze）
@@ -36,15 +40,17 @@ open_terminal_cmd() {
 }
 open_terminal_cmd "evaluator-service" "8090" "evaluator-service" "go run cmd/server/main.go"
 
-echo "✅ 已启动8个后端服务终端"
+echo "✅ 已启动10个后端服务终端"
 echo ""
 echo "服务列表："
+echo "  ├── gateway (API网关)   http://localhost:8080"
 echo "  ├── user-service        http://localhost:8081"
 echo "  ├── job-service         http://localhost:8082"
 echo "  ├── interview-service   http://localhost:8083"
 echo "  ├── resume-service      http://localhost:8084"
 echo "  ├── message-service     http://localhost:8085"
 echo "  ├── talent-service      http://localhost:8086"
+echo "  ├── recommendation-service http://localhost:8087"
 echo "  ├── log-service (ES)    http://localhost:8088"
 echo "  └── evaluator-service   http://localhost:8090 (AI评估)"
 echo ""

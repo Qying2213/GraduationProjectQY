@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus'
 
 const instance: AxiosInstance = axios.create({
     baseURL: '/api/v1',
-    timeout: 10000,
+    timeout: 30000, // 30秒超时
     headers: {
         'Content-Type': 'application/json'
     }
@@ -16,9 +16,20 @@ instance.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`
         }
+        
+        // 如果是 FormData，删除默认的 Content-Type，让浏览器自动设置
+        if (config.data instanceof FormData) {
+            console.log('[Request] 检测到 FormData，删除默认 Content-Type')
+            delete config.headers['Content-Type']
+        }
+        
+        console.log('[Request]', config.method?.toUpperCase(), config.url)
+        console.log('[Request] Headers:', JSON.stringify(config.headers))
+        
         return config
     },
     (error) => {
+        console.error('[Request] 拦截器错误:', error)
         return Promise.reject(error)
     }
 )
@@ -26,19 +37,15 @@ instance.interceptors.request.use(
 // Response interceptor
 instance.interceptors.response.use(
     (response: AxiosResponse) => {
-        const { data } = response
-
-        // 如果响应中有code字段，检查code
-        if (data.code !== undefined && data.code !== 0) {
-            ElMessage.error(data.message || '请求失败')
-            return Promise.reject(new Error(data.message || '请求失败'))
-        }
-
+        console.log('[Response]', response.status, response.config.url)
         return response
     },
     (error) => {
+        console.error('[Response Error]', error.config?.url, error.message)
+        
         if (error.response) {
             const { status, data } = error.response
+            console.error('[Response Error] Status:', status, 'Data:', data)
 
             switch (status) {
                 case 401:
@@ -57,9 +64,10 @@ instance.interceptors.response.use(
                     ElMessage.error('服务器错误')
                     break
                 default:
-                    ElMessage.error(data.message || '请求失败')
+                    ElMessage.error(data?.message || '请求失败')
             }
         } else {
+            console.error('[Response Error] No response:', error)
             ElMessage.error('网络错误，请检查网络连接')
         }
 

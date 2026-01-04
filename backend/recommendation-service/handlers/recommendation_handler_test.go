@@ -14,7 +14,7 @@ import (
 func setupRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
-	handler := NewRecommendationHandler()
+	handler := NewRecommendationHandler(nil) // 测试时不使用数据库
 
 	api := r.Group("/api/v1/recommendations")
 	{

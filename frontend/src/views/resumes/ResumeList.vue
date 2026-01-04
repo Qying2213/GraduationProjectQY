@@ -168,7 +168,7 @@
     </el-dialog>
 
     <!-- 预览抽屉 -->
-    <el-drawer v-model="showPreviewDrawer" :title="currentResume?.file_name" size="600px">
+    <el-drawer v-model="showPreviewDrawer" title="简历预览" size="85%">
       <div class="resume-preview" v-if="currentResume">
         <div class="preview-header">
           <div class="file-preview-icon" :class="getFileType(currentResume.file_name)">
@@ -184,6 +184,22 @@
         </div>
 
         <el-divider />
+
+        <!-- PDF 预览区域 -->
+        <div class="pdf-preview-container" v-if="currentResume.file_url && getFileType(currentResume.file_name) === 'pdf'">
+          <iframe 
+            :src="getPreviewUrl(currentResume) + '#toolbar=1&navpanes=0&scrollbar=1&view=FitH'" 
+            class="pdf-iframe"
+            frameborder="0"
+          ></iframe>
+        </div>
+
+        <!-- 非 PDF 文件提示 -->
+        <div class="non-pdf-notice" v-else-if="currentResume.file_url">
+          <el-icon :size="48"><Document /></el-icon>
+          <p>{{ getFileType(currentResume.file_name).toUpperCase() }} 文件暂不支持在线预览</p>
+          <p class="tip">请下载后查看</p>
+        </div>
 
         <div class="parsed-data" v-if="currentResume.status === 'parsed' && currentResume.parsed_data">
           <h4>解析结果</h4>
@@ -382,40 +398,75 @@ const resetSearch = () => {
 }
 
 // 文件变化处理
-const handleFileChange = (file: UploadFile) => {
-  if (file.size && file.size > 10 * 1024 * 1024) {
+const handleFileChange = (uploadFile: UploadFile, uploadFiles: UploadFile[]) => {
+  if (uploadFile.size && uploadFile.size > 10 * 1024 * 1024) {
     ElMessage.warning('文件大小不能超过 10MB')
-    return false
+    // 移除超大文件
+    const index = uploadFiles.findIndex(f => f.uid === uploadFile.uid)
+    if (index > -1) {
+      uploadFiles.splice(index, 1)
+    }
+    return
   }
-  fileList.value.push(file)
+  fileList.value = uploadFiles
 }
 
 // 文件移除
-const handleFileRemove = (file: UploadFile) => {
-  const index = fileList.value.findIndex(f => f.uid === file.uid)
-  if (index > -1) {
-    fileList.value.splice(index, 1)
-  }
+const handleFileRemove = (file: UploadFile, uploadFiles: UploadFile[]) => {
+  fileList.value = uploadFiles
 }
 
 // 上传处理
 const handleUpload = async () => {
+  console.log('========== 开始上传 ==========')
+  console.log('待上传文件数量:', fileList.value.length)
+  
   uploading.value = true
   try {
     let successCount = 0
-    for (const file of fileList.value) {
+    for (let i = 0; i < fileList.value.length; i++) {
+      const file = fileList.value[i]
+      console.log(`[${i + 1}/${fileList.value.length}] 准备上传文件:`, file.name)
+      console.log('  - 文件大小:', file.size, 'bytes')
+      console.log('  - 文件类型:', file.raw?.type)
+      
+      if (!file.raw) {
+        console.error('  ❌ file.raw 为空!')
+        continue
+      }
+      
       const formData = new FormData()
       formData.append('file', file.raw as File)
-      formData.append('talent_id', '0')  // 可以后续关联
+      formData.append('talent_id', '0')
       formData.append('job_id', '0')
       
-      const res = await request.post('/resumes/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-      if (res.data?.code === 0) {
-        successCount++
+      try {
+        // 直接请求后端，绕过 Vite 代理测试
+        console.log('  直接请求后端 http://localhost:8084 ...')
+        const token = localStorage.getItem('token')
+        const response = await fetch('http://localhost:8084/api/v1/resumes/upload', {
+          method: 'POST',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          body: formData
+        })
+        
+        console.log('  响应状态:', response.status)
+        const data = await response.json()
+        console.log('  响应数据:', data)
+        
+        if (data.code === 0) {
+          console.log('  ✓ 上传成功')
+          successCount++
+        } else {
+          console.log('  ❌ 上传失败:', data.message)
+        }
+      } catch (err: any) {
+        console.error('  ❌ 请求异常:', err)
       }
     }
+    
+    console.log('========== 上传完成 ==========')
+    console.log('成功数量:', successCount, '/', fileList.value.length)
     
     if (successCount > 0) {
       ElMessage.success(`成功上传 ${successCount} 份简历`)
@@ -426,7 +477,7 @@ const handleUpload = async () => {
       ElMessage.error('上传失败')
     }
   } catch (error) {
-    console.error('上传失败:', error)
+    console.error('上传过程异常:', error)
     ElMessage.error('上传失败')
   } finally {
     uploading.value = false
@@ -540,6 +591,14 @@ const getStatusText = (status: string) => {
     failed: '解析失败'
   }
   return map[status] || status
+}
+
+// 获取预览URL
+const getPreviewUrl = (resume: Resume) => {
+  if (resume.file_url) {
+    return resume.file_url
+  }
+  return ''
 }
 
 onMounted(() => {
@@ -805,6 +864,46 @@ onMounted(() => {
     display: flex;
     gap: 12px;
     margin-top: 32px;
+  }
+
+  .pdf-preview-container {
+    margin: 0;
+    height: calc(100vh - 200px);
+
+    .pdf-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 8px;
+    }
+  }
+
+  .non-pdf-notice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    margin: 20px 0;
+
+    .el-icon {
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 14px;
+
+      &.tip {
+        color: var(--text-muted);
+        font-size: 12px;
+        margin-top: 8px;
+      }
+    }
   }
 }
 </style>
