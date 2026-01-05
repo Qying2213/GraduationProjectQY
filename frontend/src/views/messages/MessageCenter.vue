@@ -290,6 +290,9 @@ import {
   Promotion, Document, Close, View, Delete, InfoFilled
 } from '@element-plus/icons-vue'
 import { messageApi } from '@/api/message'
+import { useMessageStore } from '@/store/message'
+
+const messageStore = useMessageStore()
 
 // 类型定义
 interface MessageItem {
@@ -417,98 +420,6 @@ const formatTime = (time: string) => {
   return date.toLocaleDateString()
 }
 
-// 生成模拟数据
-const generateMockMessages = (): MessageItem[] => {
-  return [
-    {
-      id: 1,
-      type: 'interview',
-      title: '面试邀请 - 高级前端工程师',
-      content: '尊敬的张先生，您好！感谢您对我司职位的关注。我们诚挚邀请您参加高级前端工程师岗位的面试。面试时间为2024年1月15日下午14:00，地点为北京市朝阳区望京SOHO T1栋15层。请携带个人简历及身份证件。如有疑问，请联系HR李小姐。',
-      sender: '字节跳动 HR',
-      isRead: false,
-      createdAt: new Date(Date.now() - 1800000).toISOString(),
-      extra: {
-        position: '高级前端工程师',
-        company: '字节跳动',
-        interviewTime: '2024年1月15日 14:00',
-        interviewAddress: '北京市朝阳区望京SOHO T1栋15层',
-        contact: '李小姐',
-        phone: '138****8888'
-      }
-    },
-    {
-      id: 2,
-      type: 'application',
-      title: '简历投递提醒 - 王伟投递了您的职位',
-      content: '王伟向您发布的"资深后端工程师"职位投递了简历，请及时查看处理。该候选人具有5年Java开发经验，曾就职于阿里巴巴、腾讯等知名企业。',
-      sender: '系统通知',
-      isRead: false,
-      createdAt: new Date(Date.now() - 3600000).toISOString(),
-      extra: {
-        position: '资深后端工程师'
-      }
-    },
-    {
-      id: 3,
-      type: 'notification',
-      title: '您的职位即将过期',
-      content: '您发布的"产品经理"职位将于3天后过期，如需继续招聘，请及时刷新职位或重新发布。过期后职位将自动下线，求职者将无法查看和投递。',
-      sender: '系统通知',
-      isRead: false,
-      createdAt: new Date(Date.now() - 7200000).toISOString()
-    },
-    {
-      id: 4,
-      type: 'interview',
-      title: '面试结果通知 - 技术面试通过',
-      content: '恭喜您！您已通过我司高级前端工程师岗位的技术面试。接下来将安排HR面试，具体时间我们将另行通知。请保持电话畅通。',
-      sender: '阿里巴巴 技术部',
-      isRead: true,
-      createdAt: new Date(Date.now() - 86400000).toISOString()
-    },
-    {
-      id: 5,
-      type: 'system',
-      title: '系统升级公告',
-      content: '为了给您提供更好的服务体验，我们将于2024年1月20日凌晨2:00-6:00进行系统升级维护。升级期间部分功能可能无法正常使用，请提前做好安排。给您带来的不便，敬请谅解。',
-      sender: '系统管理员',
-      isRead: true,
-      createdAt: new Date(Date.now() - 172800000).toISOString()
-    },
-    {
-      id: 6,
-      type: 'application',
-      title: '简历投递提醒 - 李娜投递了您的职位',
-      content: '李娜向您发布的"UI设计师"职位投递了简历。该候选人有4年UI设计经验，精通Figma、Sketch等设计工具，有丰富的移动端和Web端设计经验。',
-      sender: '系统通知',
-      isRead: true,
-      createdAt: new Date(Date.now() - 259200000).toISOString(),
-      extra: {
-        position: 'UI设计师'
-      }
-    },
-    {
-      id: 7,
-      type: 'notification',
-      title: '人才推荐 - 发现5位匹配人才',
-      content: '根据您的职位需求，系统为您智能推荐了5位高度匹配的人才。其中3位匹配度超过90%，建议您及时查看并主动沟通。',
-      sender: '智能推荐系统',
-      isRead: false,
-      createdAt: new Date(Date.now() - 14400000).toISOString()
-    },
-    {
-      id: 8,
-      type: 'system',
-      title: '账户安全提醒',
-      content: '检测到您的账户于今日在新设备上登录，登录地点：北京市。如非本人操作，请立即修改密码并联系客服。',
-      sender: '安全中心',
-      isRead: true,
-      createdAt: new Date(Date.now() - 432000000).toISOString()
-    }
-  ]
-}
-
 // 加载消息
 const loadMessages = async () => {
   loading.value = true
@@ -535,50 +446,78 @@ const loadMessages = async () => {
       }))
       total.value = res.data.data.total || msgList.length
     } else {
-      // 如果API返回为空，使用模拟数据
-      messages.value = generateMockMessages()
-      total.value = messages.value.length
+      messages.value = []
+      total.value = 0
     }
   } catch (error) {
     console.error('获取消息失败:', error)
-    // 使用模拟数据作为后备
-    messages.value = generateMockMessages()
-    total.value = messages.value.length
+    ElMessage.error('获取消息失败，请检查后端服务是否正常')
+    messages.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
 }
 
 // 查看消息
-const viewMessage = (msg: MessageItem) => {
+const viewMessage = async (msg: MessageItem) => {
   currentMessage.value = msg
   showDetailDrawer.value = true
   if (!msg.isRead) {
-    msg.isRead = true
+    try {
+      await messageApi.markAsRead(msg.id)
+      msg.isRead = true
+      messageStore.decreaseUnreadCount(1)
+    } catch (error) {
+      console.error('标记已读失败:', error)
+    }
   }
 }
 
 // 标记已读
-const markAsRead = (msg: MessageItem) => {
-  msg.isRead = true
-  ElMessage.success('已标记为已读')
+const markAsRead = async (msg: MessageItem) => {
+  try {
+    await messageApi.markAsRead(msg.id)
+    msg.isRead = true
+    messageStore.decreaseUnreadCount(1)
+    ElMessage.success('已标记为已读')
+  } catch (error) {
+    console.error('标记已读失败:', error)
+    ElMessage.error('标记已读失败')
+  }
 }
 
 // 全部标记已读
-const markAllAsRead = () => {
-  messages.value.forEach(m => m.isRead = true)
-  ElMessage.success('已全部标记为已读')
+const markAllAsRead = async () => {
+  try {
+    const unreadMessages = messages.value.filter(m => !m.isRead)
+    await Promise.all(unreadMessages.map(m => messageApi.markAsRead(m.id)))
+    messages.value.forEach(m => m.isRead = true)
+    messageStore.resetUnreadCount()
+    ElMessage.success('已全部标记为已读')
+  } catch (error) {
+    console.error('标记已读失败:', error)
+    ElMessage.error('标记已读失败')
+  }
 }
 
 // 批量标记已读
-const batchMarkAsRead = () => {
-  messages.value.forEach(m => {
-    if (selectedIds.value.includes(m.id)) {
-      m.isRead = true
-    }
-  })
-  selectedIds.value = []
-  ElMessage.success('已标记为已读')
+const batchMarkAsRead = async () => {
+  try {
+    const selectedMessages = messages.value.filter(m => selectedIds.value.includes(m.id) && !m.isRead)
+    await Promise.all(selectedMessages.map(m => messageApi.markAsRead(m.id)))
+    messages.value.forEach(m => {
+      if (selectedIds.value.includes(m.id)) {
+        m.isRead = true
+      }
+    })
+    messageStore.decreaseUnreadCount(selectedMessages.length)
+    selectedIds.value = []
+    ElMessage.success('已标记为已读')
+  } catch (error) {
+    console.error('标记已读失败:', error)
+    ElMessage.error('标记已读失败')
+  }
 }
 
 // 删除消息

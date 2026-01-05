@@ -178,7 +178,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { useThemeStore, type ThemeMode } from '@/store/theme'
 import { usePermissionStore } from '@/store/permission'
-import { messageApi } from '@/api/message'
+import { useMessageStore } from '@/store/message'
 import { ElMessage } from 'element-plus'
 import {
   DataAnalysis, User, Suitcase, Document, TrendCharts,
@@ -190,8 +190,11 @@ const router = useRouter()
 const userStore = useUserStore()
 const themeStore = useThemeStore()
 const permissionStore = usePermissionStore()
+const messageStore = useMessageStore()
 const isCollapse = ref(false)
-const unreadCount = ref(0)
+
+// 使用 store 中的未读数
+const unreadCount = messageStore.unreadCount
 
 // 初始化主题和权限
 onMounted(() => {
@@ -233,14 +236,7 @@ const handleThemeChange = (mode: ThemeMode) => {
 
 const fetchUnreadCount = async () => {
   if (userStore.user?.id) {
-    try {
-      const res = await messageApi.getUnreadCount(userStore.user.id)
-      if (res.data.code === 0 && res.data.data) {
-        unreadCount.value = res.data.data.unread_count || 0
-      }
-    } catch (error) {
-      console.error('Failed to fetch unread count:', error)
-    }
+    await messageStore.fetchUnreadCount(userStore.user.id)
   }
 }
 
@@ -249,6 +245,10 @@ onMounted(() => {
   // 每分钟刷新一次未读消息数
   setInterval(fetchUnreadCount, 60000)
 })
+  fetchUnreadCount()
+  // 每分钟刷新一次未读消息数
+  setInterval(fetchUnreadCount, 60000)
+
 </script>
 
 <style scoped lang="scss">

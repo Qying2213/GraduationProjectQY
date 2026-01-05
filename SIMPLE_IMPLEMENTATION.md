@@ -10,7 +10,7 @@
 |---------|---------|-------|------|
 | OCR简历识别 | 调用百度云/阿里云OCR API | 1天 | 免费额度够用 |
 | 简历结构化提取 | 调用DeepSeek/通义千问API | 1天 | 几块钱 |
-| 可解释性推荐 | 调用大模型生成推荐理由 | 0.5天 | 几块钱 |
+| 可解释性推荐 | Embedding语义匹配 + 大模型生成理由（RAG架构） | 1天 | 几块钱 |
 | 逻辑风控 | if-else规则判断 | 0.5天 | 免费 |
 | 高并发优化 | Redis缓存 | 0.5天 | 免费 |
 | 微服务架构 | **已完成** | 0天 | - |
@@ -377,98 +377,395 @@ func (h *ResumeHandler) SmartParseResume(c *gin.Context) {
 
 ---
 
-## 四、可解释性推荐（调大模型生成理由）
+## 四、Embedding + RAG 可解释性推荐
 
-### 4.1 Prompt设计
+> 采用轻量级 RAG 架构：Embedding 语义匹配 + 大模型生成推荐理由
+
+### 4.1 整体流程
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    轻量级 RAG 架构                           │
+├─────────────────────────────────────────────────────────────┤
+│  1. Retrieval（检索）                                        │
+│     人才技能 → Embedding API → 向量A                         │
+│     职位要求 → Embedding API → 向量B                         │
+│     语义相似度 = 余弦相似度(A, B)                             │
+│                                                             │
+│  2. Augmented（增强）                                        │
+│     将人才信息 + 职位信息 + 匹配分数 组装成上下文              │
+│                                                             │
+│  3. Generation（生成）                                       │
+│     大模型基于上下文生成推荐归因报告                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 4.2 Embedding 语义相似度计算
 
 ```go
-// backend/recommendation-service/llm/recommend_reason.go
+// backend/recommendation-service/embedding/embedding.go
+package embedding
+
+import (
+    "bytes"
+    "encoding/json"
+    "fmt"
+    "io"
+    "math"
+    "net/http"
+    "os"
+)
+
+type EmbeddingClient struct {
+    apiKey  string
+    baseURL string
+}
+
+// NewEmbeddingClient 创建Embedding客户端（使用智谱AI或OpenAI）
+func NewEmbeddingClient() *EmbeddingClient {
+    return &EmbeddingClient{
+        apiKey:  os.Getenv("ZHIPU_API_KEY"), // 或 OPENAI_API_KEY
+        baseURL: "https://open.bigmodel.cn/api/paas/v4", // 智谱AI
+        // baseURL: "https://api.openai.com/v1", // OpenAI
+    }
+}
+
+// GetEmbedding 获取文本的向量表示
+func (c *EmbeddingClient) GetEmbedding(text string) ([]float64, error) {
+    reqBody := map[string]interface{}{
+        "model": "embedding-2", // 智谱AI的embedding模型
+        // "model": "text-embedding-ada-002", // OpenAI的模型
+        "input": text,
+    }
+    
+    jsonBody, _ := json.Marshal(reqBody)
+    
+    req, _ := http.NewRequest("POST", c.baseURL+"/embeddings", bytes.NewBuffer(jsonBody))
+    req.Header.Set("Content-Type", "application/json")
+    req.Header.Set("Authorization", "Bearer "+c.apiKey)
+    
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil {
+        return nil, err
+    }
+    defer resp.Body.Close()
+    
+    body, _ := io.ReadAll(resp.Body)
+    
+    var result struct {
+        Data []struct {
+            Embedding []float64 `json:"embedding"`
+        } `json:"data"`
+    }
+    json.Unmarshal(body, &result)
+    
+    if len(result.Data) == 0 {
+        return nil, fmt.Errorf("no embedding returned")
+    }
+    
+    return result.Data[0].Embedding, nil
+}
+
+// CosineSimilarity 计算余弦相似度
+func CosineSimilarity(a, b []float64) float64 {
+    if len(a) != len(b) {
+        return 0
+    }
+    
+    var dotProduct, normA, normB float64
+    for i := range a {
+        dotProduct += a[i] * b[i]
+        normA += a[i] * a[i]
+        normB += b[i] * b[i]
+    }
+    
+    if normA == 0 || normB == 0 {
+        return 0
+    }
+    
+    return dotProduct / (math.Sqrt(normA) * math.Sqrt(normB))
+}
+
+// CalculateSemanticScore 计算语义匹配分数
+func (c *EmbeddingClient) CalculateSemanticScore(talentText, jobText string) (float64, error) {
+    // 获取人才向量
+    talentVec, err := c.GetEmbedding(talentText)
+    if err != nil {
+        return 0, err
+    }
+    
+    // 获取职位向量
+    jobVec, err := c.GetEmbedding(jobText)
+    if err != nil {
+        return 0, err
+    }
+    
+    // 计算相似度（0-1之间）
+    similarity := CosineSimilarity(talentVec, jobVec)
+    
+    // 转换为百分制
+    return similarity * 100, nil
+}
+```
+
+### 4.3 RAG 推荐理由生成
+
+```go
+// backend/recommendation-service/llm/rag_recommend.go
 package llm
 
-const RecommendReasonPrompt = `你是HR助手，请根据匹配信息生成简短的推荐理由。
+import (
+    "bytes"
+    "encoding/json"
+    "fmt"
+    "io"
+    "net/http"
+    "os"
+    "strings"
+)
 
-候选人：%s
-- 技能：%s
-- 经验：%d年
-- 学历：%s
+type RAGClient struct {
+    apiKey  string
+    baseURL string
+}
 
+func NewRAGClient() *RAGClient {
+    return &RAGClient{
+        apiKey:  os.Getenv("DEEPSEEK_API_KEY"),
+        baseURL: "https://api.deepseek.com/v1",
+    }
+}
+
+// RAG推荐理由生成的Prompt模板
+const RAGPrompt = `你是专业的HR助手。请根据以下检索到的匹配信息，生成推荐归因报告。
+
+【检索结果 - 候选人信息】
+姓名：%s
+技能：%s
+工作经验：%d年
+学历：%s
+期望薪资：%s
+
+【检索结果 - 职位信息】
 职位：%s
-- 要求技能：%s
-- 经验要求：%s
+技能要求：%s
+经验要求：%s
+薪资范围：%s
 
-匹配得分：%d分
+【匹配分析】
+- 语义相似度：%.1f%%（基于Embedding计算）
+- 技能匹配度：%.1f%%
+- 经验匹配度：%.1f%%
+- 综合得分：%.1f%%
 
-请用一句话（30字以内）说明推荐理由，再列出2个优势和1个顾虑。
+请生成推荐归因报告，包含：
+1. 一句话推荐理由（30字以内）
+2. 3个推荐优势（每条15字以内）
+3. 1个潜在顾虑（如有）
+4. 面试建议
+
 返回JSON格式：
-{"reason": "推荐理由", "pros": ["优势1", "优势2"], "cons": ["顾虑1"]}`
+{
+    "summary": "一句话推荐理由",
+    "pros": ["优势1", "优势2", "优势3"],
+    "cons": ["顾虑1"],
+    "suggestion": "面试建议"
+}`
 
-// GenerateRecommendReason 生成推荐理由
-func (c *DeepSeekClient) GenerateRecommendReason(
+type RAGRecommendResult struct {
+    Summary    string   `json:"summary"`
+    Pros       []string `json:"pros"`
+    Cons       []string `json:"cons"`
+    Suggestion string   `json:"suggestion"`
+}
+
+// GenerateRAGRecommend 基于RAG生成推荐归因报告
+func (c *RAGClient) GenerateRAGRecommend(
+    // 候选人信息
     candidateName string,
     candidateSkills []string,
     candidateExp int,
     candidateEdu string,
+    candidateSalary string,
+    // 职位信息
     jobTitle string,
     jobSkills []string,
-    jobLevel string,
-    matchScore int,
-) (*RecommendReason, error) {
-    prompt := fmt.Sprintf(RecommendReasonPrompt,
+    jobExpReq string,
+    jobSalary string,
+    // 匹配分数
+    semanticScore float64,
+    skillScore float64,
+    expScore float64,
+    totalScore float64,
+) (*RAGRecommendResult, error) {
+    
+    prompt := fmt.Sprintf(RAGPrompt,
         candidateName,
         strings.Join(candidateSkills, "、"),
         candidateExp,
         candidateEdu,
+        candidateSalary,
         jobTitle,
         strings.Join(jobSkills, "、"),
-        jobLevel,
-        matchScore,
+        jobExpReq,
+        jobSalary,
+        semanticScore,
+        skillScore,
+        expScore,
+        totalScore,
     )
     
-    // 调用API（代码同上，省略）
-    // ...
+    reqBody := map[string]interface{}{
+        "model": "deepseek-chat",
+        "messages": []map[string]string{
+            {"role": "user", "content": prompt},
+        },
+        "temperature": 0.3,
+    }
     
-    return &reason, nil
-}
-
-type RecommendReason struct {
-    Reason string   `json:"reason"`
-    Pros   []string `json:"pros"`
-    Cons   []string `json:"cons"`
+    jsonBody, _ := json.Marshal(reqBody)
+    
+    req, _ := http.NewRequest("POST", c.baseURL+"/chat/completions", bytes.NewBuffer(jsonBody))
+    req.Header.Set("Content-Type", "application/json")
+    req.Header.Set("Authorization", "Bearer "+c.apiKey)
+    
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil {
+        return nil, err
+    }
+    defer resp.Body.Close()
+    
+    body, _ := io.ReadAll(resp.Body)
+    
+    var result struct {
+        Choices []struct {
+            Message struct {
+                Content string `json:"content"`
+            } `json:"message"`
+        } `json:"choices"`
+    }
+    json.Unmarshal(body, &result)
+    
+    if len(result.Choices) == 0 {
+        return nil, fmt.Errorf("no response")
+    }
+    
+    var ragResult RAGRecommendResult
+    json.Unmarshal([]byte(result.Choices[0].Message.Content), &ragResult)
+    
+    return &ragResult, nil
 }
 ```
 
-### 4.2 在推荐服务中使用
+### 4.4 完整的 RAG 推荐流程
 
 ```go
-// backend/recommendation-service/handlers/recommendation_handler.go
+// backend/recommendation-service/handlers/rag_handler.go
+package handlers
 
-// 在返回推荐结果时，加上AI生成的理由
-func (h *RecommendationHandler) RecommendTalentsForJob(c *gin.Context) {
-    // ... 原有的匹配逻辑 ...
+import (
+    "recommendation-service/embedding"
+    "recommendation-service/llm"
+    "strings"
     
-    // 为Top3候选人生成AI推荐理由
-    llmClient := llm.NewDeepSeekClient()
-    for i := 0; i < min(3, len(recommendations)); i++ {
-        reason, err := llmClient.GenerateRecommendReason(
-            recommendations[i].Name,
-            talent.Skills,
-            talent.Experience,
-            talent.Education,
-            job.Title,
-            job.Skills,
-            job.Level,
-            int(recommendations[i].Score),
-        )
-        if err == nil {
-            recommendations[i].AIReason = reason.Reason
-            recommendations[i].Pros = reason.Pros
-            recommendations[i].Cons = reason.Cons
+    "github.com/gin-gonic/gin"
+)
+
+// RAGRecommend 基于RAG的可解释性推荐
+func (h *RecommendationHandler) RAGRecommend(c *gin.Context) {
+    var req struct {
+        TalentID uint `json:"talent_id" binding:"required"`
+        JobID    uint `json:"job_id" binding:"required"`
+    }
+    
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(400, gin.H{"code": 1, "message": err.Error()})
+        return
+    }
+    
+    // 1. 获取人才和职位信息
+    talent := h.getTalent(req.TalentID)
+    job := h.getJob(req.JobID)
+    
+    // 2. Embedding语义匹配（RAG的R - Retrieval）
+    embClient := embedding.NewEmbeddingClient()
+    talentText := strings.Join(talent.Skills, " ") + " " + talent.Experience
+    jobText := strings.Join(job.Skills, " ") + " " + job.Requirements
+    
+    semanticScore, err := embClient.CalculateSemanticScore(talentText, jobText)
+    if err != nil {
+        // 降级：如果Embedding失败，用传统方法
+        semanticScore = h.calculateTraditionalScore(talent, job)
+    }
+    
+    // 3. 传统维度匹配
+    skillScore := h.calculateSkillMatch(talent.Skills, job.Skills)
+    expScore := h.calculateExpMatch(talent.Experience, job.ExpRequired)
+    
+    // 4. 综合得分
+    totalScore := semanticScore*0.4 + skillScore*0.35 + expScore*0.25
+    
+    // 5. RAG生成推荐理由（RAG的A+G - Augmented Generation）
+    ragClient := llm.NewRAGClient()
+    ragResult, err := ragClient.GenerateRAGRecommend(
+        talent.Name, talent.Skills, talent.ExpYears, talent.Education, talent.Salary,
+        job.Title, job.Skills, job.ExpRequired, job.Salary,
+        semanticScore, skillScore, expScore, totalScore,
+    )
+    
+    if err != nil {
+        // 降级：生成简单理由
+        ragResult = &llm.RAGRecommendResult{
+            Summary: fmt.Sprintf("综合匹配度%.0f%%，建议面试", totalScore),
+            Pros:    []string{"技能匹配", "经验符合"},
+            Cons:    []string{},
         }
     }
     
-    c.JSON(200, gin.H{"code": 0, "data": recommendations})
+    // 6. 返回结果
+    c.JSON(200, gin.H{
+        "code": 0,
+        "data": gin.H{
+            "talent_id":      req.TalentID,
+            "job_id":         req.JobID,
+            "semantic_score": semanticScore,  // Embedding语义分数
+            "skill_score":    skillScore,
+            "exp_score":      expScore,
+            "total_score":    totalScore,
+            "rag_result":     ragResult,      // RAG生成的归因报告
+        },
+    })
 }
 ```
+
+### 4.5 API申请（Embedding服务）
+
+**智谱AI（推荐，国内访问快）**
+1. 访问 https://open.bigmodel.cn/
+2. 注册账号，获取 API Key
+3. Embedding模型：embedding-2
+4. 价格：约 0.0005元/千token
+
+**OpenAI（备选）**
+1. 访问 https://platform.openai.com/
+2. Embedding模型：text-embedding-ada-002
+3. 价格：$0.0001/千token
+
+### 4.6 Prompt设计（生成推荐理由）
+
+### 4.7 论文中的表述
+
+**你的代码实现** → **论文写法**
+
+| 代码 | 论文表述 |
+|------|---------|
+| `embClient.GetEmbedding(text)` | 基于Embedding技术的语义向量化 |
+| `CosineSimilarity(a, b)` | 余弦相似度语义匹配算法 |
+| `ragClient.GenerateRAGRecommend()` | 基于RAG的推荐归因报告生成 |
+
+**论文段落示例**：
+
+> 本系统采用轻量级RAG（检索增强生成）架构实现可解释性人岗匹配。在检索阶段，通过调用Embedding API将人才技能和职位要求转换为高维语义向量，利用余弦相似度算法计算语义匹配分数。在生成阶段，将检索到的匹配信息作为上下文输入大语言模型，生成包含推荐理由、优势分析和面试建议的归因报告，实现推荐结果的白盒化与可解释化。
 
 ---
 
@@ -714,8 +1011,8 @@ BAIDU_OCR_SECRET_KEY=你的SECRET_KEY
 # DeepSeek大模型（推荐，最便宜）
 DEEPSEEK_API_KEY=你的API_KEY
 
-# 或者用阿里通义千问
-# DASHSCOPE_API_KEY=你的API_KEY
+# ZHIPU Embedding（智谱AI）
+ZHIPU_API_KEY=你的API_KEY
 
 # Redis
 REDIS_ADDR=localhost:6379
@@ -757,7 +1054,9 @@ REDIS_ADDR=localhost:6379
 | `http.Post(DeepSeek)` | 基于大语言模型的简历结构化信息提取 |
 | `if age-gradYear < 18` | 基于规则推理的简历逻辑一致性校验引擎 |
 | `redis.Get(key)` | 基于Redis的多级缓存优化策略 |
-| 调API生成推荐理由 | 基于RAG的可解释性推荐归因生成 |
+| 调API生成推荐理由 | 基于轻量级RAG架构的可解释性推荐归因生成 |
+| `embClient.GetEmbedding()` | 基于Embedding的语义向量化技术 |
+| `CosineSimilarity(a, b)` | 余弦相似度语义匹配算法 |
 
 ### 论文摘要模板
 
@@ -777,17 +1076,23 @@ REDIS_ADDR=localhost:6379
 - [ ] 写 `llm/deepseek.go`
 - [ ] 测试简历解析
 
-### 第3天：风控 + 推荐理由
-- [ ] 写 `risk/rules.go`（5个if-else规则）
-- [ ] 写推荐理由生成Prompt
-- [ ] 集成到现有接口
+### 第3天：Embedding + RAG推荐
+- [ ] 申请智谱AI Embedding API
+- [ ] 写 `embedding/embedding.go`（语义向量化）
+- [ ] 写 `llm/rag_recommend.go`（RAG推荐理由）
+- [ ] 集成到推荐服务
 
-### 第4天：Redis缓存 + 压测
+### 第4天：风控规则
+### 第4天：风控规则
+- [ ] 写 `risk/rules.go`（5个if-else规则）
+- [ ] 集成到简历解析接口
+
+### 第5天：Redis缓存 + 压测
 - [ ] 启动Redis
 - [ ] 给职位列表加缓存
 - [ ] 跑压测脚本，截图
 
-### 第5天：整理 + 文档
+### 第6天：整理 + 文档
 - [ ] 整理代码
 - [ ] 写接口文档
 - [ ] 准备论文素材
