@@ -391,6 +391,9 @@ func main() {
 	api.Any("/applications/*path", ReverseProxy(serviceRegistry["resume"]))
 	api.Any("/ai", ReverseProxy(serviceRegistry["resume"]))
 	api.Any("/ai/*path", ReverseProxy(serviceRegistry["resume"]))
+	// 评估结果服务（也在resume-service中）
+	api.Any("/evaluations", ReverseProxy(serviceRegistry["resume"]))
+	api.Any("/evaluations/*path", ReverseProxy(serviceRegistry["resume"]))
 
 	// 推荐服务
 	api.Any("/recommendations", ReverseProxy(serviceRegistry["recommendation"]))

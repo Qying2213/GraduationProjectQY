@@ -183,6 +183,18 @@ const routes: RouteRecordRaw[] = [
                 name: 'OperationLogs',
                 component: () => import('@/views/system/OperationLogs.vue'),
                 meta: { title: '操作日志', permission: 'log:view' }
+            },
+            {
+                path: 'ai-evaluate',
+                name: 'AIEvaluate',
+                component: () => import('@/views/ai/AIEvaluate.vue'),
+                meta: { title: 'AI智能评估' }
+            },
+            {
+                path: 'evaluation-results',
+                name: 'EvaluationResults',
+                component: () => import('@/views/ai/EvaluationResults.vue'),
+                meta: { title: '评估结果' }
             }
         ]
     },

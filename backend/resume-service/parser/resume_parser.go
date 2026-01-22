@@ -8,14 +8,35 @@ import (
 
 // ParsedResume 解析后的简历结构
 type ParsedResume struct {
-	Name       string   `json:"name"`
-	Phone      string   `json:"phone"`
-	Email      string   `json:"email"`
-	Location   string   `json:"location"`
-	Education  string   `json:"education"`
-	Experience string   `json:"experience"`
-	Skills     []string `json:"skills"`
-	Summary    string   `json:"summary"`
+	Name        string           `json:"name"`
+	Phone       string           `json:"phone"`
+	Email       string           `json:"email"`
+	Location    string           `json:"location"`
+	Education   string           `json:"education"`
+	School      string           `json:"school"`
+	Major       string           `json:"major"`
+	Experience  string           `json:"experience"`
+	Skills      []string         `json:"skills"`
+	Summary     string           `json:"summary"`
+	WorkHistory []WorkExperience `json:"work_history"`
+	RiskItems   []RiskItem       `json:"risk_items"`
+	RiskScore   int              `json:"risk_score"`
+}
+
+// WorkExperience 工作经历
+type WorkExperience struct {
+	Company   string `json:"company"`
+	Position  string `json:"position"`
+	StartDate string `json:"start_date"`
+	EndDate   string `json:"end_date"`
+	Desc      string `json:"description"`
+}
+
+// RiskItem 风险项
+type RiskItem struct {
+	Type    string `json:"type"`
+	Level   string `json:"level"`
+	Message string `json:"message"`
 }
 
 // ResumeParser 简历解析器
@@ -44,6 +65,8 @@ func (p *ResumeParser) Parse(text string) (*ParsedResume, error) {
 
 	// 提取教育背景
 	result.Education = p.extractEducation(text)
+	result.School = p.extractSchool(text)
+	result.Major = p.extractMajor(text)
 
 	// 提取工作经验年限
 	result.Experience = p.extractExperience(text)
@@ -51,7 +74,120 @@ func (p *ResumeParser) Parse(text string) (*ParsedResume, error) {
 	// 提取地点
 	result.Location = p.extractLocation(text)
 
+	// 提取工作经历
+	result.WorkHistory = p.extractWorkHistory(text)
+
+	// 执行风控检查
+	result.RiskItems = p.checkRisks(result)
+	result.RiskScore = p.calculateRiskScore(result.RiskItems)
+
 	return result, nil
+}
+
+// checkRisks 检查风险项
+func (p *ResumeParser) checkRisks(resume *ParsedResume) []RiskItem {
+	var risks []RiskItem
+
+	// 检查必要信息是否缺失
+	if resume.Name == "" {
+		risks = append(risks, RiskItem{
+			Type:    "missing_name",
+			Level:   "warning",
+			Message: "未能提取到姓名信息",
+		})
+	}
+
+	if resume.Phone == "" && resume.Email == "" {
+		risks = append(risks, RiskItem{
+			Type:    "missing_contact",
+			Level:   "warning",
+			Message: "未提供有效联系方式",
+		})
+	}
+
+	if resume.Education == "" {
+		risks = append(risks, RiskItem{
+			Type:    "missing_education",
+			Level:   "info",
+			Message: "未提供学历信息",
+		})
+	}
+
+	// 检查工作经历时间冲突
+	for i := 0; i < len(resume.WorkHistory)-1; i++ {
+		current := resume.WorkHistory[i]
+		next := resume.WorkHistory[i+1]
+
+		if current.EndDate != "" && next.StartDate != "" {
+			if current.EndDate > next.StartDate {
+				risks = append(risks, RiskItem{
+					Type:    "time_conflict",
+					Level:   "warning",
+					Message: "工作经历时间可能存在重叠",
+				})
+			}
+		}
+	}
+
+	return risks
+}
+
+// calculateRiskScore 计算风险分数
+func (p *ResumeParser) calculateRiskScore(risks []RiskItem) int {
+	score := 0
+	for _, risk := range risks {
+		switch risk.Level {
+		case "high":
+			score += 30
+		case "warning":
+			score += 15
+		case "info":
+			score += 5
+		}
+	}
+	if score > 100 {
+		score = 100
+	}
+	return score
+}
+
+// extractSchool 提取学校名称
+func (p *ResumeParser) extractSchool(text string) string {
+	// 匹配常见大学名称模式
+	schoolRegex := regexp.MustCompile(`([\x{4e00}-\x{9fa5}]{2,10}(?:大学|学院|学校))`)
+	if matches := schoolRegex.FindStringSubmatch(text); len(matches) > 1 {
+		return matches[1]
+	}
+	return ""
+}
+
+// extractMajor 提取专业
+func (p *ResumeParser) extractMajor(text string) string {
+	majorRegex := regexp.MustCompile(`专业[：:]\s*([\x{4e00}-\x{9fa5}a-zA-Z]+)`)
+	if matches := majorRegex.FindStringSubmatch(text); len(matches) > 1 {
+		return matches[1]
+	}
+	return ""
+}
+
+// extractWorkHistory 提取工作经历
+func (p *ResumeParser) extractWorkHistory(text string) []WorkExperience {
+	var history []WorkExperience
+
+	// 简单的工作经历提取（实际应用中可能需要更复杂的逻辑）
+	// 匹配公司名称模式
+	companyRegex := regexp.MustCompile(`([\x{4e00}-\x{9fa5}a-zA-Z]{2,20}(?:公司|集团|科技|网络|信息|软件))`)
+	companies := companyRegex.FindAllString(text, -1)
+
+	for _, company := range companies {
+		if len(company) > 2 {
+			history = append(history, WorkExperience{
+				Company: company,
+			})
+		}
+	}
+
+	return history
 }
 
 // ParseToJSON 解析并返回JSON字符串

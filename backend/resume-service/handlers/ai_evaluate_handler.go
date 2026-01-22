@@ -123,26 +123,30 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 	}
 	h.DB.Save(&resume)
 
+	// 保存评估结果到 EvaluationResult 表
+	evalResult := h.saveEvaluationResult(&resume, result, candidateName, "ai_evaluate")
+
 	// 返回评估结果
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "评估成功",
-		"data": AIEvaluateResponse{
-			ResumeID:        resume.ID,
-			CandidateName:   candidateName,
-			TotalScore:      result.TotalScore,
-			Grade:           result.Grade,
-			JDMatchScore:    result.JDMatchScore,
-			AgeScore:        result.AgeScore,
-			ExperienceScore: result.ExperienceScore,
-			EducationScore:  result.EducationScore,
-			CompanyScore:    result.CompanyScore,
-			TechScore:       result.TechScore,
-			ProjectScore:    result.ProjectScore,
-			Recommendation:  result.Recommendation,
-			MatchedSkills:   result.MatchedSkills,
-			MissingSkills:   result.MissingSkills,
-			Summary:         result.Summary,
+		"data": gin.H{
+			"evaluation_id":    evalResult.ID,
+			"resume_id":        resume.ID,
+			"candidate_name":   candidateName,
+			"total_score":      result.TotalScore,
+			"grade":            result.Grade,
+			"jd_match_score":   result.JDMatchScore,
+			"age_score":        result.AgeScore,
+			"experience_score": result.ExperienceScore,
+			"education_score":  result.EducationScore,
+			"company_score":    result.CompanyScore,
+			"tech_score":       result.TechScore,
+			"project_score":    result.ProjectScore,
+			"recommendation":   result.Recommendation,
+			"matched_skills":   result.MatchedSkills,
+			"missing_skills":   result.MissingSkills,
+			"summary":          result.Summary,
 		},
 	})
 }
@@ -326,4 +330,52 @@ func (h *AIEvaluateHandler) GetEvaluationResult(c *gin.Context) {
 		"message": "success",
 		"data":    result,
 	})
+}
+
+// saveEvaluationResult 保存评估结果到数据库
+func (h *AIEvaluateHandler) saveEvaluationResult(resume *models.Resume, result *evaluator.EvaluationResult, candidateName string, evalType string) *models.EvaluationResult {
+	// 确定匹配等级
+	matchLevel := "low"
+	if result.TotalScore >= 80 {
+		matchLevel = "high"
+	} else if result.TotalScore >= 60 {
+		matchLevel = "medium"
+	}
+
+	// 序列化技能列表
+	matchedSkillsJSON, _ := json.Marshal(result.MatchedSkills)
+	missingSkillsJSON, _ := json.Marshal(result.MissingSkills)
+
+	// 构建维度数据
+	dimensions := []map[string]interface{}{
+		{"name": "JD匹配度", "score": result.JDMatchScore, "weight": 20},
+		{"name": "年龄适配", "score": result.AgeScore, "weight": 10},
+		{"name": "工作经验", "score": result.ExperienceScore, "weight": 20},
+		{"name": "学历背景", "score": result.EducationScore, "weight": 15},
+		{"name": "公司背景", "score": result.CompanyScore, "weight": 15},
+		{"name": "技术能力", "score": result.TechScore, "weight": 10},
+		{"name": "项目经验", "score": result.ProjectScore, "weight": 10},
+	}
+	dimensionsJSON, _ := json.Marshal(dimensions)
+
+	evalResult := &models.EvaluationResult{
+		ResumeID:             resume.ID,
+		ResumeName:           resume.FileName,
+		ResumeFile:           resume.FilePath,
+		ParsedName:           candidateName,
+		ParsedSkills:         string(matchedSkillsJSON),
+		MatchScore:           result.TotalScore,
+		MatchLevel:           matchLevel,
+		MatchDetails:         string(missingSkillsJSON),
+		Status:               "completed",
+		EvalType:             evalType,
+		ReportSummary:        result.Summary,
+		ReportRecommendation: result.Recommendation,
+		ReportStrengths:      string(matchedSkillsJSON),
+		ReportGaps:           string(missingSkillsJSON),
+		ReportDimensions:     string(dimensionsJSON),
+	}
+
+	h.DB.Create(evalResult)
+	return evalResult
 }

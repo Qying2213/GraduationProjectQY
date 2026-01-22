@@ -38,7 +38,7 @@ func main() {
 		log.Fatal("Failed to connect database:", err)
 	}
 
-	if err := db.AutoMigrate(&models.Resume{}, &models.Application{}); err != nil {
+	if err := db.AutoMigrate(&models.Resume{}, &models.Application{}, &models.EvaluationResult{}); err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
 
@@ -49,6 +49,8 @@ func main() {
 
 	resumeHandler := handlers.NewResumeHandler(db)
 	aiHandler := handlers.NewAIEvaluateHandler(db)
+	aiParseHandler := handlers.NewAIParseHandler(db)
+	evalHandler := handlers.NewEvaluationHandler(db)
 
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
@@ -81,6 +83,17 @@ func main() {
 			ai.POST("/evaluate/upload", aiHandler.EvaluateUploadedFile)
 			ai.POST("/evaluate/batch", aiHandler.BatchEvaluate)
 			ai.GET("/evaluate/:id/result", aiHandler.GetEvaluationResult)
+			ai.POST("/parse", aiParseHandler.AIParseResume) // AI智能解析
+			ai.POST("/ocr", aiParseHandler.OCRExtract)      // OCR文本提取
+		}
+
+		// Evaluation Results routes (评估结果管理)
+		evaluations := api.Group("/evaluations")
+		{
+			evaluations.GET("", evalHandler.ListEvaluations)
+			evaluations.GET("/stats", evalHandler.GetEvaluationStats)
+			evaluations.GET("/:id", evalHandler.GetEvaluation)
+			evaluations.DELETE("/:id", evalHandler.DeleteEvaluation)
 		}
 
 		// Application routes

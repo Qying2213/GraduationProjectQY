@@ -1,21 +1,34 @@
 package handlers
 
 import (
+	"context"
 	"math"
 	"net/http"
+	"recommendation-service/ai"
+	"recommendation-service/embedding"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type RecommendationHandler struct {
-	DB *gorm.DB
+	DB              *gorm.DB
+	EmbeddingClient *embedding.Client
+	CozeClient      *ai.CozeClient
+	SkillMatcher    *embedding.SkillMatcher
 }
 
 func NewRecommendationHandler(db *gorm.DB) *RecommendationHandler {
-	return &RecommendationHandler{DB: db}
+	embClient := embedding.GetClient()
+	return &RecommendationHandler{
+		DB:              db,
+		EmbeddingClient: embClient,
+		CozeClient:      ai.NewCozeClient(),
+		SkillMatcher:    embedding.NewSkillMatcher(embClient),
+	}
 }
 
 type TalentProfile struct {
@@ -42,12 +55,14 @@ type JobProfile struct {
 }
 
 type Recommendation struct {
-	ID           uint     `json:"id"`
-	Name         string   `json:"name"`
-	Score        float64  `json:"score"`
-	Reason       string   `json:"reason"`
-	MatchLevel   string   `json:"match_level"`
-	MatchDetails []string `json:"match_details"`
+	ID             uint     `json:"id"`
+	Name           string   `json:"name"`
+	Score          float64  `json:"score"`
+	Reason         string   `json:"reason"`
+	MatchLevel     string   `json:"match_level"`
+	MatchDetails   []string `json:"match_details"`
+	SemanticScore  float64  `json:"semantic_score,omitempty"`  // 语义匹配分数
+	AttributionURL string   `json:"attribution_url,omitempty"` // 归因报告链接
 }
 
 // SkillWeight 技能权重配置
@@ -523,4 +538,169 @@ func (h *RecommendationHandler) BatchRecommend(c *gin.Context) {
 			"matches":   15,
 		},
 	})
+}
+
+// GenerateAttributionReport 生成归因报告
+func (h *RecommendationHandler) GenerateAttributionReport(c *gin.Context) {
+	var req struct {
+		TalentID uint `json:"talent_id" binding:"required"`
+		JobID    uint `json:"job_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": err.Error()})
+		return
+	}
+
+	// 获取人才信息
+	var talent struct {
+		ID         uint   `json:"id"`
+		Name       string `json:"name"`
+		Skills     string `json:"skills"`
+		Experience int    `json:"experience"`
+		Education  string `json:"education"`
+		Location   string `json:"location"`
+		Salary     string `json:"salary"`
+	}
+	if h.DB != nil {
+		h.DB.Table("talents").Where("id = ?", req.TalentID).First(&talent)
+	}
+
+	// 获取职位信息
+	var job struct {
+		ID         uint   `json:"id"`
+		Title      string `json:"title"`
+		Skills     string `json:"skills"`
+		Location   string `json:"location"`
+		Level      string `json:"level"`
+		Salary     string `json:"salary"`
+		Department string `json:"department"`
+	}
+	if h.DB != nil {
+		h.DB.Table("jobs").Where("id = ?", req.JobID).First(&job)
+	}
+
+	// 解析技能
+	talentSkills := parseSkills(talent.Skills)
+	jobSkills := parseSkills(job.Skills)
+
+	// 使用语义匹配计算技能分数
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
+	defer cancel()
+
+	skillScore, skillDetails, _ := h.SkillMatcher.MatchSkills(ctx, talentSkills, jobSkills)
+
+	// 计算其他维度分数
+	talentProfile := TalentProfile{
+		ID:         talent.ID,
+		Name:       talent.Name,
+		Skills:     talentSkills,
+		Experience: talent.Experience,
+		Education:  talent.Education,
+		Location:   talent.Location,
+		Salary:     talent.Salary,
+	}
+
+	jobProfile := JobProfile{
+		ID:       job.ID,
+		Title:    job.Title,
+		Skills:   jobSkills,
+		Location: job.Location,
+		Level:    job.Level,
+		Salary:   job.Salary,
+	}
+
+	totalScore, allDetails := calculateAdvancedMatchScore(talentProfile, jobProfile)
+
+	// 合并技能匹配详情
+	allDetails = append(skillDetails, allDetails...)
+
+	// 调用Coze生成归因报告
+	attrReq := &ai.AttributionRequest{
+		TalentProfile: map[string]interface{}{
+			"id":         talent.ID,
+			"name":       talent.Name,
+			"skills":     talentSkills,
+			"experience": talent.Experience,
+			"education":  talent.Education,
+			"location":   talent.Location,
+		},
+		JobProfile: map[string]interface{}{
+			"id":       job.ID,
+			"title":    job.Title,
+			"skills":   jobSkills,
+			"location": job.Location,
+			"level":    job.Level,
+		},
+		MatchResult: map[string]interface{}{
+			"score":         totalScore,
+			"skill_score":   skillScore * 100,
+			"match_details": allDetails,
+		},
+	}
+
+	report, err := h.CozeClient.GenerateAttributionReport(ctx, attrReq)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "生成报告失败: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data":    report,
+	})
+}
+
+// SemanticMatch 语义匹配接口
+func (h *RecommendationHandler) SemanticMatch(c *gin.Context) {
+	var req struct {
+		Text1 string `json:"text1" binding:"required"`
+		Text2 string `json:"text2" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": err.Error()})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+
+	similarity, err := h.EmbeddingClient.TextSimilarity(ctx, req.Text1, req.Text2)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "计算相似度失败: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data": gin.H{
+			"similarity": math.Round(similarity*1000) / 1000,
+			"text1":      req.Text1,
+			"text2":      req.Text2,
+		},
+	})
+}
+
+// parseSkills 解析技能字符串
+func parseSkills(skillsStr string) []string {
+	if skillsStr == "" {
+		return []string{}
+	}
+	// 处理PostgreSQL数组格式 {skill1,skill2}
+	skillsStr = strings.Trim(skillsStr, "{}")
+	if skillsStr == "" {
+		return []string{}
+	}
+	skills := strings.Split(skillsStr, ",")
+	result := make([]string, 0, len(skills))
+	for _, s := range skills {
+		s = strings.TrimSpace(s)
+		if s != "" {
+			result = append(result, s)
+		}
+	}
+	return result
 }
