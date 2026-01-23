@@ -191,6 +191,12 @@ const routes: RouteRecordRaw[] = [
                 meta: { title: 'AI智能评估' }
             },
             {
+                path: 'ai-process',
+                name: 'AIProcessFlow',
+                component: () => import('@/views/ai/AIProcessFlow.vue'),
+                meta: { title: 'AI处理流程' }
+            },
+            {
                 path: 'evaluation-results',
                 name: 'EvaluationResults',
                 component: () => import('@/views/ai/EvaluationResults.vue'),

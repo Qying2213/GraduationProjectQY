@@ -23,6 +23,7 @@ print_success() {
 
 # 获取项目根目录的绝对路径
 PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
+ENV_FILE="$PROJECT_ROOT/backend/.env"
 
 echo ""
 echo "=========================================="
@@ -31,6 +32,16 @@ echo "=========================================="
 echo ""
 echo "项目路径: $PROJECT_ROOT"
 echo ""
+
+# 检查 .env 文件是否存在
+if [ -f "$ENV_FILE" ]; then
+    print_info "加载环境变量: $ENV_FILE"
+    # 读取环境变量（用于显示）
+    export $(grep -v '^#' "$ENV_FILE" | xargs)
+else
+    print_info "未找到 .env 文件，使用默认配置"
+    print_info "可复制 backend/.env.example 为 backend/.env 并配置"
+fi
 
 # 检查是否是macOS
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -54,11 +65,11 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         
         print_info "启动 $name (端口: $port)..."
         
-        # 使用 osascript 打开新的 Terminal 窗口
+        # 使用 osascript 打开新的 Terminal 窗口，并加载环境变量
         osascript <<EOF
 tell application "Terminal"
     activate
-    do script "cd '$PROJECT_ROOT/backend/$dir' && echo '========================================' && echo '  $name - 端口 $port' && echo '========================================' && echo '' && go run main.go"
+    do script "cd '$PROJECT_ROOT/backend/$dir' && if [ -f '$ENV_FILE' ]; then export \$(grep -v '^#' '$ENV_FILE' | xargs); fi && echo '========================================' && echo '  $name - 端口 $port' && echo '========================================' && echo '' && go run main.go"
 end tell
 EOF
         
@@ -93,6 +104,11 @@ EOF
 else
     # Linux 或其他系统，使用后台进程方式
     print_info "非 macOS 系统，使用后台进程方式启动"
+    
+    # 加载环境变量
+    if [ -f "$ENV_FILE" ]; then
+        export $(grep -v '^#' "$ENV_FILE" | xargs)
+    fi
     
     services=(
         "gateway:8080:Gateway"

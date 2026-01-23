@@ -46,6 +46,11 @@
             <span>AI智能评估</span>
           </el-menu-item>
 
+          <el-menu-item index="/ai-process">
+            <el-icon><Connection /></el-icon>
+            <span>AI处理流程</span>
+          </el-menu-item>
+
           <el-menu-item index="/evaluation-results">
             <el-icon><DataLine /></el-icon>
             <span>评估结果</span>
@@ -193,7 +198,7 @@ import { ElMessage } from 'element-plus'
 import {
   DataAnalysis, User, Suitcase, Document, TrendCharts,
   ChatDotRound, Fold, Expand, Bell, SwitchButton, MagicStick,
-  Sunny, Moon, Monitor, Operation, Calendar, Key, Setting, DataLine, Upload
+  Sunny, Moon, Monitor, Operation, Calendar, Key, Setting, DataLine, Upload, Connection
 } from '@element-plus/icons-vue'
 
 const router = useRouter()

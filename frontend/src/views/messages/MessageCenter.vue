@@ -424,14 +424,37 @@ const formatTime = (time: string) => {
 const loadMessages = async () => {
   loading.value = true
   try {
-    // 获取当前用户ID，默认为1
-    const userId = JSON.parse(localStorage.getItem('user') || '{}').id || 1
+    // 获取当前用户ID，确保是整数类型
+    const userStr = localStorage.getItem('user')
+    let userId: number = 1
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr)
+        // 确保 ID 是整数，如果是 UUID 或其他格式则使用默认值
+        if (user.id && typeof user.id === 'number' && Number.isInteger(user.id)) {
+          userId = user.id
+        } else if (user.id && /^\d+$/.test(String(user.id))) {
+          // 如果是数字字符串，转换为整数
+          userId = parseInt(String(user.id), 10)
+        } else {
+          // UUID 或其他格式，使用默认值并提示用户重新登录
+          console.warn('[MessageCenter] 用户ID格式不正确，请重新登录')
+          userId = 1
+        }
+      } catch {
+        userId = 1
+      }
+    }
+    
+    console.log('[MessageCenter] 加载消息, userId:', userId)
     
     const res = await messageApi.list({
       user_id: userId,
       page: currentPage.value,
       page_size: pageSize.value
     })
+    
+    console.log('[MessageCenter] 响应:', res.data)
     
     if (res.data?.data) {
       const msgList = res.data.data.messages || res.data.data || []
@@ -449,9 +472,26 @@ const loadMessages = async () => {
       messages.value = []
       total.value = 0
     }
-  } catch (error) {
-    console.error('获取消息失败:', error)
-    ElMessage.error('获取消息失败，请检查后端服务是否正常')
+  } catch (error: any) {
+    console.error('[MessageCenter] 获取消息失败:', error)
+    
+    // 更详细的错误提示
+    if (error.code === 'ERR_NETWORK' || error.message?.includes('Network Error')) {
+      ElMessage.error('消息服务未启动，请确保 message-service 运行在端口 8085')
+    } else if (error.response?.status === 500) {
+      // 检查是否是 ID 格式错误
+      const errMsg = error.response?.data?.error || ''
+      if (errMsg.includes('invalid input syntax') || errMsg.includes('bigint')) {
+        ElMessage.error('用户ID格式错误，请退出登录后重新登录')
+      } else {
+        ElMessage.error('服务器内部错误，请检查数据库连接')
+      }
+    } else if (error.response?.status === 400) {
+      ElMessage.error('请求参数错误: ' + (error.response?.data?.error || ''))
+    } else {
+      ElMessage.error('获取消息失败: ' + (error.message || '未知错误'))
+    }
+    
     messages.value = []
     total.value = 0
   } finally {

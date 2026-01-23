@@ -3,7 +3,6 @@ package embedding
 import (
 	"bytes"
 	"context"
-	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -20,12 +19,11 @@ import (
 
 // Client 火山引擎豆包Embedding客户端
 type Client struct {
-	endpoint  string
-	accessKey string
-	secretKey string
-	model     string
-	client    *http.Client
-	cache     sync.Map // 简单的内存缓存
+	endpoint string
+	apiKey   string // 火山引擎API Key (ARK_API_KEY)
+	modelID  string // 模型ID
+	client   *http.Client
+	cache    sync.Map // 简单的内存缓存
 }
 
 var defaultClient *Client
@@ -35,10 +33,9 @@ var once sync.Once
 func GetClient() *Client {
 	once.Do(func() {
 		defaultClient = NewClient(&Config{
-			Endpoint:  os.Getenv("VOLC_ENDPOINT"),
-			AccessKey: os.Getenv("VOLC_ACCESS_KEY"),
-			SecretKey: os.Getenv("VOLC_SECRET_KEY"),
-			Model:     os.Getenv("VOLC_EMBEDDING_MODEL"),
+			Endpoint: os.Getenv("VOLC_ENDPOINT"),
+			APIKey:   os.Getenv("ARK_API_KEY"), // 使用 ARK_API_KEY
+			ModelID:  os.Getenv("VOLC_MODEL_ID"),
 		})
 	})
 	return defaultClient
@@ -46,10 +43,9 @@ func GetClient() *Client {
 
 // Config 配置
 type Config struct {
-	Endpoint  string
-	AccessKey string
-	SecretKey string
-	Model     string
+	Endpoint string
+	APIKey   string // 火山引擎API Key
+	ModelID  string // 模型ID，如 doubao-embedding-large-text-250515
 }
 
 // NewClient 创建客户端
@@ -57,37 +53,42 @@ func NewClient(cfg *Config) *Client {
 	if cfg.Endpoint == "" {
 		cfg.Endpoint = "https://ark.cn-beijing.volces.com/api/v3"
 	}
-	if cfg.Model == "" {
-		cfg.Model = "doubao-embedding"
+	if cfg.ModelID == "" {
+		cfg.ModelID = "doubao-embedding-large-text-250515" // 最新模型
 	}
 
 	return &Client{
-		endpoint:  cfg.Endpoint,
-		accessKey: cfg.AccessKey,
-		secretKey: cfg.SecretKey,
-		model:     cfg.Model,
-		client:    &http.Client{Timeout: 30 * time.Second},
+		endpoint: cfg.Endpoint,
+		apiKey:   cfg.APIKey,
+		modelID:  cfg.ModelID,
+		client:   &http.Client{Timeout: 30 * time.Second},
 	}
 }
 
 // IsConfigured 检查是否已配置
 func (c *Client) IsConfigured() bool {
-	return c.accessKey != "" && c.secretKey != ""
+	return c.apiKey != ""
 }
 
-// EmbeddingRequest 请求结构
+// MultimodalInput 多模态输入项
+type MultimodalInput struct {
+	Type string `json:"type"`
+	Text string `json:"text,omitempty"`
+}
+
+// EmbeddingRequest 请求结构（火山引擎多模态格式）
 type EmbeddingRequest struct {
-	Model string   `json:"model"`
-	Input []string `json:"input"`
+	Model          string            `json:"model"`
+	Input          []MultimodalInput `json:"input"`
+	Dimensions     int               `json:"dimensions,omitempty"`
+	EncodingFormat string            `json:"encoding_format,omitempty"`
 }
 
-// EmbeddingResponse 响应结构
+// EmbeddingResponse 响应结构（多模态格式 - 单个文本）
 type EmbeddingResponse struct {
-	Object string `json:"object"`
-	Data   []struct {
-		Object    string    `json:"object"`
+	Created int64 `json:"created"`
+	Data    struct {
 		Embedding []float64 `json:"embedding"`
-		Index     int       `json:"index"`
 	} `json:"data"`
 	Model string `json:"model"`
 	Usage struct {
@@ -96,7 +97,69 @@ type EmbeddingResponse struct {
 	} `json:"usage"`
 }
 
-// GetEmbeddings 获取文本向量
+// getSingleEmbedding 获取单个文本的向量（多模态API每次只能处理一个文本）
+func (c *Client) getSingleEmbedding(ctx context.Context, text string) ([]float64, error) {
+	// 构建多模态格式的请求
+	reqBody := EmbeddingRequest{
+		Model: c.modelID,
+		Input: []MultimodalInput{
+			{Type: "text", Text: text},
+		},
+		Dimensions:     1024,
+		EncodingFormat: "float",
+	}
+
+	jsonBody, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, fmt.Errorf("序列化请求失败: %w", err)
+	}
+
+	url := c.endpoint
+	fmt.Printf("[Embedding] Calling API: %s\n", url)
+	fmt.Printf("[Embedding] Model: %s, Text length: %d\n", c.modelID, len(text))
+	fmt.Printf("[Embedding] Request body: %s\n", string(jsonBody))
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return nil, fmt.Errorf("创建请求失败: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("HTTP请求失败: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("读取响应失败: %w", err)
+	}
+
+	fmt.Printf("[Embedding] HTTP Status: %d\n", resp.StatusCode)
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("[Embedding] Error response: %s\n", string(body))
+		return nil, fmt.Errorf("API返回错误: %d - %s", resp.StatusCode, string(body))
+	}
+
+	fmt.Printf("[Embedding] Success! Response: %s\n", string(body))
+
+	var apiResp EmbeddingResponse
+	if err := json.Unmarshal(body, &apiResp); err != nil {
+		return nil, fmt.Errorf("解析响应失败: %w", err)
+	}
+
+	if len(apiResp.Data.Embedding) == 0 {
+		return nil, fmt.Errorf("API返回空向量")
+	}
+
+	fmt.Printf("[Embedding] Got embedding with %d dimensions\n", len(apiResp.Data.Embedding))
+	return apiResp.Data.Embedding, nil
+}
+
+// GetEmbeddings 获取文本向量（批量）
 func (c *Client) GetEmbeddings(ctx context.Context, texts []string) ([][]float64, error) {
 	if len(texts) == 0 {
 		return nil, nil
@@ -119,73 +182,35 @@ func (c *Client) GetEmbeddings(ctx context.Context, texts []string) ([][]float64
 
 	// 如果所有都命中缓存
 	if len(uncachedTexts) == 0 {
+		fmt.Printf("[Embedding] All %d texts hit cache\n", len(texts))
 		return results, nil
 	}
 
 	// 如果未配置，返回模拟向量
 	if !c.IsConfigured() {
+		fmt.Println("[Embedding] WARNING: API Key not configured, using mock embeddings")
+		fmt.Printf("[Embedding] ARK_API_KEY value: '%s'\n", c.apiKey)
 		for i, idx := range uncachedIndices {
 			results[idx] = c.mockEmbedding(uncachedTexts[i])
 		}
 		return results, nil
 	}
 
-	// 调用API
-	reqBody := EmbeddingRequest{
-		Model: c.model,
-		Input: uncachedTexts,
-	}
+	fmt.Printf("[Embedding] Processing %d uncached texts (total: %d)\n", len(uncachedTexts), len(texts))
 
-	jsonBody, err := json.Marshal(reqBody)
-	if err != nil {
-		return nil, fmt.Errorf("序列化请求失败: %w", err)
-	}
+	// 多模态API每次只能处理一个文本，需要逐个调用
+	for i, text := range uncachedTexts {
+		idx := uncachedIndices[i]
 
-	url := c.endpoint + "/embeddings"
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonBody))
-	if err != nil {
-		return nil, fmt.Errorf("创建请求失败: %w", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	c.signRequest(req, jsonBody)
-
-	resp, err := c.client.Do(req)
-	if err != nil {
-		// 降级到模拟向量
-		for i, idx := range uncachedIndices {
-			results[idx] = c.mockEmbedding(uncachedTexts[i])
-		}
-		return results, nil
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("读取响应失败: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		// 降级到模拟向量
-		for i, idx := range uncachedIndices {
-			results[idx] = c.mockEmbedding(uncachedTexts[i])
-		}
-		return results, nil
-	}
-
-	var apiResp EmbeddingResponse
-	if err := json.Unmarshal(body, &apiResp); err != nil {
-		return nil, fmt.Errorf("解析响应失败: %w", err)
-	}
-
-	// 填充结果并缓存
-	for _, item := range apiResp.Data {
-		if item.Index < len(uncachedIndices) {
-			idx := uncachedIndices[item.Index]
-			results[idx] = item.Embedding
+		embedding, err := c.getSingleEmbedding(ctx, text)
+		if err != nil {
+			fmt.Printf("[Embedding] Error for text %d: %v, using mock\n", i, err)
+			results[idx] = c.mockEmbedding(text)
+		} else {
+			results[idx] = embedding
 			// 缓存结果
-			cacheKey := c.getCacheKey(uncachedTexts[item.Index])
-			c.cache.Store(cacheKey, item.Embedding)
+			cacheKey := c.getCacheKey(text)
+			c.cache.Store(cacheKey, embedding)
 		}
 	}
 
@@ -213,7 +238,7 @@ func (c *Client) getCacheKey(text string) string {
 // mockEmbedding 生成模拟向量（用于测试或降级）
 func (c *Client) mockEmbedding(text string) []float64 {
 	// 基于文本内容生成确定性的模拟向量
-	dim := 768 // 常见的embedding维度
+	dim := 1024 // Doubao-embedding-large 维度
 	embedding := make([]float64, dim)
 
 	// 使用文本的hash来生成确定性的向量
@@ -226,58 +251,6 @@ func (c *Client) mockEmbedding(text string) []float64 {
 
 	// 归一化
 	return NormalizeEmbedding(embedding)
-}
-
-// signRequest 火山引擎V4签名
-func (c *Client) signRequest(req *http.Request, body []byte) {
-	timestamp := time.Now().UTC().Format("20060102T150405Z")
-	date := timestamp[:8]
-
-	req.Header.Set("X-Date", timestamp)
-	req.Header.Set("Host", req.URL.Host)
-
-	hashedPayload := sha256Hash(body)
-
-	signedHeaders := "content-type;host;x-date"
-	canonicalHeaders := fmt.Sprintf("content-type:%s\nhost:%s\nx-date:%s\n",
-		req.Header.Get("Content-Type"),
-		req.URL.Host,
-		timestamp)
-
-	canonicalRequest := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s",
-		req.Method,
-		req.URL.Path,
-		req.URL.RawQuery,
-		canonicalHeaders,
-		signedHeaders,
-		hashedPayload)
-
-	credentialScope := fmt.Sprintf("%s/cn-beijing/ark/request", date)
-	stringToSign := fmt.Sprintf("HMAC-SHA256\n%s\n%s\n%s",
-		timestamp,
-		credentialScope,
-		sha256Hash([]byte(canonicalRequest)))
-
-	kDate := hmacSHA256([]byte("VOLC"+c.secretKey), date)
-	kRegion := hmacSHA256(kDate, "cn-beijing")
-	kService := hmacSHA256(kRegion, "ark")
-	kSigning := hmacSHA256(kService, "request")
-	signature := hex.EncodeToString(hmacSHA256(kSigning, stringToSign))
-
-	authHeader := fmt.Sprintf("HMAC-SHA256 Credential=%s/%s, SignedHeaders=%s, Signature=%s",
-		c.accessKey, credentialScope, signedHeaders, signature)
-	req.Header.Set("Authorization", authHeader)
-}
-
-func sha256Hash(data []byte) string {
-	h := sha256.Sum256(data)
-	return hex.EncodeToString(h[:])
-}
-
-func hmacSHA256(key []byte, data string) []byte {
-	h := hmac.New(sha256.New, key)
-	h.Write([]byte(data))
-	return h.Sum(nil)
 }
 
 // CosineSimilarity 计算余弦相似度

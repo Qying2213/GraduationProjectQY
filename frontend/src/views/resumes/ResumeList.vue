@@ -95,10 +95,22 @@
             </div>
           </template>
         </el-table-column>
+        <el-table-column prop="job_title" label="求职职位" width="180">
+          <template #default="{ row }">
+            <div class="job-cell" v-if="row.job_id && row.job_title">
+              <span class="job-title">{{ row.job_title }}</span>
+              <el-button link type="primary" size="small" @click="showJobJD(row)">
+                <el-icon><Tickets /></el-icon> 查看JD
+              </el-button>
+            </div>
+            <span v-else class="no-job">未关联职位</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="status" label="状态" width="120" sortable="custom">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" effect="light">
               <el-icon v-if="row.status === 'pending'" class="is-loading"><Loading /></el-icon>
+              <el-icon v-if="row.status === 'processing'" class="is-loading"><Loading /></el-icon>
               {{ getStatusText(row.status) }}
             </el-tag>
           </template>
@@ -113,8 +125,8 @@
             <el-button link type="primary" @click="previewResume(row)" title="">
               <el-icon><View /></el-icon> 预览
             </el-button>
-            <el-button link type="primary" @click="parseResume(row)" :disabled="row.status === 'parsed'" title="" v-if="canEdit">
-              <el-icon><MagicStick /></el-icon> 解析
+            <el-button link type="primary" @click="parseResume(row)" :disabled="row.status === 'processing'" title="" v-if="canEdit">
+              <el-icon><MagicStick /></el-icon> {{ row.status === 'parsed' ? '重新解析' : '解析' }}
             </el-button>
             <el-button link type="danger" @click="handleDelete(row.id)" title="" v-if="canDelete">
               <el-icon><Delete /></el-icon> 删除
@@ -138,6 +150,19 @@
 
     <!-- 上传弹窗 -->
     <el-dialog v-model="showUploadDialog" title="上传简历" width="550px" destroy-on-close>
+      <div class="upload-form">
+        <el-form-item label="求职职位" required>
+          <el-select v-model="uploadJobId" placeholder="请选择求职职位" style="width: 100%">
+            <el-option
+              v-for="job in jobList"
+              :key="job.id"
+              :label="`${job.title} - ${job.department || ''}`"
+              :value="job.id"
+            />
+          </el-select>
+        </el-form-item>
+      </div>
+      
       <div class="upload-area">
         <el-upload
           ref="uploadRef"
@@ -161,7 +186,7 @@
 
       <template #footer>
         <el-button @click="showUploadDialog = false">取消</el-button>
-        <el-button type="primary" :loading="uploading" :disabled="fileList.length === 0" @click="handleUpload">
+        <el-button type="primary" :loading="uploading" :disabled="fileList.length === 0 || !uploadJobId" @click="handleUpload">
           开始上传 ({{ fileList.length }})
         </el-button>
       </template>
@@ -247,6 +272,51 @@
         </div>
       </div>
     </el-drawer>
+
+    <!-- JD查看弹窗 -->
+    <el-dialog v-model="showJDDialog" title="职位描述 (JD)" width="600px">
+      <div class="jd-content" v-if="currentJobJD">
+        <div class="jd-header">
+          <h3>{{ currentJobJD.title }}</h3>
+          <div class="jd-meta">
+            <el-tag type="info" size="small">{{ currentJobJD.department }}</el-tag>
+            <el-tag type="info" size="small">{{ currentJobJD.location }}</el-tag>
+            <el-tag type="success" size="small">{{ currentJobJD.salary }}</el-tag>
+          </div>
+        </div>
+        
+        <el-divider />
+        
+        <div class="jd-section" v-if="currentJobJD.description">
+          <h4>岗位职责</h4>
+          <p>{{ currentJobJD.description }}</p>
+        </div>
+        
+        <div class="jd-section" v-if="currentJobJD.requirements">
+          <h4>任职要求</h4>
+          <p>{{ currentJobJD.requirements }}</p>
+        </div>
+        
+        <div class="jd-section" v-if="currentJobJD.skills">
+          <h4>技能要求</h4>
+          <div class="skills-tags">
+            <template v-if="Array.isArray(currentJobJD.skills)">
+              <el-tag v-for="skill in currentJobJD.skills" :key="skill" size="small">
+                {{ skill }}
+              </el-tag>
+            </template>
+            <template v-else-if="typeof currentJobJD.skills === 'string'">
+              <el-tag v-for="skill in currentJobJD.skills.split(',')" :key="skill" size="small">
+                {{ skill.trim() }}
+              </el-tag>
+            </template>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showJDDialog = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -256,7 +326,7 @@ import type { UploadFile } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Upload, Search, Document, View, MagicStick, Delete, UploadFilled,
-  Download, Loading, FolderOpened, Clock, CircleCheck, CircleClose
+  Download, Loading, FolderOpened, Clock, CircleCheck, CircleClose, Tickets
 } from '@element-plus/icons-vue'
 import { usePermissionStore } from '@/store/permission'
 import request from '@/utils/request'
@@ -272,6 +342,8 @@ interface Resume {
   id: number
   talent_id: number
   talent_name?: string
+  job_id?: number
+  job_title?: string
   file_name: string
   file_url: string
   file_size: number
@@ -291,6 +363,13 @@ const showUploadDialog = ref(false)
 const showPreviewDrawer = ref(false)
 const currentResume = ref<Resume | null>(null)
 const fileList = ref<UploadFile[]>([])
+
+// JD相关
+const showJDDialog = ref(false)
+const currentJobJD = ref<any>(null)
+const jobList = ref<any[]>([])
+const parsing = ref(false)
+const uploadJobId = ref<number | null>(null)
 
 // 统计数据 - 青蓝色系
 const resumeStats = ref([
@@ -420,6 +499,12 @@ const handleFileRemove = (file: UploadFile, uploadFiles: UploadFile[]) => {
 const handleUpload = async () => {
   console.log('========== 开始上传 ==========')
   console.log('待上传文件数量:', fileList.value.length)
+  console.log('选择的职位ID:', uploadJobId.value)
+  
+  if (!uploadJobId.value) {
+    ElMessage.warning('请选择求职职位')
+    return
+  }
   
   uploading.value = true
   try {
@@ -438,7 +523,7 @@ const handleUpload = async () => {
       const formData = new FormData()
       formData.append('file', file.raw as File)
       formData.append('talent_id', '0')
-      formData.append('job_id', '0')
+      formData.append('job_id', String(uploadJobId.value))
       
       try {
         // 直接请求后端，绕过 Vite 代理测试
@@ -472,6 +557,7 @@ const handleUpload = async () => {
       ElMessage.success(`成功上传 ${successCount} 份简历`)
       showUploadDialog.value = false
       fileList.value = []
+      uploadJobId.value = null
       fetchResumes()
     } else {
       ElMessage.error('上传失败')
@@ -492,10 +578,92 @@ const previewResume = (resume: Resume) => {
 
 // 解析简历
 const parseResume = async (resume: Resume) => {
-  ElMessage.info('正在解析简历...')
-  await new Promise(resolve => setTimeout(resolve, 2000))
-  resume.status = 'parsed'
-  ElMessage.success('简历解析完成')
+  console.log('[parseResume] 开始解析简历:', resume)
+  console.log('[parseResume] resume.id:', resume.id)
+  console.log('[parseResume] resume.job_id:', resume.job_id)
+  
+  // 检查是否有关联职位
+  if (!resume.job_id) {
+    ElMessage.warning('请先为简历关联求职职位')
+    return
+  }
+  
+  // 立即更新状态为"处理中"
+  resume.status = 'processing'
+  parsing.value = true
+  
+  ElMessage({
+    message: '正在进行AI智能评估，这可能需要1-2分钟，请耐心等待...',
+    type: 'info',
+    duration: 0,
+    showClose: true
+  })
+  
+  try {
+    console.log('[parseResume] 调用 /ai/evaluate 接口...')
+    // 调用AI评估接口，传递简历ID和职位ID
+    const res = await request.post('/ai/evaluate', {
+      resume_id: resume.id,
+      job_id: resume.job_id
+    })
+    
+    console.log('[parseResume] 响应:', res.data)
+    
+    if (res.data?.code === 0) {
+      resume.status = 'parsed'
+      ElMessage.closeAll()
+      ElMessage.success('AI评估完成！可在"评估结果"页面查看详情')
+      // 刷新列表
+      fetchResumes()
+    } else {
+      resume.status = 'failed'
+      ElMessage.closeAll()
+      ElMessage.error(res.data?.message || '评估失败')
+    }
+  } catch (error: any) {
+    console.error('[parseResume] AI评估失败:', error)
+    console.error('[parseResume] 错误响应:', error.response?.data)
+    resume.status = 'failed'
+    ElMessage.closeAll()
+    
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      ElMessage.error('AI评估超时，请稍后重试或检查网络连接')
+    } else {
+      ElMessage.error(error.response?.data?.message || '评估失败，请检查AI服务配置')
+    }
+  } finally {
+    parsing.value = false
+  }
+}
+
+// 查看职位JD
+const showJobJD = async (resume: Resume) => {
+  if (!resume.job_id) return
+  
+  try {
+    const res = await request.get(`/jobs/${resume.job_id}`)
+    if (res.data?.code === 0) {
+      currentJobJD.value = res.data.data
+      showJDDialog.value = true
+    } else {
+      ElMessage.error('获取职位信息失败')
+    }
+  } catch (error) {
+    console.error('获取职位信息失败:', error)
+    ElMessage.error('获取职位信息失败')
+  }
+}
+
+// 加载职位列表
+const loadJobs = async () => {
+  try {
+    const res = await request.get('/jobs', { params: { page_size: 100, status: 'open' } })
+    if (res.data?.code === 0 && res.data?.data?.jobs) {
+      jobList.value = res.data.data.jobs
+    }
+  } catch (e) {
+    console.error('加载职位列表失败', e)
+  }
 }
 
 // 下载简历
@@ -577,6 +745,7 @@ const getAvatarColor = (id: number) => {
 const getStatusType = (status: string) => {
   const map: Record<string, any> = {
     pending: 'warning',
+    processing: 'primary',
     parsed: 'success',
     failed: 'danger'
   }
@@ -587,6 +756,7 @@ const getStatusType = (status: string) => {
 const getStatusText = (status: string) => {
   const map: Record<string, string> = {
     pending: '待解析',
+    processing: '解析中',
     parsed: '已解析',
     failed: '解析失败'
   }
@@ -603,6 +773,7 @@ const getPreviewUrl = (resume: Resume) => {
 
 onMounted(() => {
   fetchResumes()
+  loadJobs()
 })
 </script>
 
@@ -751,6 +922,10 @@ onMounted(() => {
 }
 
 // 上传区域
+.upload-form {
+  margin-bottom: 16px;
+}
+
 .upload-area {
   :deep(.el-upload-dragger) {
     border-radius: 12px;
@@ -903,6 +1078,66 @@ onMounted(() => {
         font-size: 12px;
         margin-top: 8px;
       }
+    }
+  }
+}
+
+// 职位单元格样式
+.job-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .job-title {
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+}
+
+.no-job {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+// JD弹窗样式
+.jd-content {
+  .jd-header {
+    h3 {
+      margin: 0 0 12px 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .jd-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+  }
+
+  .jd-section {
+    margin-bottom: 20px;
+
+    h4 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+
+    .skills-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
     }
   }
 }

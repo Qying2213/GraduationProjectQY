@@ -58,6 +58,7 @@ func main() {
 	{
 		api.POST("", messageHandler.SendMessage)
 		api.GET("", messageHandler.GetMessages)
+		api.GET("/stats", messageHandler.GetMessageStats)
 		api.GET("/unread-count", messageHandler.GetUnreadCount)
 		api.PUT("/:id/read", messageHandler.MarkAsRead)
 		api.DELETE("/:id", messageHandler.DeleteMessage)

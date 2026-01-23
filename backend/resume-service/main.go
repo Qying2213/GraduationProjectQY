@@ -9,6 +9,7 @@ import (
 	"common/middleware"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -21,6 +22,10 @@ func getEnv(key, defaultValue string) string {
 }
 
 func main() {
+	// 加载 .env 文件 - 从 backend 目录加载
+	godotenv.Load("../.env")    // backend/.env (从 resume-service 目录)
+	godotenv.Load(".env")       // 当前目录
+	godotenv.Load("../../.env") // 项目根目录
 	// 数据库连接（支持环境变量配置）
 	dbHost := getEnv("DB_HOST", "localhost")
 	dbUser := getEnv("DB_USER", "qinyang")
@@ -79,6 +84,7 @@ func main() {
 		ai := api.Group("/ai")
 		{
 			ai.GET("/config", aiHandler.CheckAIConfig)
+			ai.GET("/current-task", aiHandler.GetCurrentTask)
 			ai.POST("/evaluate", aiHandler.EvaluateByResumeID)
 			ai.POST("/evaluate/upload", aiHandler.EvaluateUploadedFile)
 			ai.POST("/evaluate/batch", aiHandler.BatchEvaluate)

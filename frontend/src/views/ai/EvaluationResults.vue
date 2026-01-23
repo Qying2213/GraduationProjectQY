@@ -349,7 +349,7 @@ const sortParams = reactive({
 const loadData = async () => {
   loading.value = true
   try {
-    const res = await request.get('/api/v1/evaluations', {
+    const res = await request.get('/evaluations', {
       params: {
         page: pagination.page,
         page_size: pagination.pageSize,
@@ -361,9 +361,15 @@ const loadData = async () => {
       }
     })
 
-    if (res.code === 0) {
-      evaluations.value = res.data.evaluations || []
-      pagination.total = res.data.total || 0
+    if (res.data?.code === 0) {
+      evaluations.value = (res.data.data?.evaluations || []).map((e: any) => ({
+        ...e,
+        parsed_skills: parseSkills(e.parsed_skills),
+        report_dimensions: parseDimensions(e.report_dimensions),
+        report_strengths: parseSkills(e.report_strengths),
+        report_gaps: parseSkills(e.report_gaps)
+      }))
+      pagination.total = res.data.data?.total || 0
     }
   } catch (e) {
     console.error('加载数据失败', e)
@@ -372,12 +378,34 @@ const loadData = async () => {
   }
 }
 
+// 解析技能字符串
+const parseSkills = (skills: any) => {
+  if (!skills) return []
+  if (Array.isArray(skills)) return skills
+  try {
+    return JSON.parse(skills)
+  } catch {
+    return []
+  }
+}
+
+// 解析维度数据
+const parseDimensions = (dimensions: any) => {
+  if (!dimensions) return []
+  if (Array.isArray(dimensions)) return dimensions
+  try {
+    return JSON.parse(dimensions)
+  } catch {
+    return []
+  }
+}
+
 // 加载统计
 const loadStats = async () => {
   try {
-    const res = await request.get('/api/v1/evaluations/stats')
-    if (res.code === 0) {
-      stats.value = res.data
+    const res = await request.get('/evaluations/stats')
+    if (res.data?.code === 0) {
+      stats.value = res.data.data || {}
     }
   } catch (e) {
     console.error('加载统计失败', e)
@@ -413,8 +441,8 @@ const handleDelete = async (row: any) => {
       type: 'warning'
     })
 
-    const res = await request.delete(`/api/v1/evaluations/${row.id}`)
-    if (res.code === 0) {
+    const res = await request.delete(`/evaluations/${row.id}`)
+    if (res.data?.code === 0) {
       ElMessage.success('删除成功')
       loadData()
       loadStats()

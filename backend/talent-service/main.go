@@ -58,6 +58,7 @@ func main() {
 	{
 		api.POST("", talentHandler.CreateTalent)
 		api.GET("", talentHandler.ListTalents)
+		api.GET("/stats", talentHandler.GetTalentStats)
 		api.GET("/search", talentHandler.SearchTalents)
 		api.GET("/:id", talentHandler.GetTalent)
 		api.PUT("/:id", talentHandler.UpdateTalent)

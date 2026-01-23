@@ -7,6 +7,7 @@ import (
 	"recommendation-service/handlers"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -19,6 +20,20 @@ func getEnv(key, defaultValue string) string {
 }
 
 func main() {
+	// 加载 .env 文件
+	if err := godotenv.Load("../.env"); err != nil {
+		log.Println("Warning: .env file not found, using environment variables")
+	}
+
+	// 打印 Embedding 配置状态
+	arkAPIKey := os.Getenv("ARK_API_KEY")
+	volcModelID := os.Getenv("VOLC_MODEL_ID")
+	if arkAPIKey != "" {
+		log.Printf("Volcengine Embedding configured: model=%s, api_key=%s...", volcModelID, arkAPIKey[:min(10, len(arkAPIKey))])
+	} else {
+		log.Println("Warning: ARK_API_KEY not set, embedding will use mock mode")
+	}
+
 	// 数据库连接（与其他服务保持一致的配置方式）
 	dbHost := getEnv("DB_HOST", "localhost")
 	dbUser := getEnv("DB_USER", "qinyang")
@@ -67,6 +82,13 @@ func main() {
 		api.POST("/batch", recommendHandler.BatchRecommend)
 		api.POST("/attribution-report", recommendHandler.GenerateAttributionReport)
 		api.POST("/semantic-match", recommendHandler.SemanticMatch)
+
+		// RAG 相关接口
+		api.POST("/rag/query", recommendHandler.RAGQuery)
+		api.POST("/rag/index-talent", recommendHandler.IndexTalent)
+		api.POST("/rag/index-job", recommendHandler.IndexJob)
+		api.POST("/rag/index-all", recommendHandler.IndexAll)
+		api.POST("/rag/match", recommendHandler.RAGMatch)
 	}
 
 	log.Println("Recommendation service is running on :8087")
