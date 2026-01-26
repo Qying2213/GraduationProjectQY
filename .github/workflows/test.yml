@@ -1,0 +1,75 @@
+# ============================================================
+# GitHub Actions 工作流配置文件
+# 文件位置: .github/workflows/test.yml
+# ============================================================
+
+# name: 工作流的名称，会显示在 GitHub Actions 页面上
+name: Test
+
+# on: 定义触发条件，什么时候运行这个工作流
+on:
+  # push: 当代码推送到指定分支时触发
+  push:
+    branches:
+      - main          # 推送到 main 分支时触发
+  
+  # pull_request: 当创建或更新 PR 时触发
+  pull_request:
+    branches:
+      - main          # PR 目标是 main 分支时触发
+    types:
+      - opened        # PR 被打开时
+      - synchronize   # PR 有新的提交时
+      - reopened      # PR 被重新打开时
+
+# jobs: 定义要执行的任务，可以有多个 job
+jobs:
+  # test: 这是 job 的 ID，可以自定义命名
+  test:
+    # runs-on: 指定运行环境（GitHub 提供的虚拟机）
+    # 可选值: ubuntu-latest, windows-latest, macos-latest
+    runs-on: ubuntu-latest
+    
+    # steps: 定义这个 job 要执行的步骤，按顺序执行
+    steps:
+      # 步骤1: 检出代码
+      # uses: 使用别人写好的 Action
+      # actions/checkout@v4 是官方提供的检出代码的 Action
+      - name: Checkout code        # 步骤名称，会显示在日志中
+        uses: actions/checkout@v4  # 使用的 Action 及版本
+      
+      # 步骤2: 安装 Go 环境
+      # actions/setup-go 是官方提供的安装 Go 的 Action
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:                      # with: 传递参数给 Action
+          go-version: '1.21'       # 指定 Go 版本
+      
+      # 步骤3: 安装依赖
+      # run: 直接执行 shell 命令
+      - name: Install dependencies
+        run: |
+          cd backend/user-service
+          go mod download
+      
+      # 步骤4: 运行测试
+      - name: Run test
+        run: |
+          cd backend/user-service
+          go test -v ./...
+      
+      # 步骤5: 构建检查
+      - name: Build check
+        run: |
+          cd backend/user-service
+          go build -o user-service .
+          echo "✅ Build successful!"
+
+  # 可以定义多个 job，它们默认并行执行
+  # lint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Run lint
+  #       run: echo "Running lint..."
