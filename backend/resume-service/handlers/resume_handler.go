@@ -256,9 +256,10 @@ func (h *ResumeHandler) ListResumes(c *gin.Context) {
 
 	offset := (page - 1) * pageSize
 
-	type ResumeWithTalent struct {
+	type ResumeWithDetails struct {
 		models.Resume
 		TalentName string `json:"talent_name"`
+		JobTitle   string `json:"job_title"`
 	}
 
 	query := h.DB.Model(&models.Resume{})
@@ -293,15 +294,24 @@ func (h *ResumeHandler) ListResumes(c *gin.Context) {
 		return
 	}
 
-	result := make([]ResumeWithTalent, len(resumes))
+	result := make([]ResumeWithDetails, len(resumes))
 	for i, resume := range resumes {
 		result[i].Resume = resume
+		// 获取人才名称
 		if resume.TalentID != nil {
 			var talent struct {
 				Name string `json:"name"`
 			}
 			h.DB.Table("talents").Where("id = ?", *resume.TalentID).First(&talent)
 			result[i].TalentName = talent.Name
+		}
+		// 获取职位名称
+		if resume.JobID != nil {
+			var job struct {
+				Title string `json:"title"`
+			}
+			h.DB.Table("jobs").Where("id = ?", *resume.JobID).First(&job)
+			result[i].JobTitle = job.Title
 		}
 	}
 

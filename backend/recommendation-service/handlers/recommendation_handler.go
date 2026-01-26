@@ -1,21 +1,38 @@
 package handlers
 
 import (
+	"context"
+	"fmt"
 	"math"
 	"net/http"
+	"recommendation-service/ai"
+	"recommendation-service/embedding"
+	"recommendation-service/rag"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type RecommendationHandler struct {
-	DB *gorm.DB
+	DB              *gorm.DB
+	EmbeddingClient *embedding.Client
+	CozeClient      *ai.CozeClient
+	SkillMatcher    *embedding.SkillMatcher
+	RAGEngine       *rag.RAGEngine
 }
 
 func NewRecommendationHandler(db *gorm.DB) *RecommendationHandler {
-	return &RecommendationHandler{DB: db}
+	embClient := embedding.GetClient()
+	return &RecommendationHandler{
+		DB:              db,
+		EmbeddingClient: embClient,
+		CozeClient:      ai.NewCozeClient(),
+		SkillMatcher:    embedding.NewSkillMatcher(embClient),
+		RAGEngine:       rag.NewRAGEngine(db),
+	}
 }
 
 type TalentProfile struct {
@@ -42,12 +59,14 @@ type JobProfile struct {
 }
 
 type Recommendation struct {
-	ID           uint     `json:"id"`
-	Name         string   `json:"name"`
-	Score        float64  `json:"score"`
-	Reason       string   `json:"reason"`
-	MatchLevel   string   `json:"match_level"`
-	MatchDetails []string `json:"match_details"`
+	ID             uint     `json:"id"`
+	Name           string   `json:"name"`
+	Score          float64  `json:"score"`
+	Reason         string   `json:"reason"`
+	MatchLevel     string   `json:"match_level"`
+	MatchDetails   []string `json:"match_details"`
+	SemanticScore  float64  `json:"semantic_score,omitempty"`  // 语义匹配分数
+	AttributionURL string   `json:"attribution_url,omitempty"` // 归因报告链接
 }
 
 // SkillWeight 技能权重配置
@@ -522,5 +541,417 @@ func (h *RecommendationHandler) BatchRecommend(c *gin.Context) {
 			"processed": len(req.TalentIDs) * len(req.JobIDs),
 			"matches":   15,
 		},
+	})
+}
+
+// GenerateAttributionReport 生成归因报告
+func (h *RecommendationHandler) GenerateAttributionReport(c *gin.Context) {
+	var req struct {
+		TalentID uint `json:"talent_id" binding:"required"`
+		JobID    uint `json:"job_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": err.Error()})
+		return
+	}
+
+	// 获取人才信息
+	var talent struct {
+		ID         uint   `json:"id"`
+		Name       string `json:"name"`
+		Skills     string `json:"skills"`
+		Experience int    `json:"experience"`
+		Education  string `json:"education"`
+		Location   string `json:"location"`
+		Salary     string `json:"salary"`
+	}
+	if h.DB != nil {
+		h.DB.Table("talents").Where("id = ?", req.TalentID).First(&talent)
+	}
+
+	// 获取职位信息
+	var job struct {
+		ID         uint   `json:"id"`
+		Title      string `json:"title"`
+		Skills     string `json:"skills"`
+		Location   string `json:"location"`
+		Level      string `json:"level"`
+		Salary     string `json:"salary"`
+		Department string `json:"department"`
+	}
+	if h.DB != nil {
+		h.DB.Table("jobs").Where("id = ?", req.JobID).First(&job)
+	}
+
+	// 解析技能
+	talentSkills := parseSkills(talent.Skills)
+	jobSkills := parseSkills(job.Skills)
+
+	// 使用语义匹配计算技能分数
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
+	defer cancel()
+
+	skillScore, skillDetails, _ := h.SkillMatcher.MatchSkills(ctx, talentSkills, jobSkills)
+
+	// 计算其他维度分数
+	talentProfile := TalentProfile{
+		ID:         talent.ID,
+		Name:       talent.Name,
+		Skills:     talentSkills,
+		Experience: talent.Experience,
+		Education:  talent.Education,
+		Location:   talent.Location,
+		Salary:     talent.Salary,
+	}
+
+	jobProfile := JobProfile{
+		ID:       job.ID,
+		Title:    job.Title,
+		Skills:   jobSkills,
+		Location: job.Location,
+		Level:    job.Level,
+		Salary:   job.Salary,
+	}
+
+	totalScore, allDetails := calculateAdvancedMatchScore(talentProfile, jobProfile)
+
+	// 合并技能匹配详情
+	allDetails = append(skillDetails, allDetails...)
+
+	// 调用Coze生成归因报告
+	attrReq := &ai.AttributionRequest{
+		TalentProfile: map[string]interface{}{
+			"id":         talent.ID,
+			"name":       talent.Name,
+			"skills":     talentSkills,
+			"experience": talent.Experience,
+			"education":  talent.Education,
+			"location":   talent.Location,
+		},
+		JobProfile: map[string]interface{}{
+			"id":       job.ID,
+			"title":    job.Title,
+			"skills":   jobSkills,
+			"location": job.Location,
+			"level":    job.Level,
+		},
+		MatchResult: map[string]interface{}{
+			"score":         totalScore,
+			"skill_score":   skillScore * 100,
+			"match_details": allDetails,
+		},
+	}
+
+	report, err := h.CozeClient.GenerateAttributionReport(ctx, attrReq)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "生成报告失败: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data":    report,
+	})
+}
+
+// SemanticMatch 语义匹配接口
+func (h *RecommendationHandler) SemanticMatch(c *gin.Context) {
+	var req struct {
+		Text1 string `json:"text1" binding:"required"`
+		Text2 string `json:"text2" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": err.Error()})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+
+	similarity, err := h.EmbeddingClient.TextSimilarity(ctx, req.Text1, req.Text2)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "计算相似度失败: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data": gin.H{
+			"similarity": math.Round(similarity*1000) / 1000,
+			"text1":      req.Text1,
+			"text2":      req.Text2,
+		},
+	})
+}
+
+// parseSkills 解析技能字符串
+func parseSkills(skillsStr string) []string {
+	if skillsStr == "" {
+		return []string{}
+	}
+	// 处理PostgreSQL数组格式 {skill1,skill2}
+	skillsStr = strings.Trim(skillsStr, "{}")
+	if skillsStr == "" {
+		return []string{}
+	}
+	skills := strings.Split(skillsStr, ",")
+	result := make([]string, 0, len(skills))
+	for _, s := range skills {
+		s = strings.TrimSpace(s)
+		if s != "" {
+			result = append(result, s)
+		}
+	}
+	return result
+}
+
+// ==================== RAG 相关接口 ====================
+
+// RAGQuery RAG检索增强查询
+func (h *RecommendationHandler) RAGQuery(c *gin.Context) {
+	var req struct {
+		Query     string `json:"query" binding:"required"`
+		TopK      int    `json:"top_k"`
+		Type      string `json:"type"`       // talent 或 job (兼容旧字段)
+		QueryType string `json:"query_type"` // talent 或 job
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": err.Error()})
+		return
+	}
+
+	// 兼容两种字段名
+	queryType := req.QueryType
+	if queryType == "" {
+		queryType = req.Type
+	}
+	if queryType == "" {
+		queryType = "talent"
+	}
+
+	topK := req.TopK
+	if topK <= 0 {
+		topK = 5
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
+	defer cancel()
+
+	// 直接调用向量搜索，返回简单结果
+	var results []rag.SearchResult
+	var err error
+
+	if queryType == "job" {
+		results, err = h.RAGEngine.GetVectorStore().SearchSimilarJobs(ctx, req.Query, topK)
+	} else {
+		results, err = h.RAGEngine.GetVectorStore().SearchSimilarTalents(ctx, req.Query, topK)
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data": gin.H{
+			"results": results,
+			"query":   req.Query,
+			"type":    queryType,
+		},
+	})
+}
+
+// IndexTalent 索引人才到向量数据库
+func (h *RecommendationHandler) IndexTalent(c *gin.Context) {
+	var req struct {
+		TalentID uint `json:"talent_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": err.Error()})
+		return
+	}
+
+	// 获取人才信息
+	var talent struct {
+		ID         uint   `json:"id"`
+		Name       string `json:"name"`
+		Skills     string `json:"skills"`
+		Experience int    `json:"experience"`
+		Education  string `json:"education"`
+		Location   string `json:"location"`
+	}
+	if err := h.DB.Table("talents").Where("id = ?", req.TalentID).First(&talent).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "人才不存在"})
+		return
+	}
+
+	// 构建内容
+	content := fmt.Sprintf("姓名: %s\n技能: %s\n经验: %d年\n学历: %s\n城市: %s",
+		talent.Name, talent.Skills, talent.Experience, talent.Education, talent.Location)
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
+	defer cancel()
+
+	if err := h.RAGEngine.GetVectorStore().IndexTalent(ctx, talent.ID, content); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "索引失败: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 0, "message": "索引成功", "data": gin.H{"talent_id": talent.ID}})
+}
+
+// IndexJob 索引职位到向量数据库
+func (h *RecommendationHandler) IndexJob(c *gin.Context) {
+	var req struct {
+		JobID uint `json:"job_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": err.Error()})
+		return
+	}
+
+	// 获取职位信息
+	var job struct {
+		ID           uint   `json:"id"`
+		Title        string `json:"title"`
+		Skills       string `json:"skills"`
+		Requirements string `json:"requirements"`
+		Location     string `json:"location"`
+		Salary       string `json:"salary"`
+	}
+	if err := h.DB.Table("jobs").Where("id = ?", req.JobID).First(&job).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "职位不存在"})
+		return
+	}
+
+	// 构建内容
+	content := fmt.Sprintf("职位: %s\n技能要求: %s\n任职要求: %s\n地点: %s\n薪资: %s",
+		job.Title, job.Skills, job.Requirements, job.Location, job.Salary)
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
+	defer cancel()
+
+	if err := h.RAGEngine.GetVectorStore().IndexJob(ctx, job.ID, content); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "索引失败: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 0, "message": "索引成功", "data": gin.H{"job_id": job.ID}})
+}
+
+// IndexAll 批量索引所有人才和职位
+func (h *RecommendationHandler) IndexAll(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Minute)
+	defer cancel()
+
+	var talentCount, jobCount int
+
+	// 索引所有人才
+	var talents []struct {
+		ID         uint   `json:"id"`
+		Name       string `json:"name"`
+		Skills     string `json:"skills"`
+		Experience int    `json:"experience"`
+		Education  string `json:"education"`
+		Location   string `json:"location"`
+	}
+	h.DB.Table("talents").Find(&talents)
+
+	for _, t := range talents {
+		content := fmt.Sprintf("姓名: %s\n技能: %s\n经验: %d年\n学历: %s\n城市: %s",
+			t.Name, t.Skills, t.Experience, t.Education, t.Location)
+		if err := h.RAGEngine.GetVectorStore().IndexTalent(ctx, t.ID, content); err == nil {
+			talentCount++
+		}
+	}
+
+	// 索引所有职位
+	var jobs []struct {
+		ID           uint   `json:"id"`
+		Title        string `json:"title"`
+		Skills       string `json:"skills"`
+		Requirements string `json:"requirements"`
+		Location     string `json:"location"`
+		Salary       string `json:"salary"`
+	}
+	h.DB.Table("jobs").Find(&jobs)
+
+	for _, j := range jobs {
+		content := fmt.Sprintf("职位: %s\n技能要求: %s\n任职要求: %s\n地点: %s\n薪资: %s",
+			j.Title, j.Skills, j.Requirements, j.Location, j.Salary)
+		if err := h.RAGEngine.GetVectorStore().IndexJob(ctx, j.ID, content); err == nil {
+			jobCount++
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "批量索引完成",
+		"data": gin.H{
+			"talents_indexed": talentCount,
+			"jobs_indexed":    jobCount,
+		},
+	})
+}
+
+// RAGMatch 使用RAG进行人岗匹配
+func (h *RecommendationHandler) RAGMatch(c *gin.Context) {
+	var req struct {
+		TalentID uint `json:"talent_id" binding:"required"`
+		JobID    uint `json:"job_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": err.Error()})
+		return
+	}
+
+	// 获取人才信息
+	var talent struct {
+		Name       string
+		Skills     string
+		Experience int
+		Education  string
+		Location   string
+	}
+	h.DB.Table("talents").Where("id = ?", req.TalentID).First(&talent)
+
+	// 获取职位信息
+	var job struct {
+		Title        string
+		Skills       string
+		Requirements string
+		Location     string
+		Salary       string
+	}
+	h.DB.Table("jobs").Where("id = ?", req.JobID).First(&job)
+
+	talentContent := fmt.Sprintf("姓名: %s, 技能: %s, 经验: %d年, 学历: %s, 城市: %s",
+		talent.Name, talent.Skills, talent.Experience, talent.Education, talent.Location)
+	jobContent := fmt.Sprintf("职位: %s, 技能要求: %s, 任职要求: %s, 地点: %s, 薪资: %s",
+		job.Title, job.Skills, job.Requirements, job.Location, job.Salary)
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 60*time.Second)
+	defer cancel()
+
+	result, err := h.RAGEngine.MatchTalentToJob(ctx, talentContent, jobContent)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data":    result,
 	})
 }

@@ -41,6 +41,21 @@
             <span>智能推荐</span>
           </el-menu-item>
 
+          <el-menu-item index="/ai-evaluate">
+            <el-icon><MagicStick /></el-icon>
+            <span>AI智能评估</span>
+          </el-menu-item>
+
+          <el-menu-item index="/ai-process">
+            <el-icon><Connection /></el-icon>
+            <span>AI处理流程</span>
+          </el-menu-item>
+
+          <el-menu-item index="/evaluation-results">
+            <el-icon><DataLine /></el-icon>
+            <span>评估结果</span>
+          </el-menu-item>
+
           <el-menu-item index="/kanban">
             <el-icon><Operation /></el-icon>
             <span>招聘看板</span>
@@ -183,7 +198,7 @@ import { ElMessage } from 'element-plus'
 import {
   DataAnalysis, User, Suitcase, Document, TrendCharts,
   ChatDotRound, Fold, Expand, Bell, SwitchButton, MagicStick,
-  Sunny, Moon, Monitor, Operation, Calendar, Key, Setting, DataLine, Upload
+  Sunny, Moon, Monitor, Operation, Calendar, Key, Setting, DataLine, Upload, Connection
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -200,6 +215,9 @@ const unreadCount = messageStore.unreadCount
 onMounted(() => {
   themeStore.init()
   permissionStore.init()
+  fetchUnreadCount()
+  // 每分钟刷新一次未读消息数
+  setInterval(fetchUnreadCount, 60000)
 })
 
 const toggleSidebar = () => {
@@ -216,8 +234,8 @@ const goToPortal = () => {
 }
 
 const goToEvaluator = () => {
-  // 跳转到 AI 评估系统（8090端口）
-  window.open('http://localhost:8090', '_blank')
+  // 跳转到 AI 评估页面
+  router.push('/ai-evaluate')
 }
 
 const handleCommand = (command: string) => {
@@ -239,15 +257,6 @@ const fetchUnreadCount = async () => {
     await messageStore.fetchUnreadCount(userStore.user.id)
   }
 }
-
-onMounted(() => {
-  fetchUnreadCount()
-  // 每分钟刷新一次未读消息数
-  setInterval(fetchUnreadCount, 60000)
-})
-  fetchUnreadCount()
-  // 每分钟刷新一次未读消息数
-  setInterval(fetchUnreadCount, 60000)
 
 </script>
 

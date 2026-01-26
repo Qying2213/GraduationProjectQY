@@ -155,6 +155,35 @@ func (h *TalentHandler) DeleteTalent(c *gin.Context) {
 	})
 }
 
+// GetTalentStats 获取人才统计
+func (h *TalentHandler) GetTalentStats(c *gin.Context) {
+	var stats struct {
+		TotalTalents  int64 `json:"total_talents"`
+		ActiveTalents int64 `json:"active_talents"`
+		NewThisMonth  int64 `json:"new_this_month"`
+		ByEducation   []struct {
+			Education string `json:"education"`
+			Count     int64  `json:"count"`
+		} `json:"by_education"`
+	}
+
+	h.DB.Model(&models.Talent{}).Count(&stats.TotalTalents)
+	h.DB.Model(&models.Talent{}).Where("status = ?", "active").Count(&stats.ActiveTalents)
+	h.DB.Model(&models.Talent{}).Where("created_at >= date_trunc('month', CURRENT_DATE)").Count(&stats.NewThisMonth)
+
+	// 按学历统计
+	h.DB.Model(&models.Talent{}).
+		Select("education, count(*) as count").
+		Group("education").
+		Scan(&stats.ByEducation)
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data":    stats,
+	})
+}
+
 // SearchTalents 搜索人才（高级搜索）
 func (h *TalentHandler) SearchTalents(c *gin.Context) {
 	var talents []models.Talent

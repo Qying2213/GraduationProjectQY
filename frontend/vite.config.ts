@@ -58,6 +58,11 @@ export default defineConfig({
                 target: 'http://localhost:8084',
                 changeOrigin: true
             },
+            // 评估结果服务
+            '/api/v1/evaluations': {
+                target: 'http://localhost:8084',
+                changeOrigin: true
+            },
             // 消息服务
             '/api/v1/messages': {
                 target: 'http://localhost:8085',

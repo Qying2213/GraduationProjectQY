@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"talent-service/handlers"
 	"talent-service/models"
 
@@ -12,8 +13,26 @@ import (
 	"gorm.io/gorm"
 )
 
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
 func main() {
-	dsn := "host=localhost user=qinyang dbname=talent_platform port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	// 数据库连接（支持环境变量配置）
+	dbHost := getEnv("DB_HOST", "localhost")
+	dbUser := getEnv("DB_USER", "qinyang")
+	dbPassword := getEnv("DB_PASSWORD", "")
+	dbName := getEnv("DB_NAME", "talent_platform")
+	dbPort := getEnv("DB_PORT", "5432")
+
+	dsn := "host=" + dbHost + " user=" + dbUser + " dbname=" + dbName + " port=" + dbPort + " sslmode=disable TimeZone=Asia/Shanghai"
+	if dbPassword != "" {
+		dsn = "host=" + dbHost + " user=" + dbUser + " password=" + dbPassword + " dbname=" + dbName + " port=" + dbPort + " sslmode=disable TimeZone=Asia/Shanghai"
+	}
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect database:", err)
@@ -39,6 +58,7 @@ func main() {
 	{
 		api.POST("", talentHandler.CreateTalent)
 		api.GET("", talentHandler.ListTalents)
+		api.GET("/stats", talentHandler.GetTalentStats)
 		api.GET("/search", talentHandler.SearchTalents)
 		api.GET("/:id", talentHandler.GetTalent)
 		api.PUT("/:id", talentHandler.UpdateTalent)
