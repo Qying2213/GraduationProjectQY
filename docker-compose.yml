@@ -14,12 +14,13 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-      - ./backend/database/mock_data.sql:/docker-entrypoint-initdb.d/02-mock_data.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - talent-network
 
   # Redis 缓存
   redis:
@@ -27,160 +28,24 @@ services:
     container_name: talent-redis
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Elasticsearch 日志存储
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
-    container_name: talent-elasticsearch
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
-    volumes:
-      - es_data:/usr/share/elasticsearch/data
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q 'green\\|yellow'"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
     networks:
       - talent-network
 
-  # Kibana 日志可视化 (可选)
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.11.0
-    container_name: talent-kibana
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - talent-network
-
-  # API 网关
-  gateway:
+  # 所有后端服务（一个容器）
+  backend:
     build:
-      context: ./backend/gateway
+      context: .
       dockerfile: Dockerfile
-    container_name: talent-gateway
+    container_name: talent-backend
     ports:
       - "8080:8080"
-    environment:
-      - GIN_MODE=release
-    depends_on:
-      - user-service
-      - talent-service
-      - job-service
-      - resume-service
-      - recommendation-service
-      - message-service
-      - interview-service
-    networks:
-      - talent-network
-
-  # 用户服务
-  user-service:
-    build:
-      context: ./backend/user-service
-      dockerfile: Dockerfile
-    container_name: talent-user-service
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=talent_platform
-      - JWT_SECRET=talent-platform-secret-key
-      - ES_URL=http://elasticsearch:9200
-    depends_on:
-      postgres:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - talent-network
-
-  # 人才服务
-  talent-service:
-    build:
-      context: ./backend/talent-service
-      dockerfile: Dockerfile
-    container_name: talent-talent-service
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=talent_platform
-      - ES_URL=http://elasticsearch:9200
-    depends_on:
-      postgres:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - talent-network
-
-  # 职位服务
-  job-service:
-    build:
-      context: ./backend/job-service
-      dockerfile: Dockerfile
-    container_name: talent-job-service
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=talent_platform
-      - ES_URL=http://elasticsearch:9200
-    depends_on:
-      postgres:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - talent-network
-
-  # 简历服务
-  resume-service:
-    build:
-      context: ./backend/resume-service
-      dockerfile: Dockerfile
-    container_name: talent-resume-service
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=talent_platform
-      - ES_URL=http://elasticsearch:9200
-    depends_on:
-      postgres:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - talent-network
-
-  # 推荐服务
-  recommendation-service:
-    build:
-      context: ./backend/recommendation-service
-      dockerfile: Dockerfile
-    container_name: talent-recommendation-service
+      - "8081:8081"
+      - "8082:8082"
+      - "8083:8083"
+      - "8084:8084"
+      - "8085:8085"
+      - "8086:8086"
+      - "8087:8087"
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -192,71 +57,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     networks:
       - talent-network
 
-  # 消息服务
-  message-service:
-    build:
-      context: ./backend/message-service
-      dockerfile: Dockerfile
-    container_name: talent-message-service
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=talent_platform
-      - ES_URL=http://elasticsearch:9200
-    depends_on:
-      postgres:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - talent-network
-
-  # 面试服务
-  interview-service:
-    build:
-      context: ./backend/interview-service
-      dockerfile: Dockerfile
-    container_name: talent-interview-service
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=talent_platform
-      - ES_URL=http://elasticsearch:9200
-    depends_on:
-      postgres:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - talent-network
-
-  # 日志服务
-  log-service:
-    build:
-      context: ./backend/log-service
-      dockerfile: Dockerfile
-    container_name: talent-log-service
-    ports:
-      - "8088:8088"
-    environment:
-      - ES_URL=http://elasticsearch:9200
-      - LOG_SERVICE_PORT=8088
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - talent-network
-
-  # 前端应用
+  # 前端
   frontend:
     build:
       context: ./frontend
@@ -265,30 +69,7 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - gateway
-    networks:
-      - talent-network
-
-  # AI 简历评估系统
-  resume-evaluator:
-    build:
-      context: ./backend/evaluator-service
-      dockerfile: Dockerfile
-    container_name: talent-resume-evaluator
-    ports:
-      - "8090:8090"
-    environment:
-      - RESUME_SERVER_PORT=8090
-      - RESUME_DB_DRIVER=sqlite
-      - RESUME_DB_DSN=file:data/app.db?cache=shared&mode=rwc
-      - RESUME_GRADUATE_API_URL=http://resume-service:8084
-      - RESUME_COZE_BASE_URL=${COZE_BASE_URL:-https://api.coze.cn}
-      - RESUME_COZE_TOKEN=${COZE_TOKEN:-}
-      - RESUME_COZE_WORKFLOW_ID=${COZE_WORKFLOW_ID:-}
-    volumes:
-      - evaluator_data:/app/data
-    depends_on:
-      - resume-service
+      - backend
     networks:
       - talent-network
 
@@ -298,6 +79,3 @@ networks:
 
 volumes:
   postgres_data:
-  redis_data:
-  evaluator_data:
-  es_data:
