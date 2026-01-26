@@ -1,14 +1,15 @@
-FROM golang:1.21-alpine AS builder
+FROM golang:1.23-alpine AS builder
 
-WORKDIR /app
+WORKDIR /build
 
 RUN apk add --no-cache git
 
-COPY go.mod go.sum ./
+COPY common ./common
+COPY recommendation-service ./recommendation-service
+
+WORKDIR /build/recommendation-service
+
 RUN go mod download
-
-COPY . .
-
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o recommendation-service .
 
 FROM alpine:latest
@@ -17,9 +18,7 @@ RUN apk --no-cache add ca-certificates tzdata
 ENV TZ=Asia/Shanghai
 
 WORKDIR /app
+COPY --from=builder /build/recommendation-service/recommendation-service .
 
-COPY --from=builder /app/recommendation-service .
-
-EXPOSE 8085
-
+EXPOSE 8087
 CMD ["./recommendation-service"]

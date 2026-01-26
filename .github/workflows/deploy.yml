@@ -1,72 +1,35 @@
 # ============================================================
-# 构建工作流配置文件
-# 文件位置: .github/workflows/deploy.yml
-# 作用: 构建 Docker 镜像并推送到 Docker Hub
+# 部署工作流 - 使用 docker-compose 部署
 # ============================================================
 
-name: Build and Push
+name: Deploy
 
-# 触发条件
 on:
-  # 只在 main 分支推送时触发
   push:
     branches:
       - main
-  
-  # workflow_dispatch: 允许手动触发
   workflow_dispatch:
 
-# 环境变量
-env:
-  IMAGE_NAME: talent-platform
-
 jobs:
-  build:
-    # 使用你的 self-hosted runner（在你的 Ubuntu 虚拟机上运行）
+  deploy:
     runs-on: self-hosted
     
     steps:
-      # 步骤1: 检出代码
       - name: Checkout code
         uses: actions/checkout@v4
       
-      # 步骤2: 登录 Docker Hub
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      
-      # 步骤3: 构建并推送 Gateway 镜像
-      - name: Build and push Gateway
+      - name: Deploy with docker-compose
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}-gateway:latest ./backend/gateway
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}-gateway:latest
-          echo "✅ Gateway 镜像推送成功"
+          # 停止旧容器
+          docker-compose down || true
+          
+          # 重新构建并启动
+          docker-compose up -d --build
+          
+          echo "✅ 部署完成！"
       
-      # 步骤4: 构建并推送 User Service 镜像
-      - name: Build and push User Service
+      - name: Show running containers
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}-user-service:latest ./backend/user-service
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}-user-service:latest
-          echo "✅ User Service 镜像推送成功"
-      
-      # 步骤5: 完成提示
-      - name: Build completed
-        run: |
-          echo "============================================"
-          echo "✅ 所有镜像构建并推送成功！"
-          echo "镜像列表："
-          echo "  - ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}-gateway:latest"
-          echo "  - ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}-user-service:latest"
-          echo "============================================"
-          echo "你可以在 Docker Hub 查看: https://hub.docker.com/u/${{ secrets.DOCKER_USERNAME }}"
+          docker-compose ps
 
-# ============================================================
-# 需要配置的 GitHub Secrets:
-# 
-# 1. DOCKER_USERNAME  - Docker Hub 用户名
-# 2. DOCKER_PASSWORD  - Docker Hub Access Token
-#
-# 配置路径: 仓库 Settings → Secrets and variables → Actions
-# ============================================================
+          

@@ -1,14 +1,15 @@
 FROM golang:1.23-alpine AS builder
 
-WORKDIR /app
+WORKDIR /build
 
 RUN apk add --no-cache git
 
-COPY go.mod go.sum ./
+COPY common ./common
+COPY user-service ./user-service
+
+WORKDIR /build/user-service
+
 RUN go mod download
-
-COPY . .
-
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o user-service .
 
 FROM alpine:latest
@@ -17,9 +18,7 @@ RUN apk --no-cache add ca-certificates tzdata
 ENV TZ=Asia/Shanghai
 
 WORKDIR /app
-
-COPY --from=builder /app/user-service .
+COPY --from=builder /build/user-service/user-service .
 
 EXPOSE 8081
-
 CMD ["./user-service"]
