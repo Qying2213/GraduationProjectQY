@@ -7,6 +7,7 @@
 chmod +x ztest/test_all.sh
 ./ztest/test_all.sh
 ```
+123456789
 覆盖所有服务的基本功能测试，包括：
 - 服务健康检查
 - 用户服务 (注册/登录/JWT)
