@@ -30,5 +30,10 @@ export const talentApi = {
     // 搜索人才
     search(params: any) {
         return request.get<ApiResponse>('/talents/search', { params })
+    },
+
+    // 获取人才统计
+    getStats() {
+        return request.get<ApiResponse>('/talents/stats')
     }
 }

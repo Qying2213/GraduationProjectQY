@@ -168,14 +168,13 @@ const getParticleStyle = (_index: number) => {
   }
 }
 
-// 加载记住的密码
+// 加载记住的用户名
 const loadRememberedCredentials = () => {
   const remembered = localStorage.getItem('rememberedLogin')
   if (remembered) {
     try {
       const data = JSON.parse(remembered)
       loginForm.username = data.username || ''
-      loginForm.password = data.password || ''
       loginForm.remember = true
     } catch (e) {
       localStorage.removeItem('rememberedLogin')
@@ -195,11 +194,10 @@ const handleLogin = async () => {
         // 登录成功后初始化权限
         permissionStore.init()
 
-        // 处理记住密码
+        // 处理记住密码（只记住用户名，不记住密码）
         if (loginForm.remember) {
           localStorage.setItem('rememberedLogin', JSON.stringify({
-            username: loginForm.username,
-            password: loginForm.password
+            username: loginForm.username
           }))
         } else {
           localStorage.removeItem('rememberedLogin')

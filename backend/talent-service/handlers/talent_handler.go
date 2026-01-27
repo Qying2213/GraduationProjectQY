@@ -122,13 +122,67 @@ func (h *TalentHandler) UpdateTalent(c *gin.Context) {
 		return
 	}
 
-	var updateData map[string]interface{}
-	if err := c.ShouldBindJSON(&updateData); err != nil {
+	// 定义允许更新的字段
+	var updateReq struct {
+		Name            string   `json:"name"`
+		Email           string   `json:"email"`
+		Phone           string   `json:"phone"`
+		Skills          []string `json:"skills"`
+		Experience      int      `json:"experience"`
+		Education       string   `json:"education"`
+		Location        string   `json:"location"`
+		Salary          string   `json:"salary"`
+		CurrentCompany  string   `json:"current_company"`
+		CurrentPosition string   `json:"current_position"`
+		Summary         string   `json:"summary"`
+		Status          string   `json:"status"`
+	}
+
+	if err := c.ShouldBindJSON(&updateReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := h.DB.Model(&talent).Updates(updateData).Error; err != nil {
+	// 只更新允许的字段
+	updates := make(map[string]interface{})
+	if updateReq.Name != "" {
+		updates["name"] = updateReq.Name
+	}
+	if updateReq.Email != "" {
+		updates["email"] = updateReq.Email
+	}
+	if updateReq.Phone != "" {
+		updates["phone"] = updateReq.Phone
+	}
+	if len(updateReq.Skills) > 0 {
+		updates["skills"] = updateReq.Skills
+	}
+	if updateReq.Experience > 0 {
+		updates["experience"] = updateReq.Experience
+	}
+	if updateReq.Education != "" {
+		updates["education"] = updateReq.Education
+	}
+	if updateReq.Location != "" {
+		updates["location"] = updateReq.Location
+	}
+	if updateReq.Salary != "" {
+		updates["salary"] = updateReq.Salary
+	}
+	if updateReq.CurrentCompany != "" {
+		updates["current_company"] = updateReq.CurrentCompany
+	}
+	if updateReq.CurrentPosition != "" {
+		updates["current_position"] = updateReq.CurrentPosition
+	}
+	if updateReq.Summary != "" {
+		updates["summary"] = updateReq.Summary
+	}
+	if updateReq.Status != "" {
+		updates["status"] = updateReq.Status
+	}
+
+	if err := h.DB.Model(&talent).Updates(updates).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update talent: " + err.Error()})
 		return
 	}

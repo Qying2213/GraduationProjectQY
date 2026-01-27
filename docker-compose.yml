@@ -52,8 +52,10 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_NAME=talent_platform
+      - DB_SSLMODE=disable
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-your-secure-jwt-secret-change-in-production}
     depends_on:
       postgres:
         condition: service_healthy

@@ -3,14 +3,40 @@ import { ref, computed } from 'vue'
 import type { User } from '@/types'
 import { authApi } from '@/api/auth'
 
+// 安全的 localStorage 操作
+const safeStorage = {
+    setItem(key: string, value: string) {
+        try {
+            localStorage.setItem(key, value)
+        } catch (e) {
+            console.error('Failed to save to localStorage:', e)
+        }
+    },
+    getItem(key: string): string | null {
+        try {
+            return localStorage.getItem(key)
+        } catch (e) {
+            console.error('Failed to read from localStorage:', e)
+            return null
+        }
+    },
+    removeItem(key: string) {
+        try {
+            localStorage.removeItem(key)
+        } catch (e) {
+            console.error('Failed to remove from localStorage:', e)
+        }
+    }
+}
+
 export const useUserStore = defineStore('user', () => {
     const user = ref<User | null>(null)
     const token = ref<string>('')
 
     // 初始化时从localStorage读取
     const initFromStorage = () => {
-        const storedToken = localStorage.getItem('token')
-        const storedUser = localStorage.getItem('user')
+        const storedToken = safeStorage.getItem('token')
+        const storedUser = safeStorage.getItem('user')
 
         if (storedToken) {
             token.value = storedToken
@@ -21,6 +47,7 @@ export const useUserStore = defineStore('user', () => {
                 user.value = JSON.parse(storedUser)
             } catch (e) {
                 console.error('Failed to parse user data:', e)
+                safeStorage.removeItem('user')
             }
         }
     }
@@ -47,8 +74,8 @@ export const useUserStore = defineStore('user', () => {
             token.value = res.data.data.token
             user.value = res.data.data.user
 
-            localStorage.setItem('token', res.data.data.token)
-            localStorage.setItem('user', JSON.stringify(res.data.data.user))
+            safeStorage.setItem('token', res.data.data.token)
+            safeStorage.setItem('user', JSON.stringify(res.data.data.user))
         }
         return res.data
     }
@@ -63,8 +90,8 @@ export const useUserStore = defineStore('user', () => {
     const logout = () => {
         user.value = null
         token.value = ''
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
+        safeStorage.removeItem('token')
+        safeStorage.removeItem('user')
     }
 
     // 更新用户信息
@@ -72,7 +99,7 @@ export const useUserStore = defineStore('user', () => {
         const res = await authApi.updateProfile(data)
         if (res.data.code === 0 && res.data.data) {
             user.value = res.data.data
-            localStorage.setItem('user', JSON.stringify(res.data.data))
+            safeStorage.setItem('user', JSON.stringify(res.data.data))
         }
         return res.data
     }
@@ -82,7 +109,7 @@ export const useUserStore = defineStore('user', () => {
         const res = await authApi.getProfile()
         if (res.data.code === 0 && res.data.data) {
             user.value = res.data.data
-            localStorage.setItem('user', JSON.stringify(res.data.data))
+            safeStorage.setItem('user', JSON.stringify(res.data.data))
         }
         return res.data
     }

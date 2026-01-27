@@ -166,7 +166,7 @@ func calculateSkillMatch(talentSkills, jobSkills []string) (float64, []string) {
 	}
 	if len(matchedSkills) < len(jobSkills) {
 		missingCount := len(jobSkills) - len(matchedSkills)
-		details = append(details, "缺少 "+string(rune('0'+missingCount))+" 项技能")
+		details = append(details, fmt.Sprintf("缺少 %d 项技能", missingCount))
 	}
 
 	return score, details

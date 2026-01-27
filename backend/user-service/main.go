@@ -26,10 +26,11 @@ func main() {
 	dbPassword := getEnv("DB_PASSWORD", "")
 	dbName := getEnv("DB_NAME", "talent_platform")
 	dbPort := getEnv("DB_PORT", "5432")
+	dbSSLMode := getEnv("DB_SSLMODE", "disable")
 
-	dsn := "host=" + dbHost + " user=" + dbUser + " dbname=" + dbName + " port=" + dbPort + " sslmode=disable TimeZone=Asia/Shanghai"
+	dsn := "host=" + dbHost + " user=" + dbUser + " dbname=" + dbName + " port=" + dbPort + " sslmode=" + dbSSLMode + " TimeZone=Asia/Shanghai"
 	if dbPassword != "" {
-		dsn = "host=" + dbHost + " user=" + dbUser + " password=" + dbPassword + " dbname=" + dbName + " port=" + dbPort + " sslmode=disable TimeZone=Asia/Shanghai"
+		dsn = "host=" + dbHost + " user=" + dbUser + " password=" + dbPassword + " dbname=" + dbName + " port=" + dbPort + " sslmode=" + dbSSLMode + " TimeZone=Asia/Shanghai"
 	}
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -67,6 +68,7 @@ func main() {
 
 	// 需要认证的路由
 	auth := r.Group("/api/v1")
+	auth.Use(middleware.JWTAuth())
 	{
 		auth.GET("/profile", userHandler.GetProfile)
 		auth.PUT("/profile", userHandler.UpdateProfile)

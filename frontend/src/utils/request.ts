@@ -1,6 +1,21 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { ElMessage } from 'element-plus'
 
+// 解析 JWT token 获取过期时间
+function isTokenExpired(token: string): boolean {
+    try {
+        const payload = token.split('.')[1]
+        const decoded = JSON.parse(atob(payload))
+        if (decoded.exp) {
+            // 提前 60 秒认为过期，避免边界情况
+            return decoded.exp * 1000 < Date.now() + 60000
+        }
+        return false
+    } catch {
+        return true
+    }
+}
+
 const instance: AxiosInstance = axios.create({
     baseURL: '/api/v1',
     timeout: 300000, // 5分钟超时，AI评估需要较长时间
@@ -14,18 +29,26 @@ instance.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token')
         if (token) {
+            // 检查 token 是否过期
+            if (isTokenExpired(token)) {
+                localStorage.removeItem('token')
+                localStorage.removeItem('user')
+                ElMessage.error('登录已过期，请重新登录')
+                window.location.href = '/login'
+                return Promise.reject(new Error('Token expired'))
+            }
             config.headers.Authorization = `Bearer ${token}`
         }
-        
+
         // 如果是 FormData，删除默认的 Content-Type，让浏览器自动设置
         if (config.data instanceof FormData) {
             console.log('[Request] 检测到 FormData，删除默认 Content-Type')
             delete config.headers['Content-Type']
         }
-        
+
         console.log('[Request]', config.method?.toUpperCase(), config.url)
         console.log('[Request] Headers:', JSON.stringify(config.headers))
-        
+
         return config
     },
     (error) => {

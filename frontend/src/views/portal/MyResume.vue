@@ -8,7 +8,7 @@
         </el-button>
       </div>
 
-      <el-row :gutter="24">
+      <el-row :gutter="24" v-loading="loading">
         <!-- 在线简历 -->
         <el-col :xs="24" :lg="16">
           <div class="resume-card">
@@ -26,27 +26,27 @@
               <div class="info-grid">
                 <div class="info-item">
                   <label>姓名</label>
-                  <span>{{ resume.name }}</span>
+                  <span>{{ resume.name || '-' }}</span>
                 </div>
                 <div class="info-item">
                   <label>性别</label>
-                  <span>{{ resume.gender }}</span>
+                  <span>{{ resume.gender || '-' }}</span>
                 </div>
                 <div class="info-item">
                   <label>年龄</label>
-                  <span>{{ resume.age }}岁</span>
+                  <span>{{ resume.age ? resume.age + '岁' : '-' }}</span>
                 </div>
                 <div class="info-item">
                   <label>手机</label>
-                  <span>{{ resume.phone }}</span>
+                  <span>{{ resume.phone || '-' }}</span>
                 </div>
                 <div class="info-item">
                   <label>邮箱</label>
-                  <span>{{ resume.email }}</span>
+                  <span>{{ resume.email || '-' }}</span>
                 </div>
                 <div class="info-item">
                   <label>现居地</label>
-                  <span>{{ resume.location }}</span>
+                  <span>{{ resume.location || '-' }}</span>
                 </div>
               </div>
             </div>
@@ -60,19 +60,19 @@
               <div class="info-grid">
                 <div class="info-item">
                   <label>期望职位</label>
-                  <span>{{ resume.expectPosition }}</span>
+                  <span>{{ resume.expectPosition || '-' }}</span>
                 </div>
                 <div class="info-item">
                   <label>期望城市</label>
-                  <span>{{ resume.expectCity }}</span>
+                  <span>{{ resume.expectCity || '-' }}</span>
                 </div>
                 <div class="info-item">
                   <label>期望薪资</label>
-                  <span>{{ resume.expectSalary }}</span>
+                  <span>{{ resume.expectSalary || '-' }}</span>
                 </div>
                 <div class="info-item">
                   <label>到岗时间</label>
-                  <span>{{ resume.availableTime }}</span>
+                  <span>{{ resume.availableTime || '-' }}</span>
                 </div>
               </div>
             </div>
@@ -93,6 +93,7 @@
                 </div>
                 <p class="exp-desc">{{ exp.description }}</p>
               </div>
+              <el-empty v-if="resume.workExperience.length === 0" description="暂无工作经历" :image-size="60" />
             </div>
 
             <!-- 教育经历 -->
@@ -110,6 +111,7 @@
                   <span class="exp-time">{{ edu.startTime }} - {{ edu.endTime }}</span>
                 </div>
               </div>
+              <el-empty v-if="resume.education.length === 0" description="暂无教育经历" :image-size="60" />
             </div>
 
             <!-- 技能特长 -->
@@ -118,9 +120,10 @@
                 <el-icon><Medal /></el-icon>
                 <h3>技能特长</h3>
               </div>
-              <div class="skills-list">
+              <div class="skills-list" v-if="resume.skills.length > 0">
                 <el-tag v-for="skill in resume.skills" :key="skill" size="large">{{ skill }}</el-tag>
               </div>
+              <el-empty v-else description="暂无技能标签" :image-size="60" />
             </div>
           </div>
         </el-col>
@@ -139,7 +142,7 @@
                   <span class="file-meta">{{ file.size }} · {{ file.uploadTime }}</span>
                 </div>
                 <div class="file-actions">
-                  <el-button link type="primary" size="small">预览</el-button>
+                  <el-button link type="primary" size="small" @click="previewAttachment(file.id)">预览</el-button>
                   <el-button link type="danger" size="small" @click="deleteAttachment(file.id)">删除</el-button>
                 </div>
               </div>
@@ -162,7 +165,13 @@
 
     <!-- 上传弹窗 -->
     <el-dialog v-model="showUploadDialog" title="上传简历" width="500px">
-      <el-upload drag :auto-upload="false" accept=".pdf,.doc,.docx" :limit="1">
+      <el-upload
+        drag
+        :auto-upload="false"
+        accept=".pdf,.doc,.docx"
+        :limit="1"
+        v-model:file-list="fileList"
+      >
         <el-icon class="el-icon--upload" :size="48"><UploadFilled /></el-icon>
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
         <template #tip>
@@ -171,73 +180,206 @@
       </el-upload>
       <template #footer>
         <el-button @click="showUploadDialog = false">取消</el-button>
-        <el-button type="primary">上传</el-button>
+        <el-button type="primary" :loading="uploading" :disabled="fileList.length === 0" @click="handleUpload">上传</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Upload, User, Aim, Suitcase, School, Medal, Document, CircleCheck, Warning, UploadFilled } from '@element-plus/icons-vue'
+import request from '@/utils/request'
+import { useUserStore } from '@/store/user'
 
+const userStore = useUserStore()
 const showUploadDialog = ref(false)
+const loading = ref(false)
+const uploading = ref(false)
+const fileList = ref<any[]>([])
 
-const resume = ref({
-  name: '张三',
-  gender: '男',
-  age: 28,
-  phone: '138****1234',
-  email: 'zhangsan@email.com',
-  location: '北京',
-  expectPosition: '高级前端工程师',
-  expectCity: '北京、上海',
-  expectSalary: '30-45K',
-  availableTime: '随时到岗',
-  workExperience: [
-    {
-      company: '某科技有限公司',
-      position: '前端开发工程师',
-      startTime: '2021-06',
-      endTime: '至今',
-      description: '负责公司核心产品的前端开发工作，使用Vue3+TypeScript技术栈，参与架构设计和性能优化。'
-    },
-    {
-      company: '某互联网公司',
-      position: '前端开发',
-      startTime: '2019-07',
-      endTime: '2021-05',
-      description: '参与多个项目的前端开发，熟悉React和Vue框架。'
-    }
-  ],
-  education: [
-    {
-      school: '某大学',
-      major: '计算机科学与技术',
-      degree: '本科',
-      startTime: '2015-09',
-      endTime: '2019-06'
-    }
-  ],
-  skills: ['Vue3', 'TypeScript', 'React', 'Node.js', 'Webpack', 'Git']
+interface ResumeData {
+  name: string
+  gender: string
+  age: number
+  phone: string
+  email: string
+  location: string
+  expectPosition: string
+  expectCity: string
+  expectSalary: string
+  availableTime: string
+  workExperience: { company: string; position: string; startTime: string; endTime: string; description: string }[]
+  education: { school: string; major: string; degree: string; startTime: string; endTime: string }[]
+  skills: string[]
+}
+
+const resume = ref<ResumeData>({
+  name: '',
+  gender: '',
+  age: 0,
+  phone: '',
+  email: '',
+  location: '',
+  expectPosition: '',
+  expectCity: '',
+  expectSalary: '',
+  availableTime: '',
+  workExperience: [],
+  education: [],
+  skills: []
 })
 
-const attachments = ref([
-  { id: 1, name: '张三_前端工程师_简历.pdf', size: '256KB', uploadTime: '2024-01-10' }
-])
+interface Attachment {
+  id: number
+  name: string
+  size: string
+  uploadTime: string
+}
+
+const attachments = ref<Attachment[]>([])
+
+// 加载用户简历信息
+const loadResume = async () => {
+  loading.value = true
+  try {
+    // 从用户信息获取基本数据
+    const user = userStore.userInfo
+    if (user) {
+      resume.value.name = user.real_name || user.username || ''
+      resume.value.email = user.email || ''
+      resume.value.phone = user.phone || ''
+    }
+
+    // 获取简历详情 - 使用 /resumes 接口获取当前用户的简历
+    const res = await request.get('/resumes', { params: { page_size: 1 } })
+    if (res.data?.code === 0 && res.data.data?.resumes?.length > 0) {
+      const data = res.data.data.resumes[0]
+      // 解析简历数据
+      if (data.parsed_data) {
+        try {
+          const parsed = typeof data.parsed_data === 'string' ? JSON.parse(data.parsed_data) : data.parsed_data
+          resume.value = {
+            ...resume.value,
+            name: parsed.name || resume.value.name,
+            gender: parsed.gender || '',
+            age: parsed.age || 0,
+            phone: parsed.phone || resume.value.phone,
+            email: parsed.email || resume.value.email,
+            location: parsed.location || '',
+            expectPosition: parsed.expectPosition || '',
+            expectCity: parsed.expectCity || '',
+            expectSalary: parsed.expectSalary || '',
+            availableTime: parsed.availableTime || '',
+            workExperience: parsed.workExperience || [],
+            education: parsed.education || [],
+            skills: parsed.skills || []
+          }
+        } catch (e) {
+          console.error('解析简历数据失败', e)
+        }
+      }
+    }
+  } catch (error) {
+    console.error('加载简历失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 加载附件简历列表
+const loadAttachments = async () => {
+  try {
+    const res = await request.get('/resumes', { params: { page_size: 10 } })
+    if (res.data?.code === 0) {
+      const resumes = res.data.data?.resumes || []
+      attachments.value = resumes.map((r: any) => ({
+        id: r.id,
+        name: r.file_name,
+        size: formatFileSize(r.file_size),
+        uploadTime: r.created_at?.split('T')[0] || ''
+      }))
+    }
+  } catch (error) {
+    console.error('加载附件列表失败:', error)
+  }
+}
+
+const formatFileSize = (bytes: number) => {
+  if (!bytes) return '0 B'
+  if (bytes < 1024) return bytes + ' B'
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+}
 
 const editResume = () => {
   ElMessage.info('编辑功能开发中')
 }
 
+const handleUpload = async () => {
+  if (fileList.value.length === 0) {
+    ElMessage.warning('请选择文件')
+    return
+  }
+
+  uploading.value = true
+  try {
+    const file = fileList.value[0]
+    const formData = new FormData()
+    formData.append('file', file.raw)
+    formData.append('talent_id', '0')
+
+    const res = await request.post('/resumes/upload', formData)
+    if (res.data?.code === 0) {
+      ElMessage.success('上传成功')
+      showUploadDialog.value = false
+      fileList.value = []
+      loadAttachments()
+    } else {
+      ElMessage.error(res.data?.message || '上传失败')
+    }
+  } catch (error) {
+    ElMessage.error('上传失败')
+  } finally {
+    uploading.value = false
+  }
+}
+
 const deleteAttachment = async (id: number) => {
   try {
     await ElMessageBox.confirm('确定要删除这份简历吗？', '删除确认', { type: 'warning' })
-    attachments.value = attachments.value.filter(a => a.id !== id)
-    ElMessage.success('已删除')
-  } catch {}
+    const res = await request.delete(`/resumes/${id}`)
+    if (res.data?.code === 0) {
+      attachments.value = attachments.value.filter(a => a.id !== id)
+      ElMessage.success('已删除')
+    } else {
+      ElMessage.error(res.data?.message || '删除失败')
+    }
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
+  }
 }
+
+const previewAttachment = async (id: number) => {
+  try {
+    const res = await request.get(`/resumes/${id}`)
+    if (res.data?.code === 0 && res.data.data?.file_url) {
+      window.open(res.data.data.file_url, '_blank')
+    } else {
+      ElMessage.info('暂无预览')
+    }
+  } catch {
+    ElMessage.error('获取预览失败')
+  }
+}
+
+onMounted(() => {
+  loadResume()
+  loadAttachments()
+})
 </script>
 
 <style scoped lang="scss">

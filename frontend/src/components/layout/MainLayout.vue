@@ -253,8 +253,8 @@ const handleThemeChange = (mode: ThemeMode) => {
 }
 
 const fetchUnreadCount = async () => {
-  if (userStore.user?.id) {
-    await messageStore.fetchUnreadCount(userStore.user.id)
+  if (userStore.isLoggedIn) {
+    await messageStore.fetchUnreadCount()
   }
 }
 

@@ -27,7 +27,7 @@
         <!-- 职位描述 -->
         <div class="detail-card">
           <h2>职位描述</h2>
-          <div class="description" v-html="job.description"></div>
+          <div class="description">{{ job.description }}</div>
         </div>
 
         <!-- 任职要求 -->

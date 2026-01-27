@@ -13,10 +13,11 @@ import (
 var jwtSecret = []byte(getJWTSecret())
 
 func getJWTSecret() string {
-	if secret := os.Getenv("JWT_SECRET"); secret != "" {
-		return secret
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		panic("JWT_SECRET environment variable is required")
 	}
-	return "talent-platform-secret-key-change-in-production"
+	return secret
 }
 
 type Claims struct {

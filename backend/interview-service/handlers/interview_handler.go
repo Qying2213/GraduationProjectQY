@@ -37,7 +37,9 @@ func (h *InterviewHandler) CreateInterview(c *gin.Context) {
 	if req.CreatedBy > 0 {
 		createdBy = req.CreatedBy
 	} else if userID, exists := c.Get("user_id"); exists {
-		createdBy = userID.(uint)
+		if uid, ok := userID.(uint); ok {
+			createdBy = uid
+		}
 	}
 
 	interview := models.Interview{
@@ -217,7 +219,13 @@ func (h *InterviewHandler) UpdateInterview(c *gin.Context) {
 	}
 
 	// 重新获取更新后的数据
-	h.DB.First(&interview, id)
+	if err := h.DB.First(&interview, id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    1,
+			"message": "Failed to fetch updated interview: " + err.Error(),
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
@@ -289,7 +297,11 @@ func (h *InterviewHandler) CompleteInterview(c *gin.Context) {
 		Feedback string `json:"feedback"`
 		Rating   int    `json:"rating"`
 	}
-	c.ShouldBindJSON(&feedback)
+	if err := c.ShouldBindJSON(&feedback); err != nil {
+		// 忽略绑定错误，因为反馈是可选的
+		feedback.Feedback = ""
+		feedback.Rating = 0
+	}
 
 	updates := map[string]interface{}{
 		"status": models.InterviewStatusCompleted,
@@ -427,7 +439,11 @@ func (h *InterviewHandler) SubmitFeedback(c *gin.Context) {
 	// 获取面试官ID
 	var interviewerID uint
 	if userID, exists := c.Get("user_id"); exists {
-		interviewerID = userID.(uint)
+		if uid, ok := userID.(uint); ok {
+			interviewerID = uid
+		} else {
+			interviewerID = interview.InterviewerID
+		}
 	} else {
 		interviewerID = interview.InterviewerID
 	}
@@ -457,7 +473,13 @@ func (h *InterviewHandler) SubmitFeedback(c *gin.Context) {
 		"rating":   req.Rating,
 		"feedback": req.Comments,
 	}
-	h.DB.Model(&interview).Updates(updates)
+	if err := h.DB.Model(&interview).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    1,
+			"message": "Failed to update interview: " + err.Error(),
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,

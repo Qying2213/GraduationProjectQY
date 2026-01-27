@@ -18,20 +18,20 @@
       </div>
 
       <!-- 投递列表 -->
-      <div class="application-list">
+      <div class="application-list" v-loading="loading">
         <div class="application-item" v-for="app in filteredApplications" :key="app.id">
           <div class="app-main">
             <div class="job-info">
-              <h3>{{ app.jobTitle }}</h3>
-              <p class="company">{{ app.company }} · {{ app.location }}</p>
+              <h3>{{ app.job_title }}</h3>
+              <p class="company">{{ app.company_name }} · {{ app.location }}</p>
               <p class="salary">{{ app.salary }}</p>
             </div>
             <div class="app-status">
               <el-tag :type="getStatusType(app.status)">{{ getStatusText(app.status) }}</el-tag>
-              <span class="apply-time">{{ app.applyTime }}</span>
+              <span class="apply-time">{{ app.created_at?.split('T')[0] }}</span>
             </div>
           </div>
-          <div class="app-timeline" v-if="app.timeline.length > 0">
+          <div class="app-timeline" v-if="app.timeline && app.timeline.length > 0">
             <div class="timeline-item" v-for="(item, index) in app.timeline" :key="index">
               <span class="timeline-dot" :class="{ active: index === 0 }"></span>
               <span class="timeline-content">{{ item.content }}</span>
@@ -39,84 +39,93 @@
             </div>
           </div>
           <div class="app-actions">
-            <el-button size="small" @click="viewJob(app.jobId)">查看职位</el-button>
+            <el-button size="small" @click="viewJob(app.job_id)">查看职位</el-button>
             <el-button size="small" type="danger" plain @click="withdrawApplication(app.id)">撤回投递</el-button>
           </div>
         </div>
 
-        <el-empty v-if="filteredApplications.length === 0" description="暂无投递记录" />
+        <el-empty v-if="filteredApplications.length === 0 && !loading" description="暂无投递记录" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import request from '@/utils/request'
 
 const router = useRouter()
 const statusFilter = ref('')
+const loading = ref(false)
 
-const applications = ref([
-  {
-    id: 1,
-    jobId: 1,
-    jobTitle: '高级前端工程师',
-    company: '科技有限公司',
-    location: '北京',
-    salary: '25-45K',
-    status: 'interview',
-    applyTime: '2024-01-15',
-    timeline: [
-      { content: '收到面试邀请', time: '01-18 10:30' },
-      { content: 'HR已查看简历', time: '01-16 14:20' },
-      { content: '投递成功', time: '01-15 09:00' }
-    ]
-  },
-  {
-    id: 2,
-    jobId: 2,
-    jobTitle: '后端开发工程师',
-    company: '互联网公司',
-    location: '上海',
-    salary: '30-50K',
-    status: 'viewed',
-    applyTime: '2024-01-14',
-    timeline: [
-      { content: 'HR已查看简历', time: '01-15 11:00' },
-      { content: '投递成功', time: '01-14 16:30' }
-    ]
-  },
-  {
-    id: 3,
-    jobId: 3,
-    jobTitle: '产品经理',
-    company: '创新科技',
-    location: '深圳',
-    salary: '20-35K',
-    status: 'pending',
-    applyTime: '2024-01-13',
-    timeline: [
-      { content: '投递成功', time: '01-13 10:00' }
-    ]
-  },
-  {
-    id: 4,
-    jobId: 4,
-    jobTitle: 'UI设计师',
-    company: '设计工作室',
-    location: '杭州',
-    salary: '15-25K',
-    status: 'rejected',
-    applyTime: '2024-01-10',
-    timeline: [
-      { content: '不合适', time: '01-12 09:00' },
-      { content: 'HR已查看简历', time: '01-11 14:00' },
-      { content: '投递成功', time: '01-10 11:30' }
-    ]
+interface Application {
+  id: number
+  job_id: number
+  job_title?: string
+  company_name?: string
+  location?: string
+  salary?: string
+  status: string
+  created_at: string
+  timeline?: { content: string; time: string }[]
+}
+
+const applications = ref<Application[]>([])
+
+// 加载我的申请列表
+const loadApplications = async () => {
+  loading.value = true
+  try {
+    // 使用 /applications 接口，后端会根据 JWT 中的用户信息返回对应的申请
+    const res = await request.get('/applications', { params: { page_size: 100 } })
+    if (res.data?.code === 0) {
+      applications.value = (res.data.data?.applications || res.data.data || []).map((app: any) => ({
+        id: app.id,
+        job_id: app.job_id,
+        job_title: app.job_title || app.job?.title || '未知职位',
+        company_name: app.company_name || app.job?.company_name || '未知公司',
+        location: app.location || app.job?.location || '',
+        salary: app.salary || app.job?.salary || '',
+        status: app.status || 'pending',
+        created_at: app.created_at,
+        timeline: buildTimeline(app)
+      }))
+    }
+  } catch (error) {
+    console.error('加载申请列表失败:', error)
+    ElMessage.error('加载申请列表失败')
+  } finally {
+    loading.value = false
   }
-])
+}
+
+// 构建时间线
+const buildTimeline = (app: any) => {
+  const timeline = []
+  if (app.status === 'interview') {
+    timeline.push({ content: '收到面试邀请', time: formatTime(app.interview_time || app.updated_at) })
+  }
+  if (app.status === 'rejected') {
+    timeline.push({ content: '不合适', time: formatTime(app.updated_at) })
+  }
+  if (app.viewed_at) {
+    timeline.push({ content: 'HR已查看简历', time: formatTime(app.viewed_at) })
+  }
+  timeline.push({ content: '投递成功', time: formatTime(app.created_at) })
+  return timeline
+}
+
+const formatTime = (dateStr: string) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+onMounted(() => {
+  loadApplications()
+})
 
 const filteredApplications = computed(() => {
   if (!statusFilter.value) return applications.value
@@ -148,7 +157,9 @@ const getStatusText = (status: string) => {
   return map[status] || status
 }
 
-const filterApplications = () => {}
+const filterApplications = () => {
+  loadApplications()
+}
 
 const viewJob = (jobId: number) => {
   router.push(`/portal/jobs/${jobId}`)
@@ -157,9 +168,18 @@ const viewJob = (jobId: number) => {
 const withdrawApplication = async (id: number) => {
   try {
     await ElMessageBox.confirm('确定要撤回这个投递吗？', '撤回投递', { type: 'warning' })
-    applications.value = applications.value.filter(a => a.id !== id)
-    ElMessage.success('已撤回')
-  } catch {}
+    const res = await request.delete(`/applications/${id}`)
+    if (res.data?.code === 0) {
+      applications.value = applications.value.filter(a => a.id !== id)
+      ElMessage.success('已撤回')
+    } else {
+      ElMessage.error(res.data?.message || '撤回失败')
+    }
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error('撤回失败')
+    }
+  }
 }
 </script>
 

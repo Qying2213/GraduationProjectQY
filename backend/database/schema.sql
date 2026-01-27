@@ -5,74 +5,83 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    email VARCHAR(100) UNIQUE,
-    phone VARCHAR(20),
-    role VARCHAR(20) DEFAULT 'user',
+    role VARCHAR(20) DEFAULT 'candidate',
     avatar VARCHAR(255),
-    department VARCHAR(100),
+    phone VARCHAR(20),
+    department VARCHAR(50),
+    position VARCHAR(50),
+    real_name VARCHAR(50),
     status VARCHAR(20) DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 -- 职位表
 CREATE TABLE IF NOT EXISTS jobs (
     id SERIAL PRIMARY KEY,
-    title VARCHAR(100) NOT NULL,
-    department VARCHAR(100),
-    location VARCHAR(100),
-    salary VARCHAR(50),
-    level VARCHAR(20),
-    type VARCHAR(20) DEFAULT 'full-time',
+    title VARCHAR(200) NOT NULL,
     description TEXT,
-    requirements TEXT,
-    skills TEXT,
-    headcount INTEGER DEFAULT 1,
+    requirements TEXT[],
+    salary VARCHAR(100),
+    location VARCHAR(100),
+    type VARCHAR(20) DEFAULT 'full-time',
     status VARCHAR(20) DEFAULT 'open',
-    publisher_id INTEGER REFERENCES users(id),
+    created_by INTEGER REFERENCES users(id),
+    department VARCHAR(100),
+    level VARCHAR(50),
+    skills TEXT[],
+    benefits TEXT[],
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 -- 人才表
 CREATE TABLE IF NOT EXISTS talents (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
-    email VARCHAR(100),
-    gender VARCHAR(10),
-    age INTEGER,
-    education VARCHAR(20),
-    school VARCHAR(100),
-    major VARCHAR(100),
+    skills TEXT[],
     experience INTEGER DEFAULT 0,
-    skills TEXT,
+    education VARCHAR(50),
+    status VARCHAR(20) DEFAULT 'active',
+    tags TEXT[],
+    user_id INTEGER REFERENCES users(id),
     location VARCHAR(100),
     salary VARCHAR(50),
+    summary TEXT,
+    gender VARCHAR(10),
+    age INTEGER,
     current_company VARCHAR(100),
     current_position VARCHAR(100),
     source VARCHAR(50),
-    status VARCHAR(20) DEFAULT 'active',
-    resume_url VARCHAR(255),
-    notes TEXT,
+    resume_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 -- 简历表
 CREATE TABLE IF NOT EXISTS resumes (
     id SERIAL PRIMARY KEY,
     talent_id INTEGER REFERENCES talents(id),
+    job_id INTEGER REFERENCES jobs(id),
     file_name VARCHAR(255),
     file_path VARCHAR(500),
-    file_size INTEGER,
+    file_url VARCHAR(500),
+    file_size BIGINT,
     file_type VARCHAR(50),
     parsed_data TEXT,
+    extracted_text TEXT,
     match_score INTEGER DEFAULT 0,
     status VARCHAR(20) DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 -- 申请表
@@ -82,31 +91,33 @@ CREATE TABLE IF NOT EXISTS applications (
     job_id INTEGER REFERENCES jobs(id),
     resume_id INTEGER REFERENCES resumes(id),
     status VARCHAR(20) DEFAULT 'pending',
-    stage VARCHAR(50) DEFAULT 'resume_screening',
-    match_score INTEGER,
+    cover_letter TEXT,
     notes TEXT,
-    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 -- 面试表
 CREATE TABLE IF NOT EXISTS interviews (
     id SERIAL PRIMARY KEY,
-    application_id INTEGER REFERENCES applications(id),
-    talent_id INTEGER REFERENCES talents(id),
-    job_id INTEGER REFERENCES jobs(id),
-    interviewer VARCHAR(100),
-    interviewer_id INTEGER REFERENCES users(id),
-    interview_type VARCHAR(50),
-    scheduled_time TIMESTAMP,
+    candidate_id INTEGER REFERENCES talents(id),
+    candidate_name VARCHAR(100) NOT NULL,
+    position_id INTEGER REFERENCES jobs(id),
+    position VARCHAR(200) NOT NULL,
+    type VARCHAR(20) DEFAULT 'initial',
+    date VARCHAR(20) NOT NULL,
+    time VARCHAR(10) NOT NULL,
     duration INTEGER DEFAULT 60,
-    location VARCHAR(255),
-    meeting_link VARCHAR(255),
+    interviewer_id INTEGER REFERENCES users(id),
+    interviewer VARCHAR(100) NOT NULL,
+    method VARCHAR(20) DEFAULT 'onsite',
+    location VARCHAR(500),
     status VARCHAR(20) DEFAULT 'scheduled',
-    result VARCHAR(20),
-    feedback TEXT,
-    score INTEGER,
     notes TEXT,
+    feedback TEXT,
+    rating INTEGER DEFAULT 0,
+    created_by INTEGER REFERENCES users(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -116,15 +127,13 @@ CREATE TABLE IF NOT EXISTS interview_feedbacks (
     id SERIAL PRIMARY KEY,
     interview_id INTEGER REFERENCES interviews(id),
     interviewer_id INTEGER REFERENCES users(id),
-    overall_score INTEGER,
-    technical_score INTEGER,
-    communication_score INTEGER,
-    culture_fit_score INTEGER,
+    rating INTEGER NOT NULL,
     strengths TEXT,
     weaknesses TEXT,
-    recommendation VARCHAR(50),
     comments TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    recommendation VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 消息表
@@ -179,7 +188,9 @@ CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
 CREATE INDEX IF NOT EXISTS idx_applications_talent ON applications(talent_id);
 CREATE INDEX IF NOT EXISTS idx_applications_job ON applications(job_id);
 CREATE INDEX IF NOT EXISTS idx_interviews_status ON interviews(status);
-CREATE INDEX IF NOT EXISTS idx_interviews_scheduled ON interviews(scheduled_time);
+CREATE INDEX IF NOT EXISTS idx_interviews_date ON interviews(date);
+CREATE INDEX IF NOT EXISTS idx_interviews_candidate ON interviews(candidate_id);
+CREATE INDEX IF NOT EXISTS idx_interviews_interviewer ON interviews(interviewer_id);
 CREATE INDEX IF NOT EXISTS idx_messages_receiver ON messages(receiver_id);
 CREATE INDEX IF NOT EXISTS idx_messages_read ON messages(is_read);
 CREATE INDEX IF NOT EXISTS idx_evaluation_results_status ON evaluation_results(status);

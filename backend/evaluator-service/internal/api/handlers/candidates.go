@@ -70,7 +70,11 @@ func (h *Handlers) GetCandidates(c *gin.Context) {
 
 func (h *Handlers) GetCandidate(c *gin.Context) {
 	userID := middleware.GetUserID(c)
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid candidate id"})
+		return
+	}
 	cand, err := h.repo.GetByUser(uint(id), userID)
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
@@ -109,7 +113,11 @@ func (h *Handlers) GetCandidate(c *gin.Context) {
 
 func (h *Handlers) GetCandidateResume(c *gin.Context) {
 	userID := middleware.GetUserID(c)
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid candidate id"})
+		return
+	}
 	cand, err := h.repo.GetByUser(uint(id), userID)
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
@@ -128,7 +136,11 @@ func (h *Handlers) GetCandidateResume(c *gin.Context) {
 
 func (h *Handlers) UpdateCandidateStatus(c *gin.Context) {
 	userID := middleware.GetUserID(c)
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid candidate id"})
+		return
+	}
 	status := c.PostForm("status")
 	cand, err := h.repo.GetByUser(uint(id), userID)
 	if err != nil {
@@ -145,7 +157,11 @@ func (h *Handlers) UpdateCandidateStatus(c *gin.Context) {
 
 func (h *Handlers) UpdateCandidateNotes(c *gin.Context) {
 	userID := middleware.GetUserID(c)
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid candidate id"})
+		return
+	}
 	notes := c.PostForm("notes")
 	cand, err := h.repo.GetByUser(uint(id), userID)
 	if err != nil {
@@ -162,7 +178,11 @@ func (h *Handlers) UpdateCandidateNotes(c *gin.Context) {
 
 func (h *Handlers) DeleteCandidate(c *gin.Context) {
 	userID := middleware.GetUserID(c)
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid candidate id"})
+		return
+	}
 	cand, err := h.repo.GetByUser(uint(id), userID)
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})

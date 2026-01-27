@@ -5,10 +5,10 @@ import { messageApi } from '@/api/message'
 export const useMessageStore = defineStore('message', () => {
   const unreadCount = ref(0)
 
-  // 获取未读消息数
-  const fetchUnreadCount = async (userId: number) => {
+  // 获取未读消息数（用户 ID 从 JWT 中获取）
+  const fetchUnreadCount = async () => {
     try {
-      const res = await messageApi.getUnreadCount(userId)
+      const res = await messageApi.getUnreadCount()
       if (res.data.code === 0 && res.data.data) {
         unreadCount.value = res.data.data.unread_count || 0
       }

@@ -162,7 +162,30 @@ func (h *ResumeHandler) UploadResumeFile(c *gin.Context) {
 // ServeResumeFile 提供简历文件访问
 func (h *ResumeHandler) ServeResumeFile(c *gin.Context) {
 	filename := c.Param("filename")
+
+	// 防止路径遍历攻击
+	if strings.Contains(filename, "..") || strings.Contains(filename, "/") || strings.Contains(filename, "\\") {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "非法文件名"})
+		return
+	}
+
 	filePath := filepath.Join(UploadDir, filename)
+
+	// 确保文件路径在上传目录内
+	absFilePath, err := filepath.Abs(filePath)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "无效的文件路径"})
+		return
+	}
+	absUploadDir, err := filepath.Abs(UploadDir)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "服务器配置错误"})
+		return
+	}
+	if !strings.HasPrefix(absFilePath, absUploadDir) {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "非法文件路径"})
+		return
+	}
 
 	log.Printf("ServeResumeFile: filename=%s, UploadDir=%s, filePath=%s", filename, UploadDir, filePath)
 
@@ -337,9 +360,15 @@ func (h *ResumeHandler) DeleteResume(c *gin.Context) {
 		return
 	}
 
-	// 删除文件
+	// 删除文件（确保文件路径在上传目录内）
 	if resume.FilePath != "" {
-		os.Remove(resume.FilePath)
+		absFilePath, err := filepath.Abs(resume.FilePath)
+		if err == nil {
+			absUploadDir, err := filepath.Abs(UploadDir)
+			if err == nil && strings.HasPrefix(absFilePath, absUploadDir) {
+				os.Remove(resume.FilePath)
+			}
+		}
 	}
 
 	if err := h.DB.Delete(&resume).Error; err != nil {

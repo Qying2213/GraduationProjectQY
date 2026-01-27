@@ -52,18 +52,17 @@ type MessageResponse struct {
 
 // GetMessages 获取消息列表
 func (h *MessageHandler) GetMessages(c *gin.Context) {
-	userIDStr := c.Query("user_id")
-	if userIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "error": "user_id is required"})
+	// 从 JWT 中获取用户 ID
+	jwtUserID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "error": "unauthorized"})
 		return
 	}
 
-	// 尝试将 user_id 转换为整数，如果是 UUID 格式则使用默认值
-	userID, err := strconv.ParseUint(userIDStr, 10, 64)
-	if err != nil {
-		// 如果不是整数（可能是 UUID），使用默认用户 ID 1
-		// 这是为了兼容不同的认证系统
-		userID = 1
+	userID, ok := jwtUserID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "error": "invalid user_id type"})
+		return
 	}
 
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -129,8 +128,26 @@ func (h *MessageHandler) GetMessages(c *gin.Context) {
 func (h *MessageHandler) MarkAsRead(c *gin.Context) {
 	id := c.Param("id")
 
-	if err := h.DB.Model(&models.Message{}).Where("id = ?", id).Update("is_read", true).Error; err != nil {
+	// 从 JWT 中获取用户 ID，确保只能标记自己的消息
+	jwtUserID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	userID, ok := jwtUserID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user_id type"})
+		return
+	}
+
+	result := h.DB.Model(&models.Message{}).Where("id = ? AND receiver_id = ?", id, userID).Update("is_read", true)
+	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to mark message as read"})
+		return
+	}
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Message not found or not authorized"})
 		return
 	}
 
@@ -142,17 +159,17 @@ func (h *MessageHandler) MarkAsRead(c *gin.Context) {
 
 // GetUnreadCount 获取未读消息数
 func (h *MessageHandler) GetUnreadCount(c *gin.Context) {
-	userIDStr := c.Query("user_id")
-	if userIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+	// 从 JWT 中获取用户 ID
+	jwtUserID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	// 尝试将 user_id 转换为整数，如果是 UUID 格式则使用默认值
-	userID, err := strconv.ParseUint(userIDStr, 10, 64)
-	if err != nil {
-		// 如果不是整数（可能是 UUID），使用默认用户 ID 1
-		userID = 1
+	userID, ok := jwtUserID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user_id type"})
+		return
 	}
 
 	var count int64
@@ -171,8 +188,26 @@ func (h *MessageHandler) GetUnreadCount(c *gin.Context) {
 func (h *MessageHandler) DeleteMessage(c *gin.Context) {
 	id := c.Param("id")
 
-	if err := h.DB.Delete(&models.Message{}, id).Error; err != nil {
+	// 从 JWT 中获取用户 ID，确保只能删除自己的消息
+	jwtUserID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	userID, ok := jwtUserID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user_id type"})
+		return
+	}
+
+	result := h.DB.Where("id = ? AND receiver_id = ?", id, userID).Delete(&models.Message{})
+	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete message"})
+		return
+	}
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Message not found or not authorized"})
 		return
 	}
 

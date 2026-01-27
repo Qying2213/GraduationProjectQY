@@ -7,8 +7,8 @@ export const messageApi = {
         return request.post<ApiResponse<Message>>('/messages', data)
     },
 
-    // 获取消息列表
-    list(params: any) {
+    // 获取消息列表（用户 ID 从 JWT 中获取）
+    list(params?: { page?: number; page_size?: number; type?: string; is_read?: string }) {
         return request.get<ApiResponse>('/messages', { params })
     },
 
@@ -17,15 +17,18 @@ export const messageApi = {
         return request.put<ApiResponse>(`/messages/${id}/read`)
     },
 
-    // 获取未读数量
-    getUnreadCount(userId: number) {
-        return request.get<ApiResponse>('/messages/unread-count', {
-            params: { user_id: userId }
-        })
+    // 获取未读数量（用户 ID 从 JWT 中获取）
+    getUnreadCount() {
+        return request.get<ApiResponse>('/messages/unread-count')
     },
 
     // 删除消息
     delete(id: number) {
         return request.delete<ApiResponse>(`/messages/${id}`)
+    },
+
+    // 获取消息统计
+    getStats() {
+        return request.get<ApiResponse>('/messages/stats')
     }
 }

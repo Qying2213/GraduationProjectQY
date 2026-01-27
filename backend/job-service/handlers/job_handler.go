@@ -26,7 +26,9 @@ func (h *JobHandler) CreateJob(c *gin.Context) {
 	}
 
 	if userID, exists := c.Get("user_id"); exists {
-		job.CreatedBy = userID.(uint)
+		if uid, ok := userID.(uint); ok {
+			job.CreatedBy = uid
+		}
 	}
 
 	if err := h.DB.Create(&job).Error; err != nil {

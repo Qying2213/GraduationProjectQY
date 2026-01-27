@@ -86,32 +86,32 @@ func (h *Hub) Run() {
 			log.Printf("Client unregistered: user_id=%d, total=%d", client.UserID, len(h.clients))
 
 		case message := <-h.broadcast:
-			h.mu.RLock()
+			h.mu.Lock()
 			data, _ := json.Marshal(message)
 			for client := range h.clients {
 				select {
 				case client.send <- data:
 				default:
-					close(client.send)
 					delete(h.clients, client)
+					close(client.send)
 				}
 			}
-			h.mu.RUnlock()
+			h.mu.Unlock()
 
 		case message := <-h.unicast:
-			h.mu.RLock()
+			h.mu.Lock()
 			if clients, ok := h.userClients[message.UserID]; ok {
 				data, _ := json.Marshal(message)
 				for _, client := range clients {
 					select {
 					case client.send <- data:
 					default:
-						close(client.send)
 						delete(h.clients, client)
+						close(client.send)
 					}
 				}
 			}
-			h.mu.RUnlock()
+			h.mu.Unlock()
 		}
 	}
 }

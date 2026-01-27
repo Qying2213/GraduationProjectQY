@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
@@ -108,23 +109,23 @@ func (s *AuthService) Login(ctx context.Context, corpCode, username, password st
 	}, nil
 }
 
-// loginGraduate 毕业设计模式登录（简单验证）
+// loginGraduate 毕业设计模式登录
 func (s *AuthService) loginGraduate(ctx context.Context, username, password string) (*LoginResult, error) {
-	// 简单验证：admin/admin123 或任意用户名密码
-	// 生产环境应该对接真实的用户系统
-	validUsers := map[string]string{
-		"admin":   "admin123",
-		"hr_li":   "123456",
-		"hr_wang": "123456",
-	}
+	// 从环境变量获取管理员凭据
+	adminUser := os.Getenv("ADMIN_USERNAME")
+	adminPass := os.Getenv("ADMIN_PASSWORD")
 
-	// 检查是否是预设用户
-	if expectedPwd, ok := validUsers[username]; ok {
-		if password != expectedPwd {
+	// 如果设置了管理员凭据，验证是否匹配
+	if adminUser != "" && adminPass != "" {
+		if username == adminUser && password != adminPass {
 			return nil, errors.New("用户名或密码错误")
 		}
 	}
-	// 如果不是预设用户，也允许登录（演示用）
+
+	// 密码长度验证
+	if len(password) < 6 {
+		return nil, errors.New("密码长度不能少于6位")
+	}
 
 	// 加密密码
 	encKey := s.getEncryptionKey()

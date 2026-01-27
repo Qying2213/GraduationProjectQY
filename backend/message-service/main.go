@@ -27,10 +27,11 @@ func main() {
 	dbPassword := getEnv("DB_PASSWORD", "")
 	dbName := getEnv("DB_NAME", "talent_platform")
 	dbPort := getEnv("DB_PORT", "5432")
+	dbSSLMode := getEnv("DB_SSLMODE", "disable")
 
-	dsn := "host=" + dbHost + " user=" + dbUser + " dbname=" + dbName + " port=" + dbPort + " sslmode=disable TimeZone=Asia/Shanghai"
+	dsn := "host=" + dbHost + " user=" + dbUser + " dbname=" + dbName + " port=" + dbPort + " sslmode=" + dbSSLMode + " TimeZone=Asia/Shanghai"
 	if dbPassword != "" {
-		dsn = "host=" + dbHost + " user=" + dbUser + " password=" + dbPassword + " dbname=" + dbName + " port=" + dbPort + " sslmode=disable TimeZone=Asia/Shanghai"
+		dsn = "host=" + dbHost + " user=" + dbUser + " password=" + dbPassword + " dbname=" + dbName + " port=" + dbPort + " sslmode=" + dbSSLMode + " TimeZone=Asia/Shanghai"
 	}
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -55,6 +56,7 @@ func main() {
 	})
 
 	api := r.Group("/api/v1/messages")
+	api.Use(middleware.JWTAuth())
 	{
 		api.POST("", messageHandler.SendMessage)
 		api.GET("", messageHandler.GetMessages)
