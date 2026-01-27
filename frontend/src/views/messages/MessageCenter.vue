@@ -457,7 +457,9 @@ const loadMessages = async () => {
     console.log('[MessageCenter] 响应:', res.data)
     
     if (res.data?.data) {
-      const msgList = res.data.data.messages || res.data.data || []
+      const msgList = Array.isArray(res.data.data) 
+        ? res.data.data 
+        : (res.data.data?.messages || [])
       messages.value = msgList.map((m: any) => ({
         id: m.id,
         type: m.type || 'system',
