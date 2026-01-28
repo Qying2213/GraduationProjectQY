@@ -80,8 +80,8 @@ const handleLogin = async () => {
       try {
         // 调用真实登录 API
         const res = await authApi.login({
-          username: loginForm.username,
-          password: loginForm.password
+          username: form.email,
+          password: form.password
         })
         
         if (res.data?.code === 0 && res.data.data?.token) {

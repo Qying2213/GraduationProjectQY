@@ -69,15 +69,23 @@ export const useUserStore = defineStore('user', () => {
 
     // 登录
     const login = async (username: string, password: string) => {
+        console.log('[Login] 开始登录, 用户名:', username)
         const res = await authApi.login({ username, password })
+        console.log('[Login] 响应:', res.data)
+        
         if (res.data.code === 0 && res.data.data) {
+            console.log('[Login] 登录成功, 用户:', res.data.data.user)
             token.value = res.data.data.token
             user.value = res.data.data.user
 
             safeStorage.setItem('token', res.data.data.token)
             safeStorage.setItem('user', JSON.stringify(res.data.data.user))
+            return res.data
+        } else {
+            // 登录失败，抛出错误
+            console.error('[Login] 登录失败:', res.data.message)
+            throw new Error(res.data.message || '用户名或密码错误')
         }
-        return res.data
     }
 
     // 注册

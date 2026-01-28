@@ -204,9 +204,17 @@ const handleLogin = async () => {
         }
 
         ElMessage.success('登录成功，欢迎回来！')
-        router.push('/dashboard')
+        // 延迟跳转，让用户看到成功提示
+        setTimeout(() => {
+          router.push('/dashboard')
+        }, 500)
       } catch (error: any) {
-        ElMessage.error(error.message || '登录失败，请检查账号密码')
+        console.error('[Login] 捕获错误:', error)
+        ElMessage({
+          message: error.message || '登录失败，请检查账号密码',
+          type: 'error',
+          duration: 3000
+        })
       } finally {
         loading.value = false
       }
