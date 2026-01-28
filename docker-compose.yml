@@ -60,7 +60,9 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - talent-network
+      talent-network:
+        aliases:
+          - gateway
 
   # 前端
   frontend:
