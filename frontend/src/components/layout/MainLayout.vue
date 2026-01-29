@@ -72,6 +72,11 @@
             <el-badge v-if="unreadCount > 0" :value="unreadCount" class="badge" />
           </el-menu-item>
 
+          <el-menu-item index="/chat">
+            <el-icon><ChatLineRound /></el-icon>
+            <span>即时聊天</span>
+          </el-menu-item>
+
           <el-menu-item index="/reports">
             <el-icon><DataLine /></el-icon>
             <span>数据报表</span>
@@ -197,7 +202,7 @@ import { useMessageStore } from '@/store/message'
 import { ElMessage } from 'element-plus'
 import {
   DataAnalysis, User, Suitcase, Document, TrendCharts,
-  ChatDotRound, Fold, Expand, Bell, SwitchButton, MagicStick,
+  ChatDotRound, ChatLineRound, Fold, Expand, Bell, SwitchButton, MagicStick,
   Sunny, Moon, Monitor, Operation, Calendar, Key, Setting, DataLine, Upload, Connection
 } from '@element-plus/icons-vue'
 

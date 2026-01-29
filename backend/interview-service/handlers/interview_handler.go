@@ -1,8 +1,12 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"interview-service/models"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -19,15 +23,35 @@ func NewInterviewHandler(db *gorm.DB) *InterviewHandler {
 }
 
 // CreateInterview 创建面试安排
+// Requirements: 7.1, 7.2, 7.3, 7.5
 func (h *InterviewHandler) CreateInterview(c *gin.Context) {
 	var req struct {
 		models.InterviewScheduleRequest
-		CreatedBy uint `json:"created_by"`
+		CreatedBy     uint `json:"created_by"`
+		ApplicationID uint `json:"application_id"` // 关联的申请ID
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    1,
 			"message": "Invalid request: " + err.Error(),
+		})
+		return
+	}
+
+	// Requirement 7.5: 验证面试日期必须是未来时间
+	interviewDateTime, err := time.ParseInLocation("2006-01-02 15:04", req.Date+" "+req.Time, time.Local)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    1005,
+			"message": "日期时间格式无效",
+		})
+		return
+	}
+
+	if interviewDateTime.Before(time.Now()) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    1005,
+			"message": "面试日期必须是未来时间",
 		})
 		return
 	}
@@ -68,11 +92,110 @@ func (h *InterviewHandler) CreateInterview(c *gin.Context) {
 		return
 	}
 
+	// Requirement 7.3: 面试安排后发送通知给候选人
+	go h.sendInterviewNotification(&interview, req.ApplicationID)
+
 	c.JSON(http.StatusCreated, gin.H{
 		"code":    0,
 		"message": "Interview scheduled successfully",
 		"data":    interview,
 	})
+}
+
+// sendInterviewNotification 发送面试通知给候选人
+// Requirement 7.3: 候选人收到面试安排通知
+func (h *InterviewHandler) sendInterviewNotification(interview *models.Interview, applicationID uint) {
+	// 获取候选人的用户ID
+	var userID uint
+
+	// 首先尝试从 talents 表获取用户ID
+	var talent struct {
+		UserID uint `gorm:"column:user_id"`
+	}
+	if err := h.DB.Table("talents").Select("user_id").Where("id = ?", interview.CandidateID).First(&talent).Error; err == nil && talent.UserID > 0 {
+		userID = talent.UserID
+	} else {
+		// 如果 talents 表没有 user_id，尝试从 applications 表关联查找
+		if applicationID > 0 {
+			var app struct {
+				TalentID uint `gorm:"column:talent_id"`
+			}
+			if err := h.DB.Table("applications").Select("talent_id").Where("id = ?", applicationID).First(&app).Error; err == nil {
+				// 使用 talent_id 作为 user_id（某些系统中可能相同）
+				userID = app.TalentID
+			}
+		}
+	}
+
+	// 如果仍然没有找到用户ID，使用候选人ID
+	if userID == 0 {
+		userID = interview.CandidateID
+	}
+
+	// 构建通知消息
+	methodText := map[string]string{
+		"onsite": "现场面试",
+		"video":  "视频面试",
+		"phone":  "电话面试",
+	}[string(interview.Method)]
+	if methodText == "" {
+		methodText = "面试"
+	}
+
+	typeText := map[string]string{
+		"initial": "初试",
+		"second":  "复试",
+		"final":   "终面",
+		"hr":      "HR面试",
+	}[string(interview.Type)]
+	if typeText == "" {
+		typeText = "面试"
+	}
+
+	title := fmt.Sprintf("面试邀请 - %s", interview.Position)
+	content := fmt.Sprintf(
+		"您好，%s！\n\n您已被邀请参加【%s】职位的%s。\n\n面试详情：\n- 面试类型：%s\n- 面试方式：%s\n- 面试时间：%s %s\n- 时长：%d分钟\n- 面试官：%s\n- 地点/链接：%s\n\n请准时参加面试，祝您面试顺利！",
+		interview.CandidateName,
+		interview.Position,
+		typeText,
+		typeText,
+		methodText,
+		interview.Date,
+		interview.Time,
+		interview.Duration,
+		interview.Interviewer,
+		interview.Location,
+	)
+
+	// 发送通知到 message-service
+	messageServiceURL := os.Getenv("MESSAGE_SERVICE_URL")
+	if messageServiceURL == "" {
+		messageServiceURL = "http://localhost:8085"
+	}
+
+	notificationPayload := map[string]interface{}{
+		"receiver_id": userID,
+		"title":       title,
+		"content":     content,
+		"type":        "interview",
+	}
+
+	jsonData, err := json.Marshal(notificationPayload)
+	if err != nil {
+		fmt.Printf("Failed to marshal notification: %v\n", err)
+		return
+	}
+
+	resp, err := http.Post(messageServiceURL+"/api/messages", "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Printf("Failed to send notification: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		fmt.Printf("Notification service returned status: %d\n", resp.StatusCode)
+	}
 }
 
 // ListInterviews 获取面试列表
@@ -557,6 +680,24 @@ func (h *InterviewHandler) RescheduleInterview(c *gin.Context) {
 		return
 	}
 
+	// Requirement 7.5: 验证面试日期必须是未来时间
+	newDateTime, err := time.ParseInLocation("2006-01-02 15:04", req.Date+" "+req.Time, time.Local)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    1005,
+			"message": "日期时间格式无效",
+		})
+		return
+	}
+
+	if newDateTime.Before(time.Now()) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    1005,
+			"message": "面试日期必须是未来时间",
+		})
+		return
+	}
+
 	oldDate := interview.Date
 	oldTime := interview.Time
 
@@ -577,9 +718,63 @@ func (h *InterviewHandler) RescheduleInterview(c *gin.Context) {
 
 	h.DB.First(&interview, id)
 
+	// 发送改期通知给候选人
+	go h.sendRescheduleNotification(&interview, oldDate, oldTime, req.Reason)
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "Interview rescheduled successfully",
 		"data":    interview,
 	})
+}
+
+// sendRescheduleNotification 发送面试改期通知
+func (h *InterviewHandler) sendRescheduleNotification(interview *models.Interview, oldDate, oldTime, reason string) {
+	// 获取候选人的用户ID
+	var userID uint
+	var talent struct {
+		UserID uint `gorm:"column:user_id"`
+	}
+	if err := h.DB.Table("talents").Select("user_id").Where("id = ?", interview.CandidateID).First(&talent).Error; err == nil && talent.UserID > 0 {
+		userID = talent.UserID
+	} else {
+		userID = interview.CandidateID
+	}
+
+	title := fmt.Sprintf("面试改期通知 - %s", interview.Position)
+	content := fmt.Sprintf(
+		"您好，%s！\n\n您的【%s】职位面试时间已调整。\n\n原时间：%s %s\n新时间：%s %s\n改期原因：%s\n\n请按新时间准时参加面试，祝您面试顺利！",
+		interview.CandidateName,
+		interview.Position,
+		oldDate,
+		oldTime,
+		interview.Date,
+		interview.Time,
+		reason,
+	)
+
+	messageServiceURL := os.Getenv("MESSAGE_SERVICE_URL")
+	if messageServiceURL == "" {
+		messageServiceURL = "http://localhost:8085"
+	}
+
+	notificationPayload := map[string]interface{}{
+		"receiver_id": userID,
+		"title":       title,
+		"content":     content,
+		"type":        "interview",
+	}
+
+	jsonData, err := json.Marshal(notificationPayload)
+	if err != nil {
+		fmt.Printf("Failed to marshal notification: %v\n", err)
+		return
+	}
+
+	resp, err := http.Post(messageServiceURL+"/api/messages", "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Printf("Failed to send notification: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
 }

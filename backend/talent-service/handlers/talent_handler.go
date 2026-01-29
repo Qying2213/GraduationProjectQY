@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"talent-service/models"
 
 	"github.com/gin-gonic/gin"
@@ -37,6 +38,12 @@ func (h *TalentHandler) CreateTalent(c *gin.Context) {
 	})
 }
 
+// TalentWithScore 带匹配分数的人才结构
+type TalentWithScore struct {
+	models.Talent
+	MatchScore float64 `json:"match_score"`
+}
+
 // ListTalents 获取人才列表
 func (h *TalentHandler) ListTalents(c *gin.Context) {
 	var talents []models.Talent
@@ -46,6 +53,8 @@ func (h *TalentHandler) ListTalents(c *gin.Context) {
 	status := c.Query("status")
 	search := c.Query("search")
 	experience := c.Query("experience")
+	skills := c.QueryArray("skills")
+	location := c.Query("location")
 
 	offset := (page - 1) * pageSize
 
@@ -55,8 +64,25 @@ func (h *TalentHandler) ListTalents(c *gin.Context) {
 		query = query.Where("status = ?", status)
 	}
 
+	// 增强关键词搜索：搜索姓名、技能、经验描述
 	if search != "" {
-		query = query.Where("name ILIKE ? OR email ILIKE ? OR ? = ANY(skills)", "%"+search+"%", "%"+search+"%", search)
+		searchPattern := "%" + search + "%"
+		query = query.Where(
+			"name ILIKE ? OR email ILIKE ? OR summary ILIKE ? OR current_position ILIKE ? OR ? = ANY(skills)",
+			searchPattern, searchPattern, searchPattern, searchPattern, search,
+		)
+	}
+
+	// 技能筛选：支持多技能筛选
+	if len(skills) > 0 {
+		for _, skill := range skills {
+			query = query.Where("? = ANY(skills)", skill)
+		}
+	}
+
+	// 地区筛选
+	if location != "" {
+		query = query.Where("location ILIKE ?", "%"+location+"%")
 	}
 
 	// 经验筛选
@@ -83,16 +109,103 @@ func (h *TalentHandler) ListTalents(c *gin.Context) {
 		return
 	}
 
+	// 计算匹配分数
+	talentsWithScore := make([]TalentWithScore, len(talents))
+	for i, talent := range talents {
+		talentsWithScore[i] = TalentWithScore{
+			Talent:     talent,
+			MatchScore: h.calculateMatchScore(talent, search, skills),
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "success",
 		"data": gin.H{
-			"talents":   talents,
+			"talents":   talentsWithScore,
 			"total":     total,
 			"page":      page,
 			"page_size": pageSize,
 		},
 	})
+}
+
+// calculateMatchScore 计算人才匹配分数
+func (h *TalentHandler) calculateMatchScore(talent models.Talent, keyword string, filterSkills []string) float64 {
+	score := 0.0
+	maxScore := 100.0
+
+	// 基础分数：有完整信息的人才得分更高
+	if talent.Name != "" {
+		score += 10
+	}
+	if talent.Email != "" {
+		score += 5
+	}
+	if talent.Phone != "" {
+		score += 5
+	}
+	if len(talent.Skills) > 0 {
+		score += 15
+	}
+	if talent.Experience > 0 {
+		score += 10
+	}
+	if talent.Education != "" {
+		score += 10
+	}
+	if talent.Summary != "" {
+		score += 10
+	}
+
+	// 关键词匹配加分
+	if keyword != "" {
+		keywordLower := strings.ToLower(keyword)
+		// 姓名匹配
+		if strings.Contains(strings.ToLower(talent.Name), keywordLower) {
+			score += 15
+		}
+		// 技能匹配
+		for _, skill := range talent.Skills {
+			if strings.Contains(strings.ToLower(skill), keywordLower) {
+				score += 10
+				break
+			}
+		}
+		// 简介匹配
+		if strings.Contains(strings.ToLower(talent.Summary), keywordLower) {
+			score += 5
+		}
+	}
+
+	// 技能筛选匹配加分
+	if len(filterSkills) > 0 {
+		matchedSkills := 0
+		for _, filterSkill := range filterSkills {
+			filterSkillLower := strings.ToLower(filterSkill)
+			for _, talentSkill := range talent.Skills {
+				if strings.ToLower(talentSkill) == filterSkillLower {
+					matchedSkills++
+					break
+				}
+			}
+		}
+		// 根据匹配的技能数量加分
+		if matchedSkills > 0 {
+			skillMatchRatio := float64(matchedSkills) / float64(len(filterSkills))
+			score += skillMatchRatio * 20
+		}
+	}
+
+	// 确保分数在0-100之间
+	if score > maxScore {
+		score = maxScore
+	}
+	if score < 0 {
+		score = 0
+	}
+
+	return score
 }
 
 // GetTalent 获取单个人才详情

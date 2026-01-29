@@ -64,6 +64,7 @@ export interface CreateInterviewRequest {
   method: string
   location: string
   notes?: string
+  application_id?: number  // 关联的申请ID
 }
 
 export interface UpdateInterviewRequest {

@@ -14,6 +14,18 @@
         </nav>
         <div class="header-right">
           <template v-if="userStore.isLoggedIn">
+            <!-- 消息按钮 -->
+            <el-badge :value="unreadCount" :hidden="unreadCount === 0" :max="99" class="message-badge">
+              <el-button 
+                class="message-btn" 
+                @click="$router.push('/portal/chat')"
+                :type="$route.path === '/portal/chat' ? 'primary' : 'default'"
+              >
+                <el-icon><ChatDotRound /></el-icon>
+                <span class="btn-text">消息</span>
+              </el-button>
+            </el-badge>
+
             <el-dropdown trigger="click">
               <div class="user-info">
                 <el-avatar :size="36" :style="{ background: '#0ea5e9' }">
@@ -24,6 +36,9 @@
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item @click="$router.push('/portal/chat')">
+                    <el-icon><ChatDotRound /></el-icon> 消息中心
+                  </el-dropdown-item>
                   <el-dropdown-item @click="$router.push('/portal/my-applications')">
                     <el-icon><Document /></el-icon> 我的投递
                   </el-dropdown-item>
@@ -63,10 +78,34 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/store/user'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Connection, ArrowDown, Document, User, SwitchButton } from '@element-plus/icons-vue'
+import { Connection, ArrowDown, Document, User, SwitchButton, ChatDotRound } from '@element-plus/icons-vue'
+import { chatApi } from '@/api/chat'
+
+const unreadCount = ref(0)
+
+// 获取未读消息数
+const fetchUnreadCount = async () => {
+  if (userStore.isLoggedIn) {
+    try {
+      const res = await chatApi.getTotalUnreadCount()
+      if (res.data?.code === 0) {
+        unreadCount.value = res.data.data?.total_unread || 0
+      }
+    } catch (e) {
+      console.error('获取未读消息数失败', e)
+    }
+  }
+}
+
+onMounted(() => {
+  fetchUnreadCount()
+  // 每30秒刷新一次
+  setInterval(fetchUnreadCount, 30000)
+})
 
 const userStore = useUserStore()
 const router = useRouter()
@@ -150,6 +189,18 @@ const handleLogout = () => {
       .username {
         font-weight: 500;
         color: #1e293b;
+      }
+    }
+
+    .message-badge {
+      margin-right: 12px;
+    }
+
+    .message-btn {
+      border-radius: 8px;
+      
+      .btn-text {
+        margin-left: 4px;
       }
     }
   }

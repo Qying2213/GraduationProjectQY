@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 	"resume-service/handlers"
-	"resume-service/models"
 
 	"common/middleware"
 
@@ -44,9 +43,11 @@ func main() {
 		log.Fatal("Failed to connect database:", err)
 	}
 
-	if err := db.AutoMigrate(&models.Resume{}, &models.Application{}, &models.EvaluationResult{}); err != nil {
-		log.Fatal("Failed to migrate database:", err)
-	}
+	// AutoMigrate 已禁用 - 表结构通过 SQL 脚本管理
+	// 如需迁移，请运行: psql -d talent_platform -f backend/database/schema.sql
+	// if err := db.AutoMigrate(&models.Resume{}, &models.Application{}, &models.EvaluationResult{}); err != nil {
+	// 	log.Fatal("Failed to migrate database:", err)
+	// }
 
 	r := gin.Default()
 
@@ -57,6 +58,7 @@ func main() {
 	aiHandler := handlers.NewAIEvaluateHandler(db)
 	aiParseHandler := handlers.NewAIParseHandler(db)
 	evalHandler := handlers.NewEvaluationHandler(db)
+	onlineResumeHandler := handlers.NewOnlineResumeHandler(db)
 
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
@@ -79,6 +81,11 @@ func main() {
 			resumes.PUT("/:id/status", resumeHandler.UpdateResumeStatus) // 更新简历状态
 			resumes.POST("/parse", resumeHandler.ParseResume)
 			resumes.POST("/match", resumeHandler.MatchResumeToJob)
+
+			// 在线简历接口 (需要JWT认证)
+			// Requirements: 4.3 (持久化), 4.6 (字段验证)
+			resumes.GET("/online", middleware.JWTAuth(), onlineResumeHandler.GetOnlineResume)
+			resumes.PUT("/online", middleware.JWTAuth(), onlineResumeHandler.SaveOnlineResume)
 		}
 
 		// AI Evaluation routes
@@ -103,12 +110,14 @@ func main() {
 			evaluations.DELETE("/:id", evalHandler.DeleteEvaluation)
 		}
 
-		// Application routes
+		// Application routes (需要JWT认证)
 		applications := api.Group("/applications")
+		applications.Use(middleware.JWTAuth())
 		{
 			applications.POST("", resumeHandler.CreateApplication)
 			applications.GET("", resumeHandler.ListApplications)
 			applications.PUT("/:id", resumeHandler.UpdateApplication)
+			applications.DELETE("/:id", resumeHandler.DeleteApplication)
 		}
 	}
 

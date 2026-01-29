@@ -1,6 +1,56 @@
 import request from '@/utils/request'
 import type { Resume, ApiResponse } from '@/types'
 
+// 在线简历数据类型
+export interface BasicInfo {
+    name: string
+    phone: string
+    email: string
+    location: string
+    avatar?: string
+    gender?: string
+    age?: number
+    summary?: string
+}
+
+export interface WorkExperience {
+    company: string
+    position: string
+    start_date: string
+    end_date?: string
+    is_current: boolean
+    description?: string
+    location?: string
+}
+
+export interface Education {
+    school: string
+    degree: string
+    major: string
+    start_date: string
+    end_date?: string
+    is_current: boolean
+    gpa?: string
+    activities?: string
+}
+
+export interface OnlineResumeRequest {
+    basic_info: BasicInfo
+    work_experience: WorkExperience[]
+    education: Education[]
+    skills: string[]
+}
+
+export interface OnlineResumeResponse {
+    id: number
+    basic_info: BasicInfo
+    work_experience: WorkExperience[]
+    education: Education[]
+    skills: string[]
+    is_complete: boolean
+    updated_at: string
+}
+
 export const resumeApi = {
     // 上传简历文件
     upload(file: File, talentId?: number, jobId?: number) {
@@ -59,6 +109,16 @@ export const resumeApi = {
     // 获取用于评估的简历列表
     listForEvaluation(params?: { page?: number; page_size?: number; status?: string }) {
         return request.get<ApiResponse>('/resumes/evaluation', { params })
+    },
+
+    // 获取当前用户的在线简历
+    getOnlineResume() {
+        return request.get<ApiResponse<OnlineResumeResponse>>('/resumes/online')
+    },
+
+    // 保存在线简历
+    saveOnlineResume(data: OnlineResumeRequest) {
+        return request.put<ApiResponse<OnlineResumeResponse>>('/resumes/online', data)
     }
 }
 

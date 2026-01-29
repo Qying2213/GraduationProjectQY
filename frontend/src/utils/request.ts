@@ -34,7 +34,9 @@ instance.interceptors.request.use(
                 localStorage.removeItem('token')
                 localStorage.removeItem('user')
                 ElMessage.error('登录已过期，请重新登录')
-                window.location.href = '/login'
+                // 根据当前路径判断跳转到哪个登录页
+                const isPortal = window.location.pathname.startsWith('/portal')
+                window.location.href = isPortal ? '/portal/login' : '/login'
                 return Promise.reject(new Error('Token expired'))
             }
             config.headers.Authorization = `Bearer ${token}`
@@ -75,7 +77,9 @@ instance.interceptors.response.use(
                     ElMessage.error('未授权，请登录')
                     localStorage.removeItem('token')
                     localStorage.removeItem('user')
-                    window.location.href = '/login'
+                    // 根据当前路径判断跳转到哪个登录页
+                    const isPortal = window.location.pathname.startsWith('/portal')
+                    window.location.href = isPortal ? '/portal/login' : '/login'
                     break
                 case 403:
                     ElMessage.error('无权限访问')

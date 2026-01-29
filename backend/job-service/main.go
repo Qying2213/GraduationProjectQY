@@ -63,6 +63,7 @@ func main() {
 		api.GET("/:id", jobHandler.GetJob)
 		api.PUT("/:id", jobHandler.UpdateJob)
 		api.DELETE("/:id", jobHandler.DeleteJob)
+		api.GET("/:id/applications", jobHandler.GetJobApplications)
 	}
 
 	log.Println("Job service is running on :8082")

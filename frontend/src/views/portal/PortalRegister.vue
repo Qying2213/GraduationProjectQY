@@ -48,6 +48,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import { User, Message, Phone, Lock } from '@element-plus/icons-vue'
+import { authApi } from '@/api/auth'
 
 const router = useRouter()
 const formRef = ref<FormInstance>()
@@ -99,11 +100,23 @@ const handleRegister = async () => {
     if (valid) {
       loading.value = true
       try {
-        await new Promise(r => setTimeout(r, 1000))
-        ElMessage.success('注册成功，请登录')
-        router.push('/portal/login')
+        const res = await authApi.register({
+          username: form.email, // 使用邮箱作为用户名
+          email: form.email,
+          password: form.password,
+          role: 'candidate', // 求职者角色
+          real_name: form.name,
+          phone: form.phone
+        })
+        
+        if (res.data?.code === 0) {
+          ElMessage.success('注册成功，请登录')
+          router.push('/portal/login')
+        } else {
+          ElMessage.error(res.data?.message || '注册失败')
+        }
       } catch (e: any) {
-        ElMessage.error(e.message || '注册失败')
+        ElMessage.error(e.response?.data?.message || e.message || '注册失败')
       } finally {
         loading.value = false
       }

@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -18,8 +19,8 @@ const (
 	// 发送ping消息的间隔
 	pingPeriod = (pongWait * 9) / 10
 
-	// 最大消息大小
-	maxMessageSize = 512
+	// 最大消息大小 (increased for chat messages)
+	maxMessageSize = 4096
 )
 
 var upgrader = websocket.Upgrader{
@@ -27,6 +28,10 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
 		origin := r.Header.Get("Origin")
+		// 如果没有 Origin 头（如某些客户端或测试），允许连接
+		if origin == "" {
+			return true
+		}
 		allowedOrigins := map[string]bool{
 			"http://localhost:3000": true,
 			"http://localhost:5173": true,
@@ -35,6 +40,14 @@ var upgrader = websocket.Upgrader{
 		}
 		return allowedOrigins[origin]
 	},
+}
+
+// ClientMessage represents an incoming message from a WebSocket client
+type ClientMessage struct {
+	Type           string `json:"type"`
+	ConversationID uint   `json:"conversation_id,omitempty"`
+	Content        string `json:"content,omitempty"`
+	IsTyping       bool   `json:"is_typing,omitempty"`
 }
 
 // Client WebSocket客户端
@@ -49,9 +62,13 @@ type Client struct {
 
 	// 用户ID
 	UserID uint
+
+	// Message handler callback (optional, for processing incoming messages)
+	OnMessage func(client *Client, message *ClientMessage)
 }
 
 // readPump 从WebSocket连接读取消息
+// Requirements: 8.2 - Handle incoming chat messages
 func (c *Client) readPump() {
 	defer func() {
 		c.hub.unregister <- c
@@ -73,7 +90,42 @@ func (c *Client) readPump() {
 			}
 			break
 		}
+
 		log.Printf("Received message from user %d: %s", c.UserID, message)
+
+		// Parse the incoming message
+		var clientMsg ClientMessage
+		if err := json.Unmarshal(message, &clientMsg); err != nil {
+			log.Printf("Error parsing client message: %v", err)
+			continue
+		}
+
+		// Handle different message types
+		switch clientMsg.Type {
+		case MsgTypeTyping:
+			// Handle typing indicator
+			if clientMsg.ConversationID > 0 {
+				c.hub.SendTypingIndicator(clientMsg.ConversationID, c.UserID, clientMsg.IsTyping)
+			}
+
+		case "subscribe":
+			// Subscribe to a conversation for real-time updates
+			if clientMsg.ConversationID > 0 {
+				c.hub.SubscribeToConversation(clientMsg.ConversationID, c.UserID)
+			}
+
+		case "unsubscribe":
+			// Unsubscribe from a conversation
+			if clientMsg.ConversationID > 0 {
+				c.hub.UnsubscribeFromConversation(clientMsg.ConversationID, c.UserID)
+			}
+
+		default:
+			// Call custom message handler if set
+			if c.OnMessage != nil {
+				c.OnMessage(c, &clientMsg)
+			}
+		}
 	}
 }
 

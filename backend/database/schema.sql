@@ -179,6 +179,51 @@ CREATE TABLE IF NOT EXISTS evaluation_results (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 会话表（聊天功能）
+CREATE TABLE IF NOT EXISTS conversations (
+    id SERIAL PRIMARY KEY,
+    participant_a INTEGER REFERENCES users(id) NOT NULL,
+    participant_b INTEGER REFERENCES users(id) NOT NULL,
+    last_message_id INTEGER,
+    last_message_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(participant_a, participant_b)
+);
+
+-- 聊天消息表
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id SERIAL PRIMARY KEY,
+    conversation_id INTEGER REFERENCES conversations(id) NOT NULL,
+    sender_id INTEGER REFERENCES users(id) NOT NULL,
+    content TEXT NOT NULL,
+    message_type VARCHAR(20) DEFAULT 'text',
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 在线简历表
+CREATE TABLE IF NOT EXISTS online_resumes (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) NOT NULL UNIQUE,
+    talent_id INTEGER REFERENCES talents(id),
+    name VARCHAR(100),
+    phone VARCHAR(20),
+    email VARCHAR(100),
+    location VARCHAR(100),
+    avatar VARCHAR(500),
+    gender VARCHAR(10),
+    age INTEGER,
+    summary TEXT,
+    work_experience JSONB DEFAULT '[]'::jsonb,
+    education JSONB DEFAULT '[]'::jsonb,
+    skills JSONB DEFAULT '[]'::jsonb,
+    is_complete BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
 -- 创建索引
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
 CREATE INDEX IF NOT EXISTS idx_jobs_department ON jobs(department);
@@ -195,3 +240,14 @@ CREATE INDEX IF NOT EXISTS idx_messages_receiver ON messages(receiver_id);
 CREATE INDEX IF NOT EXISTS idx_messages_read ON messages(is_read);
 CREATE INDEX IF NOT EXISTS idx_evaluation_results_status ON evaluation_results(status);
 CREATE INDEX IF NOT EXISTS idx_evaluation_results_match_level ON evaluation_results(match_level);
+
+-- 聊天功能索引
+CREATE INDEX IF NOT EXISTS idx_conversations_participants ON conversations(participant_a, participant_b);
+CREATE INDEX IF NOT EXISTS idx_conversations_last_message ON conversations(last_message_at DESC);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_conversation ON chat_messages(conversation_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_unread ON chat_messages(conversation_id, is_read) WHERE is_read = FALSE;
+
+-- 在线简历索引
+CREATE INDEX IF NOT EXISTS idx_online_resumes_user_id ON online_resumes(user_id);
+CREATE INDEX IF NOT EXISTS idx_online_resumes_talent_id ON online_resumes(talent_id);
+CREATE INDEX IF NOT EXISTS idx_online_resumes_deleted_at ON online_resumes(deleted_at);

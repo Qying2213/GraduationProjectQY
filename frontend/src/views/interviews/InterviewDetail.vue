@@ -327,14 +327,29 @@ const handleReschedule = async () => {
     ElMessage.warning('请选择新的日期和时间')
     return
   }
+  
+  // Requirement 7.5: 验证面试日期必须是未来时间
+  const newDateTime = new Date(`${rescheduleForm.value.date}T${rescheduleForm.value.time}`)
+  if (newDateTime <= new Date()) {
+    ElMessage.error('面试日期必须是未来时间')
+    return
+  }
+  
   submitting.value = true
   try {
-    await interviewApi.reschedule(interview.value!.id, rescheduleForm.value)
-    ElMessage.success('面试已改期')
-    showRescheduleDialog.value = false
-    fetchInterview()
-  } catch (error) {
-    ElMessage.error('改期失败')
+    const res = await interviewApi.reschedule(interview.value!.id, rescheduleForm.value)
+    if (res.data.code === 0) {
+      ElMessage.success('面试已改期，已发送通知给候选人')
+      showRescheduleDialog.value = false
+      fetchInterview()
+    } else if (res.data.code === 1005) {
+      ElMessage.error(res.data.message || '面试日期必须是未来时间')
+    } else {
+      ElMessage.error(res.data?.message || '改期失败')
+    }
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.message || '改期失败'
+    ElMessage.error(errorMsg)
   } finally {
     submitting.value = false
   }

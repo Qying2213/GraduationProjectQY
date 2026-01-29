@@ -30,6 +30,7 @@ export interface Talent {
     user_id: number
     created_at: string
     updated_at: string
+    match_score?: number  // AI匹配分数
 }
 
 export interface Job {
@@ -48,6 +49,7 @@ export interface Job {
     benefits: string[]
     created_at: string
     updated_at: string
+    applicants?: number  // 申请人数（可选，用于职位列表显示）
 }
 
 export interface Resume {

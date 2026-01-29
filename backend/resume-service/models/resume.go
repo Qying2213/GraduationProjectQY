@@ -32,7 +32,9 @@ type Application struct {
 	JobID       uint           `json:"job_id"`
 	TalentID    uint           `json:"talent_id"`
 	ResumeID    uint           `json:"resume_id"`
+	Stage       string         `gorm:"size:50;default:'applied'" json:"stage"`  // applied, screening, interview, offer, hired, rejected
 	Status      string         `gorm:"size:20;default:'pending'" json:"status"` // pending, reviewed, interview, rejected, accepted
+	Source      string         `gorm:"size:50" json:"source"`                   // 来源渠道
 	CoverLetter string         `gorm:"type:text" json:"cover_letter"`
 	Notes       string         `gorm:"type:text" json:"notes"`
 }

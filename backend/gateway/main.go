@@ -1,11 +1,14 @@
 package main
 
 import (
+	"io"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -344,6 +347,96 @@ func ReverseProxy(target string) gin.HandlerFunc {
 	}
 }
 
+// wsProxyHandler 处理 WebSocket 代理
+// 使用 TCP 隧道方式转发 WebSocket 连接
+func wsProxyHandler(c *gin.Context, targetHost string) {
+	// 检查是否是 WebSocket 升级请求
+	if !strings.EqualFold(c.GetHeader("Upgrade"), "websocket") {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Not a WebSocket request"})
+		return
+	}
+
+	log.Printf("WebSocket proxy: connecting to backend %s", targetHost)
+
+	// 连接到后端 WebSocket 服务
+	targetConn, err := net.Dial("tcp", targetHost)
+	if err != nil {
+		log.Printf("WebSocket proxy: failed to connect to backend: %v", err)
+		c.JSON(http.StatusBadGateway, gin.H{"error": "Backend service unavailable"})
+		return
+	}
+
+	// 劫持客户端连接
+	hijacker, ok := c.Writer.(http.Hijacker)
+	if !ok {
+		targetConn.Close()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Hijacking not supported"})
+		return
+	}
+
+	clientConn, clientBuf, err := hijacker.Hijack()
+	if err != nil {
+		targetConn.Close()
+		log.Printf("WebSocket proxy: failed to hijack connection: %v", err)
+		return
+	}
+
+	// 构建转发到后端的请求
+	// 保留原始的 query 参数（包含 token）
+	path := "/ws"
+	if c.Request.URL.RawQuery != "" {
+		path = path + "?" + c.Request.URL.RawQuery
+	}
+
+	// 手动构建 HTTP 请求头
+	reqLine := "GET " + path + " HTTP/1.1\r\n"
+	reqLine += "Host: " + targetHost + "\r\n"
+
+	// 复制所有必要的头部
+	for key, values := range c.Request.Header {
+		for _, value := range values {
+			reqLine += key + ": " + value + "\r\n"
+		}
+	}
+	reqLine += "\r\n"
+
+	log.Printf("WebSocket proxy: forwarding request to %s%s", targetHost, path)
+
+	// 将请求写入后端连接
+	if _, err := targetConn.Write([]byte(reqLine)); err != nil {
+		log.Printf("WebSocket proxy: failed to write request: %v", err)
+		clientConn.Close()
+		targetConn.Close()
+		return
+	}
+
+	// 双向转发数据
+	done := make(chan struct{}, 2)
+
+	// 从后端读取，写入客户端
+	go func() {
+		defer func() { done <- struct{}{} }()
+		io.Copy(clientConn, targetConn)
+	}()
+
+	// 从客户端读取，写入后端
+	// 注意：需要先处理 clientBuf 中可能已缓冲的数据
+	go func() {
+		defer func() { done <- struct{}{} }()
+		if clientBuf != nil && clientBuf.Reader.Buffered() > 0 {
+			io.CopyN(targetConn, clientBuf, int64(clientBuf.Reader.Buffered()))
+		}
+		io.Copy(targetConn, clientConn)
+	}()
+
+	// 等待任一方向关闭
+	<-done
+
+	// 关闭连接
+	clientConn.Close()
+	targetConn.Close()
+}
+
 func main() {
 	initDB()
 
@@ -412,6 +505,18 @@ func main() {
 	// 消息服务
 	api.Any("/messages", ReverseProxy(serviceRegistry["message"]))
 	api.Any("/messages/*path", ReverseProxy(serviceRegistry["message"]))
+
+	// 聊天服务 (Chat API - 转发到 message-service)
+	// Requirements: 8.2 (Real-time messaging), 9.1 (Conversation management)
+	api.Any("/conversations", ReverseProxy(serviceRegistry["message"]))
+	api.Any("/conversations/*path", ReverseProxy(serviceRegistry["message"]))
+
+	// WebSocket 代理 (转发到 message-service)
+	// Requirements: 8.1 (WebSocket connection), 8.2 (Real-time message delivery)
+	api.GET("/ws", func(c *gin.Context) {
+		// WebSocket 需要特殊处理，不能用普通的反向代理
+		wsProxyHandler(c, "localhost:8085")
+	})
 
 	// 面试服务
 	api.Any("/interviews", ReverseProxy(serviceRegistry["interview"]))

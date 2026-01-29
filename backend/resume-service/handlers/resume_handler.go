@@ -383,6 +383,11 @@ func (h *ResumeHandler) DeleteResume(c *gin.Context) {
 }
 
 // CreateApplication 创建申请
+// 增强逻辑：
+// - 检查重复申请（同一求职者不能重复投递同一职位）
+// - 验证求职者是否有简历
+// - 申请创建后自动发送通知给HR
+// Requirements: 2.2, 2.3, 2.4, 2.6
 func (h *ResumeHandler) CreateApplication(c *gin.Context) {
 	var app models.Application
 	if err := c.ShouldBindJSON(&app); err != nil {
@@ -390,9 +395,73 @@ func (h *ResumeHandler) CreateApplication(c *gin.Context) {
 		return
 	}
 
+	// 验证必要字段
+	if app.JobID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "job_id is required"})
+		return
+	}
+	if app.TalentID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "talent_id is required"})
+		return
+	}
+
+	// Requirement 2.6: 验证求职者是否有简历
+	var resumeCount int64
+	h.DB.Table("resumes").Where("talent_id = ?", app.TalentID).Count(&resumeCount)
+	if resumeCount == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    1002,
+			"message": "请先上传简历",
+		})
+		return
+	}
+
+	// Requirement 2.4: 检查重复申请（同一求职者不能重复投递同一职位）
+	var existingApp models.Application
+	result := h.DB.Where("job_id = ? AND talent_id = ?", app.JobID, app.TalentID).First(&existingApp)
+	if result.Error == nil {
+		// 已存在申请记录
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    1001,
+			"message": "您已投递过该职位",
+		})
+		return
+	}
+
+	// Requirement 2.2: 确保申请状态为 "pending"
+	app.Status = "pending"
+
+	// 创建申请记录
 	if err := h.DB.Create(&app).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "Failed to create application"})
 		return
+	}
+
+	// Requirement 2.3: 申请创建后自动发送通知给HR
+	// 获取职位信息，找到创建该职位的HR
+	var job struct {
+		ID        uint   `json:"id"`
+		Title     string `json:"title"`
+		CreatedBy uint   `json:"created_by"`
+	}
+	if err := h.DB.Table("jobs").Where("id = ?", app.JobID).First(&job).Error; err == nil && job.CreatedBy > 0 {
+		// 获取求职者信息
+		var talent struct {
+			Name string `json:"name"`
+		}
+		h.DB.Table("talents").Where("id = ?", app.TalentID).First(&talent)
+
+		// 创建通知消息给HR
+		notification := map[string]interface{}{
+			"sender_id":   nil, // 系统消息
+			"receiver_id": job.CreatedBy,
+			"title":       "新的职位申请",
+			"content":     fmt.Sprintf("求职者 %s 投递了您发布的职位「%s」，请及时查看。", talent.Name, job.Title),
+			"type":        "application",
+			"is_read":     false,
+			"created_at":  time.Now(),
+		}
+		h.DB.Table("messages").Create(notification)
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
@@ -409,6 +478,41 @@ func (h *ResumeHandler) ListApplications(c *gin.Context) {
 	jobID := c.Query("job_id")
 	talentID := c.Query("talent_id")
 	status := c.Query("status")
+
+	// 处理 talent_id=me 的情况，表示查询当前登录用户的申请
+	if talentID == "me" {
+		// 从 JWT 中获取当前用户 ID
+		jwtUserID, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "error": "未授权，请先登录"})
+			return
+		}
+		userID, ok := jwtUserID.(uint)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "error": "invalid user_id type"})
+			return
+		}
+
+		// 根据 user_id 查找对应的 talent_id
+		var talent struct {
+			ID uint `json:"id"`
+		}
+		if err := h.DB.Table("talents").Where("user_id = ?", userID).First(&talent).Error; err != nil {
+			// 如果没有找到对应的 talent，返回空列表
+			c.JSON(http.StatusOK, gin.H{
+				"code":    0,
+				"message": "success",
+				"data": gin.H{
+					"applications": []interface{}{},
+					"total":        0,
+					"page":         page,
+					"page_size":    pageSize,
+				},
+			})
+			return
+		}
+		talentID = strconv.FormatUint(uint64(talent.ID), 10)
+	}
 
 	offset := (page - 1) * pageSize
 
@@ -481,6 +585,10 @@ func (h *ResumeHandler) ListApplications(c *gin.Context) {
 }
 
 // UpdateApplication 更新申请状态
+// 增强逻辑：
+// - 状态更新时发送通知给求职者
+// - 记录状态变更历史
+// Requirements: 3.2, 6.4
 func (h *ResumeHandler) UpdateApplication(c *gin.Context) {
 	id := c.Param("id")
 	var app models.Application
@@ -489,6 +597,9 @@ func (h *ResumeHandler) UpdateApplication(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "Application not found"})
 		return
 	}
+
+	// 保存旧状态用于比较和记录历史
+	oldStatus := app.Status
 
 	var req struct {
 		Status string `json:"status"`
@@ -500,18 +611,194 @@ func (h *ResumeHandler) UpdateApplication(c *gin.Context) {
 		return
 	}
 
-	app.Status = req.Status
-	app.Notes = req.Notes
+	// 验证状态值是否有效
+	validStatuses := map[string]bool{
+		"pending":   true,
+		"viewed":    true,
+		"interview": true,
+		"offer":     true,
+		"rejected":  true,
+	}
+	if req.Status != "" && !validStatuses[req.Status] {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "无效的状态值，有效值为: pending, viewed, interview, offer, rejected"})
+		return
+	}
+
+	// 记录状态变更历史
+	statusChanged := req.Status != "" && req.Status != oldStatus
+	if statusChanged {
+		// 构建状态变更历史记录
+		historyEntry := fmt.Sprintf("[%s] 状态从 %s 变更为 %s", time.Now().Format("2006-01-02 15:04:05"), getStatusDisplayName(oldStatus), getStatusDisplayName(req.Status))
+		if req.Notes != "" {
+			historyEntry += fmt.Sprintf(" - 备注: %s", req.Notes)
+		}
+
+		// 追加到现有notes中
+		if app.Notes != "" {
+			app.Notes = app.Notes + "\n" + historyEntry
+		} else {
+			app.Notes = historyEntry
+		}
+
+		app.Status = req.Status
+	} else if req.Notes != "" {
+		// 如果只是更新备注，追加备注
+		noteEntry := fmt.Sprintf("[%s] 备注: %s", time.Now().Format("2006-01-02 15:04:05"), req.Notes)
+		if app.Notes != "" {
+			app.Notes = app.Notes + "\n" + noteEntry
+		} else {
+			app.Notes = noteEntry
+		}
+	}
 
 	if err := h.DB.Save(&app).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "Failed to update application"})
 		return
 	}
 
+	// Requirement 3.2, 6.4: 状态更新时发送通知给求职者
+	if statusChanged {
+		h.sendApplicationStatusNotification(&app, oldStatus, req.Status)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "Application updated successfully",
 		"data":    app,
+	})
+}
+
+// sendApplicationStatusNotification 发送申请状态变更通知给求职者
+// Requirements: 3.2, 6.4
+func (h *ResumeHandler) sendApplicationStatusNotification(app *models.Application, oldStatus, newStatus string) {
+	// 获取求职者信息（包括关联的用户ID）
+	var talent struct {
+		Name   string `json:"name"`
+		UserID *uint  `json:"user_id"`
+	}
+	if err := h.DB.Table("talents").Where("id = ?", app.TalentID).First(&talent).Error; err != nil {
+		log.Printf("[通知] 获取求职者信息失败: %v", err)
+		return
+	}
+
+	// 如果求职者没有关联用户账号，无法发送通知
+	if talent.UserID == nil || *talent.UserID == 0 {
+		log.Printf("[通知] 求职者 %s (ID: %d) 没有关联用户账号，跳过通知", talent.Name, app.TalentID)
+		return
+	}
+
+	// 获取职位信息
+	var job struct {
+		Title string `json:"title"`
+	}
+	if err := h.DB.Table("jobs").Where("id = ?", app.JobID).First(&job).Error; err != nil {
+		log.Printf("[通知] 获取职位信息失败: %v", err)
+		return
+	}
+
+	// 构建通知内容
+	title := "申请状态更新"
+	content := fmt.Sprintf("您投递的职位「%s」申请状态已更新为「%s」。", job.Title, getStatusDisplayName(newStatus))
+
+	// 根据不同状态添加额外提示
+	switch newStatus {
+	case "viewed":
+		content += " HR已查看您的简历，请耐心等待进一步通知。"
+	case "interview":
+		content += " 恭喜您进入面试环节！请关注后续面试安排通知。"
+	case "offer":
+		content += " 恭喜您获得录用！请及时查看offer详情。"
+	case "rejected":
+		content += " 很遗憾本次未能通过，祝您求职顺利！"
+	}
+
+	// 创建通知消息
+	notification := map[string]interface{}{
+		"sender_id":   nil, // 系统消息
+		"receiver_id": *talent.UserID,
+		"title":       title,
+		"content":     content,
+		"type":        "application_status",
+		"is_read":     false,
+		"created_at":  time.Now(),
+	}
+
+	if err := h.DB.Table("messages").Create(notification).Error; err != nil {
+		log.Printf("[通知] 创建通知消息失败: %v", err)
+		return
+	}
+
+	log.Printf("[通知] ✓ 已发送申请状态变更通知给用户 %d: %s -> %s", *talent.UserID, oldStatus, newStatus)
+}
+
+// getStatusDisplayName 获取状态的中文显示名称
+func getStatusDisplayName(status string) string {
+	statusNames := map[string]string{
+		"pending":   "待处理",
+		"viewed":    "已查看",
+		"interview": "面试中",
+		"offer":     "已录用",
+		"rejected":  "已拒绝",
+	}
+	if name, ok := statusNames[status]; ok {
+		return name
+	}
+	return status
+}
+
+// DeleteApplication 删除/撤回申请
+// 求职者可以撤回自己的申请
+func (h *ResumeHandler) DeleteApplication(c *gin.Context) {
+	id := c.Param("id")
+
+	// 获取当前用户ID
+	jwtUserID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "error": "未授权，请先登录"})
+		return
+	}
+	userID, ok := jwtUserID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "error": "invalid user_id type"})
+		return
+	}
+
+	var app models.Application
+	if err := h.DB.First(&app, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "申请不存在"})
+		return
+	}
+
+	// 验证是否是申请人本人（通过talent关联的user_id）
+	var talent struct {
+		UserID *uint `json:"user_id"`
+	}
+	if err := h.DB.Table("talents").Where("id = ?", app.TalentID).First(&talent).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "获取申请人信息失败"})
+		return
+	}
+
+	// 检查权限：只有申请人本人可以撤回
+	if talent.UserID == nil || *talent.UserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"code": 403, "message": "无权操作此申请"})
+		return
+	}
+
+	// 只有待处理和已查看状态可以撤回
+	if app.Status != "pending" && app.Status != "viewed" {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "当前状态不允许撤回"})
+		return
+	}
+
+	// 软删除申请
+	if err := h.DB.Delete(&app).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "撤回失败"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "申请已撤回",
 	})
 }
 

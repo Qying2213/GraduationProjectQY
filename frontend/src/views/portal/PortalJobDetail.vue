@@ -1,6 +1,6 @@
 <template>
   <div class="portal-job-detail">
-    <div class="page-container">
+    <div class="page-container" v-loading="loading">
       <div class="main-content">
         <!-- 职位信息 -->
         <div class="job-header-card">
@@ -9,7 +9,20 @@
               <h1>{{ job.title }}</h1>
               <div class="job-salary">{{ job.salary }}</div>
             </div>
-            <el-button type="primary" size="large" @click="showApplyDialog = true">
+            <el-button 
+              v-if="hasApplied" 
+              type="info" 
+              size="large" 
+              disabled
+            >
+              已投递
+            </el-button>
+            <el-button 
+              v-else 
+              type="primary" 
+              size="large" 
+              @click="handleApplyClick"
+            >
               立即投递
             </el-button>
           </div>
@@ -101,19 +114,50 @@
           <p>{{ job.company }} · {{ job.location }}</p>
         </div>
         <el-form :model="applyForm" label-width="80px">
-          <el-form-item label="简历">
-            <el-select v-model="applyForm.resumeId" placeholder="选择简历" style="width: 100%">
-              <el-option label="我的简历.pdf" :value="1" />
+          <el-form-item label="简历" required>
+            <el-select 
+              v-model="applyForm.resumeId" 
+              placeholder="选择简历" 
+              style="width: 100%"
+              :loading="loadingResumes"
+            >
+              <el-option 
+                v-for="resume in userResumes" 
+                :key="resume.id" 
+                :label="resume.file_name || `简历 ${resume.id}`" 
+                :value="resume.id" 
+              />
             </el-select>
+            <div class="upload-tip">
+              <span v-if="userResumes.length === 0 && !loadingResumes" class="no-resume-tip">
+                暂无简历，请先
+                <el-button link type="primary" @click="goToUploadResume">上传简历</el-button>
+              </span>
+              <span v-else>
+                或 <el-button link type="primary" @click="goToUploadResume">上传新简历</el-button>
+              </span>
+            </div>
           </el-form-item>
           <el-form-item label="求职信">
-            <el-input v-model="applyForm.coverLetter" type="textarea" :rows="4" placeholder="简单介绍自己..." />
+            <el-input 
+              v-model="applyForm.coverLetter" 
+              type="textarea" 
+              :rows="4" 
+              placeholder="简单介绍自己，为什么适合这个职位..." 
+            />
           </el-form-item>
         </el-form>
       </div>
       <template #footer>
         <el-button @click="showApplyDialog = false">取消</el-button>
-        <el-button type="primary" @click="submitApplication" :loading="submitting">确认投递</el-button>
+        <el-button 
+          type="primary" 
+          @click="submitApplication" 
+          :loading="submitting"
+          :disabled="!applyForm.resumeId"
+        >
+          确认投递
+        </el-button>
       </template>
     </el-dialog>
   </div>
@@ -124,43 +168,41 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Location, Timer, School, Calendar, OfficeBuilding, CircleCheck } from '@element-plus/icons-vue'
+import request from '@/utils/request'
+import { resumeApi } from '@/api/resume'
+import { applicationApi } from '@/api/application'
 
 const route = useRoute()
 const router = useRouter()
+const loading = ref(false)
 const showApplyDialog = ref(false)
 const submitting = ref(false)
 
+// 用户简历列表
+const userResumes = ref<any[]>([])
+const loadingResumes = ref(false)
+
+// 是否已投递
+const hasApplied = ref(false)
+
 const job = ref({
-  id: 1,
-  title: '高级前端工程师',
-  salary: '25-45K·15薪',
-  location: '北京·朝阳区',
-  experience: '3-5年',
+  id: 0,
+  title: '',
+  salary: '面议',
+  location: '',
+  experience: '',
   education: '本科',
-  postTime: '3天前发布',
-  tags: ['Vue3', 'TypeScript', '大厂背景优先'],
-  description: `
-    <p>我们正在寻找一位经验丰富的高级前端工程师，加入我们的核心产品团队。</p>
-    <p><strong>工作内容：</strong></p>
-    <p>1. 负责公司核心产品的前端架构设计和开发工作</p>
-    <p>2. 主导前端技术选型，制定开发规范</p>
-    <p>3. 优化前端性能，提升用户体验</p>
-    <p>4. 指导初级工程师，进行代码审查</p>
-  `,
-  requirements: [
-    '5年以上前端开发经验',
-    '精通Vue3/React等主流框架',
-    '熟悉TypeScript，有大型项目经验',
-    '了解Node.js，有全栈开发经验优先',
-    '良好的沟通能力和团队协作精神'
-  ],
-  skills: ['Vue3', 'TypeScript', 'React', 'Webpack', 'Node.js', 'Git'],
-  benefits: ['五险一金', '年终奖', '股票期权', '带薪年假', '弹性工作', '免费三餐', '健身房'],
-  company: '科技有限公司',
+  postTime: '',
+  tags: [] as string[],
+  description: '',
+  requirements: [] as string[],
+  skills: [] as string[],
+  benefits: [] as string[],
+  company: '',
   companyType: '互联网',
-  companySize: '500-1000人',
-  companyDesc: '我们是一家专注于企业服务的科技公司，致力于用技术提升企业效率。',
-  address: '北京市朝阳区望京SOHO T1 20层'
+  companySize: '100-500人',
+  companyDesc: '',
+  address: ''
 })
 
 const similarJobs = ref([
@@ -174,16 +216,201 @@ const applyForm = reactive({
   coverLetter: ''
 })
 
+// 获取职位详情
+const fetchJobDetail = async () => {
+  const jobId = route.params.id
+  if (!jobId) return
+  
+  loading.value = true
+  try {
+    const res = await request.get(`/jobs/${jobId}`)
+    if (res.data?.code === 0 && res.data.data) {
+      const jobData = res.data.data
+      job.value = {
+        id: jobData.id,
+        title: jobData.title || '',
+        salary: jobData.salary || '面议',
+        location: jobData.location || '',
+        experience: formatExperience(jobData.level),
+        education: jobData.education || '本科',
+        postTime: formatPostTime(jobData.created_at),
+        tags: jobData.skills?.slice(0, 3) || [],
+        description: jobData.description || '',
+        requirements: parseRequirements(jobData.requirements),
+        skills: jobData.skills || [],
+        benefits: ['五险一金', '年终奖', '带薪年假', '弹性工作'],
+        company: jobData.department || '公司',
+        companyType: '互联网',
+        companySize: '100-500人',
+        companyDesc: '我们是一家专注于企业服务的科技公司，致力于用技术提升企业效率。',
+        address: jobData.location || ''
+      }
+    } else {
+      ElMessage.error(res.data?.message || '获取职位详情失败')
+    }
+  } catch (error) {
+    console.error('获取职位详情失败:', error)
+    ElMessage.error('获取职位详情失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 格式化经验要求
+const formatExperience = (level: string) => {
+  const map: Record<string, string> = {
+    'junior': '1-3年',
+    'mid': '3-5年',
+    'senior': '5-10年',
+    'expert': '10年以上',
+    'management': '5年以上'
+  }
+  return map[level] || '不限'
+}
+
+// 格式化发布时间
+const formatPostTime = (dateStr: string) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+  if (diffDays === 0) return '今天发布'
+  if (diffDays === 1) return '昨天发布'
+  if (diffDays < 7) return `${diffDays}天前发布`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}周前发布`
+  return `${Math.floor(diffDays / 30)}月前发布`
+}
+
+// 解析职位要求
+const parseRequirements = (requirements: string | string[] | undefined): string[] => {
+  if (!requirements) return []
+  if (Array.isArray(requirements)) return requirements
+  // 如果是字符串，尝试按换行符分割
+  return requirements.split('\n').filter(r => r.trim())
+}
+
+// 获取用户简历列表
+const fetchUserResumes = async () => {
+  loadingResumes.value = true
+  try {
+    const res = await resumeApi.list({ page: 1, page_size: 100 })
+    if (res.data?.code === 0 && res.data.data) {
+      userResumes.value = res.data.data.resumes || res.data.data || []
+    }
+  } catch (error) {
+    console.error('获取简历列表失败:', error)
+    userResumes.value = []
+  } finally {
+    loadingResumes.value = false
+  }
+}
+
+// 检查是否已投递该职位
+const checkIfApplied = async () => {
+  const jobId = route.params.id
+  if (!jobId) return
+  
+  try {
+    const res = await applicationApi.getMyApplications({ page: 1, page_size: 1000 })
+    if (res.data?.code === 0 && res.data.data) {
+      const applications = res.data.data.applications || res.data.data || []
+      hasApplied.value = applications.some((app: any) => app.job_id === Number(jobId))
+    }
+  } catch (error) {
+    console.error('检查投递状态失败:', error)
+  }
+}
+
+// 跳转到上传简历页面
+const goToUploadResume = () => {
+  showApplyDialog.value = false
+  router.push('/portal/my-resume')
+}
+
+// 处理投递按钮点击
+const handleApplyClick = async () => {
+  // 检查是否已投递
+  if (hasApplied.value) {
+    ElMessage.warning('您已投递过该职位')
+    return
+  }
+  
+  // 获取用户简历列表
+  await fetchUserResumes()
+  
+  // 检查是否有简历
+  if (userResumes.value.length === 0) {
+    ElMessage.warning('请先上传简历')
+    showApplyDialog.value = true
+    return
+  }
+  
+  // 默认选择第一份简历
+  if (userResumes.value.length > 0 && !applyForm.resumeId) {
+    applyForm.resumeId = userResumes.value[0].id
+  }
+  
+  showApplyDialog.value = true
+}
+
 const submitApplication = async () => {
   if (!applyForm.resumeId) {
     ElMessage.warning('请选择简历')
     return
   }
+  
+  if (!job.value.id) {
+    ElMessage.error('职位信息错误')
+    return
+  }
+  
   submitting.value = true
   try {
-    await new Promise(r => setTimeout(r, 1000))
-    ElMessage.success('投递成功！')
-    showApplyDialog.value = false
+    const res = await applicationApi.create({
+      job_id: job.value.id,
+      talent_id: 0, // 后端会根据当前用户自动设置
+      resume_id: applyForm.resumeId,
+      cover_letter: applyForm.coverLetter || ''
+    })
+    
+    if (res.data?.code === 0) {
+      ElMessage.success('投递成功！')
+      // 更新已投递状态
+      hasApplied.value = true
+      showApplyDialog.value = false
+      // 重置表单
+      applyForm.resumeId = null
+      applyForm.coverLetter = ''
+    } else {
+      // 处理特定错误码
+      const code = res.data?.code
+      const message = res.data?.message
+      
+      if (code === 1001) {
+        ElMessage.warning('您已投递过该职位')
+        hasApplied.value = true
+        showApplyDialog.value = false
+      } else if (code === 1002) {
+        ElMessage.warning('请先上传简历')
+      } else {
+        ElMessage.error(message || '投递失败，请稍后重试')
+      }
+    }
+  } catch (error: any) {
+    console.error('投递失败:', error)
+    // 处理HTTP错误响应中的错误码
+    const code = error.response?.data?.code
+    const message = error.response?.data?.message
+    
+    if (code === 1001) {
+      ElMessage.warning('您已投递过该职位')
+      hasApplied.value = true
+      showApplyDialog.value = false
+    } else if (code === 1002) {
+      ElMessage.warning('请先上传简历')
+    } else {
+      ElMessage.error(message || '投递失败，请稍后重试')
+    }
   } finally {
     submitting.value = false
   }
@@ -194,7 +421,8 @@ const goToJob = (id: number) => {
 }
 
 onMounted(() => {
-  // 根据 route.params.id 获取职位详情
+  fetchJobDetail()
+  checkIfApplied()
 })
 </script>
 
@@ -413,6 +641,16 @@ onMounted(() => {
 
     h3 { font-size: 16px; margin: 0 0 4px 0; }
     p { color: #64748b; font-size: 14px; margin: 0; }
+  }
+
+  .upload-tip {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #94a3b8;
+    
+    .no-resume-tip {
+      color: #f59e0b;
+    }
   }
 }
 

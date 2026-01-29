@@ -61,7 +61,9 @@ class WebSocketService {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++
       console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`)
-      setTimeout(() => this.connect(), this.reconnectDelay)
+      // 重连时需要重新获取 token
+      const token = localStorage.getItem('token')
+      setTimeout(() => this.connect(token || undefined), this.reconnectDelay)
     } else {
       console.log('Max reconnect attempts reached')
     }

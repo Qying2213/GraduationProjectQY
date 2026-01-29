@@ -47,8 +47,6 @@ export const applicationApi = {
 
     // 获取职位的申请（HR视角）
     getJobApplications(jobId: number, params?: { page?: number; page_size?: number; status?: string }) {
-        return request.get<ApiResponse>('/applications', {
-            params: { ...params, job_id: jobId }
-        })
+        return request.get<ApiResponse>(`/jobs/${jobId}/applications`, { params })
     }
 }

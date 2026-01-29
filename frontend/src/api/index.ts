@@ -4,6 +4,7 @@ export { talentApi } from './talent'
 export { jobApi } from './job'
 export { interviewApi } from './interview'
 export { messageApi } from './message'
+export { chatApi } from './chat'
 export { statsApi } from './stats'
 export { recommendationApi } from './recommendation'
 export { resumeApi, aiApi, evaluationApi } from './resume'
@@ -21,3 +22,14 @@ export type {
     RescheduleRequest,
     InterviewListParams
 } from './interview'
+
+export type {
+    UserInfo,
+    ChatMessage,
+    Conversation,
+    ConversationWithDetails,
+    ConversationListResponse,
+    MessageListResponse,
+    CreateConversationResponse,
+    UnreadCountResponse
+} from './chat'

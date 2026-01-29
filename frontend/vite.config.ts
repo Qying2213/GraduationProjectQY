@@ -87,6 +87,17 @@ export default defineConfig({
             '/api/v1/logs': {
                 target: 'http://localhost:8088',
                 changeOrigin: true
+            },
+            // 聊天会话服务 (message-service)
+            '/api/v1/conversations': {
+                target: 'http://localhost:8085',
+                changeOrigin: true
+            },
+            // WebSocket 代理 (通过 Gateway)
+            '/api/v1/ws': {
+                target: 'ws://localhost:8080',
+                ws: true,
+                changeOrigin: true
             }
         }
     }

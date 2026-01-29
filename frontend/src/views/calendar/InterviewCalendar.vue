@@ -810,6 +810,18 @@ function saveInterview() {
     return
   }
 
+  // Requirement 7.5: 验证面试日期必须是未来时间
+  if (!interviewForm.value.date || !interviewForm.value.time) {
+    ElMessage.warning('请选择面试日期和时间')
+    return
+  }
+
+  const interviewDateTime = new Date(`${interviewForm.value.date}T${interviewForm.value.time}`)
+  if (interviewDateTime <= new Date()) {
+    ElMessage.error('面试日期必须是未来时间')
+    return
+  }
+
   if (isEditing.value && selectedInterview.value) {
     // Update existing
     const index = interviews.value.findIndex(i => i.id === selectedInterview.value!.id)

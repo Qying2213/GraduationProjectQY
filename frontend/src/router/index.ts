@@ -68,6 +68,12 @@ const routes: RouteRecordRaw[] = [
                 name: 'MyResume',
                 component: () => import('@/views/portal/MyResume.vue'),
                 meta: { title: '我的简历', requiresAuth: true }
+            },
+            {
+                path: 'chat',
+                name: 'PortalChat',
+                component: () => import('@/views/portal/PortalChat.vue'),
+                meta: { title: '消息中心', requiresAuth: true }
             }
         ]
     },
@@ -153,6 +159,12 @@ const routes: RouteRecordRaw[] = [
                 name: 'Messages',
                 component: () => import('@/views/messages/MessageCenter.vue'),
                 meta: { title: '消息中心' }
+            },
+            {
+                path: 'chat',
+                name: 'ChatCenter',
+                component: () => import('@/views/messages/ChatCenter.vue'),
+                meta: { title: '即时聊天' }
             },
             {
                 path: 'profile',

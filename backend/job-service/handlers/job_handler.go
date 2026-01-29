@@ -228,3 +228,97 @@ func (h *JobHandler) GetJobStats(c *gin.Context) {
 		"data":    stats,
 	})
 }
+
+// GetJobApplications 获取职位申请列表（HR视角）
+// GET /jobs/:id/applications
+// 支持状态筛选和分页
+// Requirements: 6.1, 6.2
+func (h *JobHandler) GetJobApplications(c *gin.Context) {
+	// 获取职位ID
+	jobID := c.Param("id")
+
+	// 验证职位是否存在
+	var job models.Job
+	if err := h.DB.First(&job, jobID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"code":    404,
+			"message": "职位不存在",
+		})
+		return
+	}
+
+	// 获取分页参数
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	status := c.Query("status")
+
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 10
+	}
+
+	offset := (page - 1) * pageSize
+
+	// 构建查询
+	query := h.DB.Table("applications").
+		Select(`
+			applications.id,
+			applications.job_id,
+			applications.talent_id,
+			applications.resume_id,
+			applications.status,
+			applications.cover_letter,
+			applications.notes,
+			applications.created_at,
+			applications.updated_at,
+			talents.name as candidate_name,
+			talents.email as candidate_email,
+			talents.phone as candidate_phone,
+			talents.summary as resume_summary
+		`).
+		Joins("LEFT JOIN talents ON applications.talent_id = talents.id").
+		Where("applications.job_id = ?", jobID).
+		Where("applications.deleted_at IS NULL")
+
+	// 状态筛选
+	if status != "" {
+		query = query.Where("applications.status = ?", status)
+	}
+
+	// 获取总数
+	var total int64
+	countQuery := h.DB.Table("applications").
+		Where("job_id = ?", jobID).
+		Where("deleted_at IS NULL")
+	if status != "" {
+		countQuery = countQuery.Where("status = ?", status)
+	}
+	countQuery.Count(&total)
+
+	// 获取申请列表
+	var applications []models.ApplicationWithCandidate
+	if err := query.Order("applications.created_at DESC").
+		Offset(offset).
+		Limit(pageSize).
+		Scan(&applications).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "获取申请列表失败",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data": gin.H{
+			"applications": applications,
+			"total":        total,
+			"page":         page,
+			"page_size":    pageSize,
+		},
+	})
+}

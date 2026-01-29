@@ -59,6 +59,19 @@
           </el-input>
         </el-form-item>
         <el-form-item>
+          <el-select
+            v-model="searchParams.skills"
+            placeholder="技能筛选"
+            clearable
+            multiple
+            collapse-tags
+            collapse-tags-tooltip
+            style="width: 200px"
+          >
+            <el-option v-for="skill in commonSkills" :key="skill" :label="skill" :value="skill" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
           <el-select v-model="searchParams.status" placeholder="状态筛选" clearable style="width: 140px">
             <el-option label="活跃" value="active" />
             <el-option label="已雇佣" value="hired" />
@@ -74,6 +87,20 @@
             <el-option label="5-10年" value="5-10" />
             <el-option label="10年以上" value="10+" />
           </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-input
+            v-model="searchParams.location"
+            placeholder="地区筛选"
+            clearable
+            style="width: 140px"
+            @clear="fetchTalents"
+            @keyup.enter="fetchTalents"
+          >
+            <template #prefix>
+              <el-icon><Location /></el-icon>
+            </template>
+          </el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="fetchTalents">
@@ -107,7 +134,7 @@
           <template #default="{ row }">
             <div class="skills-cell">
               <el-tag v-for="skill in row.skills?.slice(0, 3)" :key="skill" size="small"
-                      :type="getSkillType(skill)">
+                      :type="getSkillType(skill)" :class="{ 'matched-skill': isSkillMatched(skill) }">
                 {{ skill }}
               </el-tag>
               <el-tag v-if="row.skills?.length > 3" size="small" type="info">
@@ -123,6 +150,22 @@
         </el-table-column>
         <el-table-column prop="location" label="地区" width="100" />
         <el-table-column prop="salary" label="期望薪资" width="120" />
+        <el-table-column prop="match_score" label="匹配度" width="120" sortable>
+          <template #default="{ row }">
+            <div class="match-score-cell">
+              <el-progress
+                :percentage="row.match_score || 0"
+                :stroke-width="8"
+                :color="getMatchScoreColor(row.match_score)"
+                :show-text="false"
+                style="width: 60px"
+              />
+              <span class="score-text" :style="{ color: getMatchScoreColor(row.match_score) }">
+                {{ Math.round(row.match_score || 0) }}%
+              </span>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" effect="light">
@@ -161,6 +204,13 @@
               <el-avatar :size="56" :style="{ background: getAvatarColor(talent.id) }">
                 {{ talent.name?.charAt(0) }}
               </el-avatar>
+              <div class="match-badge" v-if="talent.match_score">
+                <el-tooltip :content="`匹配度: ${Math.round(talent.match_score)}%`" placement="top">
+                  <div class="score-badge" :style="{ background: getMatchScoreColor(talent.match_score) }">
+                    {{ Math.round(talent.match_score) }}%
+                  </div>
+                </el-tooltip>
+              </div>
               <el-dropdown trigger="click" @click.stop>
                 <el-button text :icon="MoreFilled" />
                 <template #dropdown>
@@ -180,7 +230,7 @@
               <p class="talent-title">{{ talent.experience }}年经验 · {{ talent.location }}</p>
               <div class="talent-skills">
                 <el-tag v-for="skill in talent.skills?.slice(0, 3)" :key="skill" size="small"
-                        :type="getSkillType(skill)">
+                        :type="getSkillType(skill)" :class="{ 'matched-skill': isSkillMatched(skill) }">
                   {{ skill }}
                 </el-tag>
               </div>
@@ -388,7 +438,7 @@ import type { Talent } from '@/types'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import {
   Search, Plus, List, Grid, MoreFilled, Edit, Delete, Money,
-  Message, Phone, MagicStick, Download, ArrowDown, Document, DocumentCopy
+  Message, Phone, MagicStick, Download, ArrowDown, Document, DocumentCopy, Location
 } from '@element-plus/icons-vue'
 import { exportToExcel, exportToCsv, talentExportColumns } from '@/utils/export'
 import { usePermissionStore } from '@/store/permission'
@@ -417,7 +467,9 @@ const formRef = ref<FormInstance>()
 const searchParams = reactive({
   search: '',
   status: '',
-  experience: ''
+  experience: '',
+  skills: [] as string[],
+  location: ''
 })
 
 const talentForm = reactive<Partial<Talent>>({
@@ -482,6 +534,8 @@ const resetSearch = () => {
   searchParams.search = ''
   searchParams.status = ''
   searchParams.experience = ''
+  searchParams.skills = []
+  searchParams.location = ''
   currentPage.value = 1
   fetchTalents()
 }
@@ -605,6 +659,20 @@ const getStatusText = (status: string) => {
   return map[status] || status
 }
 
+// 获取匹配分数颜色
+const getMatchScoreColor = (score: number) => {
+  if (score >= 80) return '#67c23a' // 绿色 - 高匹配
+  if (score >= 60) return '#409eff' // 蓝色 - 中高匹配
+  if (score >= 40) return '#e6a23c' // 橙色 - 中等匹配
+  return '#909399' // 灰色 - 低匹配
+}
+
+// 检查技能是否匹配筛选条件
+const isSkillMatched = (skill: string) => {
+  if (searchParams.skills.length === 0) return false
+  return searchParams.skills.some(s => s.toLowerCase() === skill.toLowerCase())
+}
+
 // 导出数据
 const handleExport = (format: 'excel' | 'csv') => {
   if (talents.value.length === 0) {
@@ -725,6 +793,23 @@ onMounted(() => {
     flex-wrap: wrap;
     gap: 4px;
   }
+
+  .match-score-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .score-text {
+      font-weight: 600;
+      font-size: 13px;
+    }
+  }
+}
+
+// 匹配的技能高亮
+.matched-skill {
+  border: 2px solid var(--primary-color) !important;
+  font-weight: 600;
 }
 
 .pagination {
@@ -756,6 +841,16 @@ onMounted(() => {
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 16px;
+
+      .match-badge {
+        .score-badge {
+          padding: 4px 8px;
+          border-radius: 12px;
+          color: white;
+          font-size: 12px;
+          font-weight: 600;
+        }
+      }
     }
 
     .card-body {
