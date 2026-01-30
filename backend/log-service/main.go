@@ -46,6 +46,10 @@ func main() {
 		})
 	})
 
+	// 日志查看页面（无需登录）
+	r.GET("/", logHandler.LogViewerPage)
+	r.GET("/logs", logHandler.LogViewerPage)
+
 	// 日志API
 	api := r.Group("/api/v1/logs")
 	{
@@ -58,6 +62,7 @@ func main() {
 
 	port := getEnv("LOG_SERVICE_PORT", "8088")
 	log.Printf("Log service is running on :%s", port)
+	log.Printf("日志查看页面: http://localhost:%s/logs", port)
 	if err := r.Run(":" + port); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
