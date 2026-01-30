@@ -3,8 +3,6 @@
 # 使用方式: docker compose up -d
 # ============================================================
 
-version: '3.8'
-
 services:
   # ==================== 数据库服务 ====================
   
@@ -93,6 +91,7 @@ services:
       - REDIS_PORT=6379
       - ES_HOST=elasticsearch
       - ES_PORT=9200
+      - ES_URL=http://elasticsearch:9200
       - JWT_SECRET=${JWT_SECRET:-talent-platform-jwt-secret-2024}
     volumes:
       - ./backend/resume-service/uploads:/app/uploads
