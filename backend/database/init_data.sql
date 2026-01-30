@@ -1,8 +1,14 @@
 -- 智能人才运营平台 - 初始化测试数据
 -- 执行方式: psql -d talent_platform -f backend/database/init_data.sql
 
--- 清空所有表
-TRUNCATE TABLE chat_messages, conversations, applications, resumes, interviews, talents, jobs, users RESTART IDENTITY CASCADE;
+-- 清空所有表（如果存在）
+DO $$
+BEGIN
+    -- 只在表存在时清空
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users') THEN
+        TRUNCATE TABLE chat_messages, conversations, applications, resumes, interviews, talents, jobs, users RESTART IDENTITY CASCADE;
+    END IF;
+END $$;
 
 -- =====================================================
 -- 1. 用户数据（明文密码）

@@ -245,15 +245,17 @@ stop_all() {
         rm -f "$frontend_pid_file"
     fi
     
-    # 强制杀死前端端口（包括 node 进程）
+    # 强制杀死前端端口
     local frontend_pids=$(lsof -t -i :5173 2>/dev/null)
     if [ -n "$frontend_pids" ]; then
         echo "$frontend_pids" | xargs kill -9 2>/dev/null
         print_success "强制停止前端 (端口: 5173)"
     fi
     
-    # 杀死所有 vite 相关进程
-    pkill -f "vite" 2>/dev/null && print_success "停止 Vite 进程" || true
+    # 杀死所有 vite 和 node 相关进程
+    pkill -9 -f "vite" 2>/dev/null && print_success "停止 Vite 进程" || true
+    pkill -9 -f "npm run dev" 2>/dev/null && print_success "停止 npm 进程" || true
+    pkill -9 -f "node.*frontend" 2>/dev/null && print_success "停止 Node 前端进程" || true
     
     # 等待进程完全退出
     sleep 1
