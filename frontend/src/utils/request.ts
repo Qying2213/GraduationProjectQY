@@ -70,15 +70,26 @@ instance.interceptors.response.use(
         
         if (error.response) {
             const { status, data } = error.response
+            const url = error.config?.url || ''
             console.error('[Response Error] Status:', status, 'Data:', data)
 
             switch (status) {
                 case 401:
+                    // 登录接口返回 401 不跳转，让登录页面自己处理错误
+                    if (url.includes('/login')) {
+                        // 登录失败，不跳转，返回错误让页面处理
+                        return Promise.reject(error)
+                    }
                     ElMessage.error('未授权，请登录')
                     localStorage.removeItem('token')
                     localStorage.removeItem('user')
                     // 根据当前路径判断跳转到哪个登录页
-                    const isPortal = window.location.pathname.startsWith('/portal')
+                    const currentPath = window.location.pathname
+                    // 如果已经在登录页，不要跳转
+                    if (currentPath === '/login' || currentPath === '/portal/login') {
+                        break
+                    }
+                    const isPortal = currentPath.startsWith('/portal')
                     window.location.href = isPortal ? '/portal/login' : '/login'
                     break
                 case 403:

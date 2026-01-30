@@ -314,7 +314,10 @@ const candidates = ref<Candidate[]>([])
 // 从后端获取职位列表
 const fetchJobs = async () => {
   try {
-    const res = await fetch('/api/v1/jobs?page=1&page_size=20')
+    const token = localStorage.getItem('token')
+    const res = await fetch('/api/v1/jobs?page=1&page_size=20', {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    })
     const data = await res.json()
     if (data.code === 0 && data.data?.jobs) {
       jobs.value = data.data.jobs.map((j: any) => ({
@@ -330,7 +333,12 @@ const fetchJobs = async () => {
 // 从后端获取申请列表（候选人）
 const fetchCandidates = async () => {
   try {
-    const res = await fetch('/api/v1/applications?page=1&page_size=50')
+    const token = localStorage.getItem('token')
+    const res = await fetch('/api/v1/applications?page=1&page_size=50', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
     const data = await res.json()
     if (data.code === 0 && data.data?.applications) {
       candidates.value = data.data.applications.map((app: any) => ({
@@ -359,10 +367,10 @@ const mapStatus = (status: string): string => {
   const statusMap: Record<string, string> = {
     'pending': 'applied',
     'reviewing': 'screening',
-    'interviewing': 'interview',
-    'offered': 'offer',
+    'interview': 'interview',
+    'offer': 'offer',
     'hired': 'hired',
-    'rejected': 'applied'
+    'rejected': 'screening'
   }
   return statusMap[status] || 'applied'
 }

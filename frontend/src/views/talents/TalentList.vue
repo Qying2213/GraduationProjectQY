@@ -205,11 +205,9 @@
                 {{ talent.name?.charAt(0) }}
               </el-avatar>
               <div class="match-badge" v-if="talent.match_score">
-                <el-tooltip :content="`匹配度: ${Math.round(talent.match_score)}%`" placement="top">
-                  <div class="score-badge" :style="{ background: getMatchScoreColor(talent.match_score) }">
-                    {{ Math.round(talent.match_score) }}%
-                  </div>
-                </el-tooltip>
+                <div class="score-badge" :style="{ background: getMatchScoreColor(talent.match_score) }">
+                  {{ Math.round(talent.match_score) }}%
+                </div>
               </div>
               <el-dropdown trigger="click" @click.stop>
                 <el-button text :icon="MoreFilled" />

@@ -69,17 +69,14 @@
               </div>
             </div>
             <div class="header-actions">
-              <el-tooltip content="查看候选人资料" placement="bottom">
-                <el-button 
-                  v-if="selectedConversation.participant.role === 'candidate'"
-                  type="primary" 
-                  text
-                  @click="viewCandidateProfile"
-                >
-                  <el-icon><User /></el-icon>
-                  查看资料
-                </el-button>
-              </el-tooltip>
+              <el-button 
+                v-if="selectedConversation.participant.role === 'candidate'"
+                type="primary" 
+                @click="viewCandidateProfile"
+              >
+                <el-icon><User /></el-icon>
+                查看候选人资料
+              </el-button>
             </div>
           </div>
 

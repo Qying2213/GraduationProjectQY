@@ -554,16 +554,18 @@ func (h *ResumeHandler) ListApplications(c *gin.Context) {
 		result[i].MatchScore = 75
 
 		var talent struct {
-			Name       string `json:"name"`
-			Location   string `json:"location"`
-			Experience int    `json:"experience"`
-			Salary     string `json:"salary"`
+			Name       string   `json:"name"`
+			Location   string   `json:"location"`
+			Experience int      `json:"experience"`
+			Salary     string   `json:"salary"`
+			Skills     []string `gorm:"type:text[]" json:"skills"`
 		}
 		h.DB.Table("talents").Where("id = ?", app.TalentID).First(&talent)
 		result[i].TalentName = talent.Name
 		result[i].Location = talent.Location
 		result[i].Experience = talent.Experience
 		result[i].Salary = talent.Salary
+		result[i].Skills = talent.Skills
 
 		var job struct {
 			Title string `json:"title"`

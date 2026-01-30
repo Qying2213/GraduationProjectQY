@@ -1,26 +1,26 @@
 # ============================================================
 # GitHub Actions 工作流配置文件
 # 文件位置: .github/workflows/test.yml
+# 状态: 已禁用 (手动触发)
 # ============================================================
 
-# name: 工作流的名称，会显示在 GitHub Actions 页面上
 name: Test
 
-# on: 定义触发条件，什么时候运行这个工作流
+# 已禁用自动触发，仅支持手动触发
 on:
-  # push: 当代码推送到指定分支时触发
-  push:
-    branches:
-      - main          # 推送到 main 分支时触发
-  
-  # pull_request: 当创建或更新 PR 时触发
-  pull_request:
-    branches:
-      - main          # PR 目标是 main 分支时触发
-    types:
-      - opened        # PR 被打开时
-      - synchronize   # PR 有新的提交时
-      - reopened      # PR 被重新打开时
+  workflow_dispatch:  # 仅手动触发
+
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - main
+#     types:
+#       - opened
+#       - synchronize
+#       - reopened
 
 # jobs: 定义要执行的任务，可以有多个 job
 jobs:

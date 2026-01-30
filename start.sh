@@ -37,6 +37,7 @@ SERVICES=(
     "message-service:8085:消息服务"
     "talent-service:8086:人才服务"
     "recommendation-service:8087:推荐服务"
+    "log-service:8088:日志服务"
 )
 
 print_banner() {

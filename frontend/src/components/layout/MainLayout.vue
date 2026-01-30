@@ -115,19 +115,15 @@
 
           <div class="header-right">
             <!-- 快捷入口按钮 -->
-            <el-tooltip content="前台投递简历" placement="bottom">
-              <el-button type="primary" plain size="small" @click="goToPortal" class="quick-btn">
-                <el-icon><Upload /></el-icon>
-                投递简历
-              </el-button>
-            </el-tooltip>
+            <el-button type="primary" plain size="small" @click="goToPortal" class="quick-btn">
+              <el-icon><Upload /></el-icon>
+              投递简历
+            </el-button>
             
-            <el-tooltip content="AI智能评估系统" placement="bottom">
-              <el-button type="success" plain size="small" @click="goToEvaluator" class="quick-btn">
-                <el-icon><MagicStick /></el-icon>
-                AI评估
-              </el-button>
-            </el-tooltip>
+            <el-button type="success" plain size="small" @click="goToEvaluator" class="quick-btn">
+              <el-icon><MagicStick /></el-icon>
+              AI评估
+            </el-button>
 
             <!-- Theme Switcher -->
             <el-dropdown @command="handleThemeChange" trigger="click">

@@ -1,14 +1,19 @@
 # ============================================================
 # 部署工作流 - 使用 docker-compose 部署
+# 状态: 已禁用 (手动触发)
 # ============================================================
 
 name: Deploy
 
+# 已禁用自动触发，仅支持手动触发
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+  workflow_dispatch:  # 仅手动触发
+
+# on:
+#   push:
+#     branches:
+#       - main
+#   workflow_dispatch:
 
 jobs:
   deploy:

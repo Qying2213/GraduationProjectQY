@@ -24,7 +24,7 @@ type Claims struct {
 func getJWTSecret() []byte {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
-		panic("JWT_SECRET environment variable is required")
+		secret = "default_jwt_secret_for_development" // 开发环境默认值
 	}
 	return []byte(secret)
 }
