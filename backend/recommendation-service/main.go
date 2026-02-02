@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"recommendation-service/handlers"
+
+	"common/database"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -52,6 +55,20 @@ func main() {
 		log.Printf("Warning: Failed to connect to database: %v", err)
 	} else {
 		log.Println("Database connected")
+	}
+
+	// 初始化 Redis 缓存
+	redisHost := getEnv("REDIS_HOST", "localhost")
+	redisPort := getEnv("REDIS_PORT", "6379")
+	redisPassword := getEnv("REDIS_PASSWORD", "")
+	if err := database.InitRedis(database.RedisConfig{
+		Addr:     fmt.Sprintf("%s:%s", redisHost, redisPort),
+		Password: redisPassword,
+		DB:       0,
+	}); err != nil {
+		log.Printf("Warning: Failed to connect to Redis: %v (caching disabled)", err)
+	} else {
+		log.Println("Redis connected, caching enabled")
 	}
 
 	r := gin.Default()

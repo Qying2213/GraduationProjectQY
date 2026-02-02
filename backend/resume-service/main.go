@@ -59,6 +59,7 @@ func main() {
 	aiParseHandler := handlers.NewAIParseHandler(db)
 	evalHandler := handlers.NewEvaluationHandler(db)
 	onlineResumeHandler := handlers.NewOnlineResumeHandler(db)
+	riskHandler := handlers.NewRiskCheckHandler()
 
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
@@ -81,6 +82,11 @@ func main() {
 			resumes.PUT("/:id/status", resumeHandler.UpdateResumeStatus) // 更新简历状态
 			resumes.POST("/parse", resumeHandler.ParseResume)
 			resumes.POST("/match", resumeHandler.MatchResumeToJob)
+
+			// 风控检查接口
+			resumes.POST("/risk-check", riskHandler.CheckResumeRisk)
+			resumes.POST("/risk-check/time-conflict", riskHandler.CheckTimeConflict)
+			resumes.POST("/risk-check/education", riskHandler.CheckEducationFraud)
 
 			// 在线简历接口 (需要JWT认证)
 			// Requirements: 4.3 (持久化), 4.6 (字段验证)

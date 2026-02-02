@@ -1,0 +1,33 @@
+# 数据库配置
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=qinyang
+DB_PASSWORD=
+DB_NAME=talent_platform
+
+# Redis配置
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+
+# JWT配置
+JWT_SECRET=qinyang_talent_platform_2024_secret
+
+# Coze AI配置 (字节跳动)
+# 只需要3个配置项即可连接Coze
+COZE_BASE_URL=https://api.coze.cn
+COZE_TOKEN=pat_8rsiqfdyDLhxJeJj9B2G8lLOouu9y9lsliEdr8UWO2fSkFKQ8eOK66AgcGAGJNwR
+COZE_WORKFLOW_ID=7583886563420373019
+
+# 火山引擎豆包Embedding配置
+# API文档: https://www.volcengine.com/docs/82379/1302008
+# 使用多模态向量化 API
+VOLC_ENDPOINT=https://ark.cn-beijing.volces.com/api/v3/embeddings/multimodal
+ARK_API_KEY=9e21884e-cb71-40f7-a1cf-da140c686105
+VOLC_MODEL_ID=doubao-embedding-vision-251215
+
+# Elasticsearch配置 (可选)
+ES_URL=http://localhost:9200
+ES_USERNAME=
+ES_PASSWORD=
+

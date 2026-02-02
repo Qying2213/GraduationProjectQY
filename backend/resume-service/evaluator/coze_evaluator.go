@@ -190,7 +190,7 @@ func (e *CozeEvaluator) EvaluateResume(ctx context.Context, name string, jdText 
 	fmt.Printf("[Coze Debug] HTTP Status: %d\n", resp.StatusCode)
 	fmt.Println("[Coze Debug] Raw Response (FULL):")
 	fmt.Println(string(body))
-	fmt.Println("========== [Coze Debug] END RAW ==========\n")
+	fmt.Println("========== [Coze Debug] END RAW ==========")
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("coze http %d: %s", resp.StatusCode, string(body))
@@ -266,14 +266,14 @@ func (e *CozeEvaluator) parseResult(envelope map[string]interface{}, name string
 	fmt.Printf("[Coze Debug] Successfully extracted output, length: %d\n", len(outputStr))
 	fmt.Println("\n========== [Coze Debug] EXTRACTED OUTPUT (FULL) ==========")
 	fmt.Println(outputStr)
-	fmt.Println("========== [Coze Debug] END EXTRACTED ==========\n")
+	fmt.Println("========== [Coze Debug] END EXTRACTED ==========")
 
 	// 清理 JSON 字符串（移除 markdown 代码块标记）
 	outputStr = cleanJSONString(outputStr)
 	fmt.Printf("[Coze Debug] After cleaning, length: %d\n", len(outputStr))
 	fmt.Println("\n========== [Coze Debug] CLEANED JSON (FULL) ==========")
 	fmt.Println(outputStr)
-	fmt.Println("========== [Coze Debug] END CLEANED ==========\n")
+	fmt.Println("========== [Coze Debug] END CLEANED ==========")
 
 	var resultData map[string]interface{}
 	if err := json.Unmarshal([]byte(outputStr), &resultData); err != nil {

@@ -7,7 +7,7 @@ name: Deploy
 
 # 已禁用自动触发，仅支持手动触发
 on:
-  workflow_dispatch:  # 仅手动触发
+  workflow_dispatch: # 仅手动触发
 
 # on:
 #   push:
@@ -18,22 +18,32 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
+      - name: Load environment file
+        run: |
+          # 从固定位置复制 .env 文件（不会被 checkout 覆盖）
+          ENV_SOURCE="/home/qinyang/app-config/GraduationProjectQY/.env"
+          if [ -f "$ENV_SOURCE" ]; then
+            cp "$ENV_SOURCE" ./backend/.env
+            echo "✅ 已加载环境配置文件"
+          else
+            echo "⚠️ 警告: 未找到 .env 文件，使用默认配置"
+          fi
+
       - name: Deploy with docker-compose
         run: |
           # 停止旧容器
           docker compose down || true
-          
+
           # 重新构建并启动
           docker compose up -d --build
-          
+
           echo "✅ 部署完成！"
-      
+
       - name: Show running containers
         run: |
           docker compose ps
-
