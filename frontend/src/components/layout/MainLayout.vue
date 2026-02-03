@@ -187,13 +187,7 @@
             <el-dropdown @command="handleCommand">
               <div class="user-info">
                 <el-avatar class="avatar">
-                  <img
-                    v-if="userStore.user?.avatar"
-                    :src="userStore.user.avatar"
-                  />
-                  <span v-else>{{
-                    userStore.user?.username?.charAt(0).toUpperCase()
-                  }}</span>
+                  <img :src="userStore.user?.avatar || defaultAvatar" />
                 </el-avatar>
                 <span class="username">{{ userStore.user?.username }}</span>
               </div>
@@ -260,6 +254,9 @@ const themeStore = useThemeStore();
 const permissionStore = usePermissionStore();
 const messageStore = useMessageStore();
 const isCollapse = ref(false);
+
+// 默认头像 - 与 UserProfile.vue 保持一致
+const defaultAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=default";
 
 // 使用 store 中的未读数
 const unreadCount = messageStore.unreadCount;
