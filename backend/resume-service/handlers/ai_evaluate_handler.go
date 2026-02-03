@@ -13,6 +13,7 @@ import (
 	"resume-service/models"
 	"resume-service/ocr"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -58,6 +59,55 @@ func getEnvDefault(key, defaultVal string) string {
 		return v
 	}
 	return defaultVal
+}
+
+// resolveFilePath 解析简历文件路径，处理绝对路径和相对路径两种情况
+// 数据库中可能存储的路径格式：
+// 1. 绝对路径: /Users/xxx/Desktop/GraduationProjectQY/backend/resume-service/uploads/xxx.pdf
+// 2. 相对路径: /uploads/resumes/xxx.pdf (旧版格式)
+// 3. 简单文件名: xxx.pdf
+func resolveFilePath(storedPath string) string {
+	fmt.Printf("[resolveFilePath] 输入路径: %s\n", storedPath)
+
+	// 如果是绝对路径且文件存在，直接返回
+	if filepath.IsAbs(storedPath) {
+		if _, err := os.Stat(storedPath); err == nil {
+			fmt.Printf("[resolveFilePath] 绝对路径存在: %s\n", storedPath)
+			return storedPath
+		}
+	}
+
+	// 获取当前工作目录
+	wd, _ := os.Getwd()
+	fmt.Printf("[resolveFilePath] 工作目录: %s\n", wd)
+
+	// 尝试不同的路径组合
+	possiblePaths := []string{
+		storedPath, // 原始路径
+		filepath.Join(wd, "uploads", filepath.Base(storedPath)),            // ./uploads/filename
+		filepath.Join(wd, storedPath),                                      // 相对于工作目录
+		filepath.Join(wd, "uploads", "resumes", filepath.Base(storedPath)), // ./uploads/resumes/filename
+	}
+
+	// 如果原始路径包含 /uploads/，提取文件名尝试
+	if strings.Contains(storedPath, "/uploads/") {
+		parts := strings.Split(storedPath, "/uploads/")
+		if len(parts) > 1 {
+			possiblePaths = append(possiblePaths, filepath.Join(wd, "uploads", parts[len(parts)-1]))
+		}
+	}
+
+	for _, p := range possiblePaths {
+		if _, err := os.Stat(p); err == nil {
+			fmt.Printf("[resolveFilePath] 找到文件: %s\n", p)
+			return p
+		}
+		fmt.Printf("[resolveFilePath] 路径不存在: %s\n", p)
+	}
+
+	// 都找不到，返回原始路径（让后续代码报错）
+	fmt.Printf("[resolveFilePath] 所有路径都不存在，返回原始路径\n")
+	return storedPath
 }
 
 // AIEvaluateRequest AI 评估请求
@@ -250,7 +300,7 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 
 	// ========== 步骤1: OCR 提取文本 ==========
 	fmt.Println("\n========== [AI评估] 步骤1: OCR文本提取 ==========")
-	ocrResult, err := ocr.ExtractTextFromFile(resume.FilePath)
+	ocrResult, err := ocr.ExtractTextFromFile(resolveFilePath(resume.FilePath))
 	var resumeText string
 	if err != nil {
 		fmt.Printf("[OCR] 提取失败: %v，将使用PDF直接上传\n", err)
@@ -294,7 +344,7 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 	fmt.Println("\n========== [AI评估] 步骤4: Coze AI评估 ==========")
 
 	// 读取简历文件（Coze需要原始PDF）
-	pdfBytes, err := os.ReadFile(resume.FilePath)
+	pdfBytes, err := os.ReadFile(resolveFilePath(resume.FilePath))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "读取简历文件失败"})
 		return
@@ -686,7 +736,7 @@ func (h *AIEvaluateHandler) BatchEvaluate(c *gin.Context) {
 
 	for _, resume := range resumes {
 		// 读取简历文件
-		pdfBytes, err := os.ReadFile(resume.FilePath)
+		pdfBytes, err := os.ReadFile(resolveFilePath(resume.FilePath))
 		if err != nil {
 			errors = append(errors, "简历 "+strconv.Itoa(int(resume.ID))+" 文件读取失败")
 			continue

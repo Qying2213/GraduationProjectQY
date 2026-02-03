@@ -69,7 +69,11 @@
           <el-menu-item index="/messages">
             <el-icon><ChatDotRound /></el-icon>
             <span>消息中心</span>
-            <el-badge v-if="unreadCount > 0" :value="unreadCount" class="badge" />
+            <el-badge
+              v-if="unreadCount > 0"
+              :value="unreadCount"
+              class="badge"
+            />
           </el-menu-item>
 
           <el-menu-item index="/chat">
@@ -115,12 +119,24 @@
 
           <div class="header-right">
             <!-- 快捷入口按钮 -->
-            <el-button type="primary" plain size="small" @click="goToPortal" class="quick-btn">
+            <el-button
+              type="primary"
+              plain
+              size="small"
+              @click="goToPortal"
+              class="quick-btn"
+            >
               <el-icon><Upload /></el-icon>
               投递简历
             </el-button>
-            
-            <el-button type="success" plain size="small" @click="goToEvaluator" class="quick-btn">
+
+            <el-button
+              type="success"
+              plain
+              size="small"
+              @click="goToEvaluator"
+              class="quick-btn"
+            >
               <el-icon><MagicStick /></el-icon>
               AI评估
             </el-button>
@@ -128,20 +144,31 @@
             <!-- Theme Switcher -->
             <el-dropdown @command="handleThemeChange" trigger="click">
               <div class="theme-btn">
-                <el-icon v-if="themeStore.actualTheme === 'light'"><Sunny /></el-icon>
+                <el-icon v-if="themeStore.actualTheme === 'light'"
+                  ><Sunny
+                /></el-icon>
                 <el-icon v-else><Moon /></el-icon>
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item command="light" :class="{ active: themeStore.mode === 'light' }">
+                  <el-dropdown-item
+                    command="light"
+                    :class="{ active: themeStore.mode === 'light' }"
+                  >
                     <el-icon><Sunny /></el-icon>
                     浅色模式
                   </el-dropdown-item>
-                  <el-dropdown-item command="dark" :class="{ active: themeStore.mode === 'dark' }">
+                  <el-dropdown-item
+                    command="dark"
+                    :class="{ active: themeStore.mode === 'dark' }"
+                  >
                     <el-icon><Moon /></el-icon>
                     深色模式
                   </el-dropdown-item>
-                  <el-dropdown-item command="system" :class="{ active: themeStore.mode === 'system' }">
+                  <el-dropdown-item
+                    command="system"
+                    :class="{ active: themeStore.mode === 'system' }"
+                  >
                     <el-icon><Monitor /></el-icon>
                     跟随系统
                   </el-dropdown-item>
@@ -159,8 +186,14 @@
             <!-- User Menu -->
             <el-dropdown @command="handleCommand">
               <div class="user-info">
-                <el-avatar :src="userStore.user?.avatar" class="avatar">
-                  {{ userStore.user?.username?.charAt(0).toUpperCase() }}
+                <el-avatar class="avatar">
+                  <img
+                    v-if="userStore.user?.avatar"
+                    :src="userStore.user.avatar"
+                  />
+                  <span v-else>{{
+                    userStore.user?.username?.charAt(0).toUpperCase()
+                  }}</span>
                 </el-avatar>
                 <span class="username">{{ userStore.user?.username }}</span>
               </div>
@@ -189,76 +222,94 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/store/user'
-import { useThemeStore, type ThemeMode } from '@/store/theme'
-import { usePermissionStore } from '@/store/permission'
-import { useMessageStore } from '@/store/message'
-import { ElMessage } from 'element-plus'
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { useUserStore } from "@/store/user";
+import { useThemeStore, type ThemeMode } from "@/store/theme";
+import { usePermissionStore } from "@/store/permission";
+import { useMessageStore } from "@/store/message";
+import { ElMessage } from "element-plus";
 import {
-  DataAnalysis, User, Suitcase, Document, TrendCharts,
-  ChatDotRound, ChatLineRound, Fold, Expand, Bell, SwitchButton, MagicStick,
-  Sunny, Moon, Monitor, Operation, Calendar, Key, Setting, DataLine, Upload, Connection
-} from '@element-plus/icons-vue'
+  DataAnalysis,
+  User,
+  Suitcase,
+  Document,
+  TrendCharts,
+  ChatDotRound,
+  ChatLineRound,
+  Fold,
+  Expand,
+  Bell,
+  SwitchButton,
+  MagicStick,
+  Sunny,
+  Moon,
+  Monitor,
+  Operation,
+  Calendar,
+  Key,
+  Setting,
+  DataLine,
+  Upload,
+  Connection,
+} from "@element-plus/icons-vue";
 
-const router = useRouter()
-const userStore = useUserStore()
-const themeStore = useThemeStore()
-const permissionStore = usePermissionStore()
-const messageStore = useMessageStore()
-const isCollapse = ref(false)
+const router = useRouter();
+const userStore = useUserStore();
+const themeStore = useThemeStore();
+const permissionStore = usePermissionStore();
+const messageStore = useMessageStore();
+const isCollapse = ref(false);
 
 // 使用 store 中的未读数
-const unreadCount = messageStore.unreadCount
+const unreadCount = messageStore.unreadCount;
 
 // 初始化主题和权限
 onMounted(() => {
-  themeStore.init()
-  permissionStore.init()
-  fetchUnreadCount()
+  themeStore.init();
+  permissionStore.init();
+  fetchUnreadCount();
   // 每分钟刷新一次未读消息数
-  setInterval(fetchUnreadCount, 60000)
-})
+  setInterval(fetchUnreadCount, 60000);
+});
 
 const toggleSidebar = () => {
-  isCollapse.value = !isCollapse.value
-}
+  isCollapse.value = !isCollapse.value;
+};
 
 const goToMessages = () => {
-  router.push('/messages')
-}
+  router.push("/messages");
+};
 
 const goToPortal = () => {
   // 跳转到前台投递简历页面
-  window.open('/portal/jobs', '_blank')
-}
+  window.open("/portal/jobs", "_blank");
+};
 
 const goToEvaluator = () => {
   // 跳转到 AI 评估页面
-  router.push('/ai-evaluate')
-}
+  router.push("/ai-evaluate");
+};
 
 const handleCommand = (command: string) => {
-  if (command === 'profile') {
-    router.push('/profile')
-  } else if (command === 'logout') {
-    userStore.logout()
-    ElMessage.success('已退出登录')
-    router.push('/login')
+  if (command === "profile") {
+    router.push("/profile");
+  } else if (command === "logout") {
+    userStore.logout();
+    ElMessage.success("已退出登录");
+    router.push("/login");
   }
-}
+};
 
 const handleThemeChange = (mode: ThemeMode) => {
-  themeStore.setMode(mode)
-}
+  themeStore.setMode(mode);
+};
 
 const fetchUnreadCount = async () => {
   if (userStore.isLoggedIn) {
-    await messageStore.fetchUnreadCount()
+    await messageStore.fetchUnreadCount();
   }
-}
-
+};
 </script>
 
 <style scoped lang="scss">
@@ -381,7 +432,7 @@ const fetchUnreadCount = async () => {
     .quick-btn {
       border-radius: 8px;
       font-weight: 500;
-      
+
       .el-icon {
         margin-right: 4px;
       }

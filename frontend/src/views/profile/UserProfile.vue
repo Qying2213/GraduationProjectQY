@@ -79,7 +79,10 @@
             <el-row :gutter="24">
               <el-col :span="12">
                 <el-form-item label="姓名" prop="name">
-                  <el-input v-model="profileForm.name" placeholder="请输入姓名" />
+                  <el-input
+                    v-model="profileForm.name"
+                    placeholder="请输入姓名"
+                  />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
@@ -95,12 +98,18 @@
             <el-row :gutter="24">
               <el-col :span="12">
                 <el-form-item label="手机号" prop="phone">
-                  <el-input v-model="profileForm.phone" placeholder="请输入手机号" />
+                  <el-input
+                    v-model="profileForm.phone"
+                    placeholder="请输入手机号"
+                  />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="邮箱" prop="email">
-                  <el-input v-model="profileForm.email" placeholder="请输入邮箱" />
+                  <el-input
+                    v-model="profileForm.email"
+                    placeholder="请输入邮箱"
+                  />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -108,12 +117,18 @@
             <el-row :gutter="24">
               <el-col :span="12">
                 <el-form-item label="公司" prop="company">
-                  <el-input v-model="profileForm.company" placeholder="请输入公司名称" />
+                  <el-input
+                    v-model="profileForm.company"
+                    placeholder="请输入公司名称"
+                  />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="职位" prop="position">
-                  <el-input v-model="profileForm.position" placeholder="请输入职位" />
+                  <el-input
+                    v-model="profileForm.position"
+                    placeholder="请输入职位"
+                  />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -121,7 +136,11 @@
             <el-row :gutter="24">
               <el-col :span="12">
                 <el-form-item label="所在城市" prop="city">
-                  <el-select v-model="profileForm.city" placeholder="请选择城市" style="width: 100%">
+                  <el-select
+                    v-model="profileForm.city"
+                    placeholder="请选择城市"
+                    style="width: 100%"
+                  >
                     <el-option label="北京" value="北京" />
                     <el-option label="上海" value="上海" />
                     <el-option label="广州" value="广州" />
@@ -207,10 +226,12 @@
                 </div>
                 <div class="security-detail">
                   <h4>微信绑定</h4>
-                  <p>{{ userInfo.wechatBound ? '已绑定' : '未绑定' }}</p>
+                  <p>{{ userInfo.wechatBound ? "已绑定" : "未绑定" }}</p>
                 </div>
               </div>
-              <el-button type="primary">{{ userInfo.wechatBound ? '解除绑定' : '立即绑定' }}</el-button>
+              <el-button type="primary">{{
+                userInfo.wechatBound ? "解除绑定" : "立即绑定"
+              }}</el-button>
             </div>
           </div>
 
@@ -224,7 +245,10 @@
               <el-table-column prop="device" label="设备" />
               <el-table-column prop="status" label="状态" width="100">
                 <template #default="{ row }">
-                  <el-tag :type="row.status === '成功' ? 'success' : 'danger'" size="small">
+                  <el-tag
+                    :type="row.status === '成功' ? 'success' : 'danger'"
+                    size="small"
+                  >
                     {{ row.status }}
                   </el-tag>
                 </template>
@@ -299,7 +323,9 @@
           </div>
 
           <div class="save-settings">
-            <el-button type="primary" @click="saveNotificationSettings">保存设置</el-button>
+            <el-button type="primary" @click="saveNotificationSettings"
+              >保存设置</el-button
+            >
           </div>
         </div>
 
@@ -361,7 +387,9 @@
       </div>
       <template #footer>
         <el-button @click="showAvatarUpload = false">取消</el-button>
-        <el-button type="primary" @click="confirmAvatarUpload">确认更换</el-button>
+        <el-button type="primary" @click="confirmAvatarUpload"
+          >确认更换</el-button
+        >
       </template>
     </el-dialog>
 
@@ -407,117 +435,162 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, markRaw, type Component } from 'vue'
-import { ElMessage } from 'element-plus'
-import type { FormInstance, FormRules, UploadRawFile } from 'element-plus'
+import { ref, reactive, markRaw, type Component, onMounted, watch } from "vue";
+import { ElMessage } from "element-plus";
+import type { FormInstance, FormRules, UploadRawFile } from "element-plus";
 import {
-  Camera, Edit, Lock, Iphone, Message, ChatDotRound, Plus,
-  User, Setting, Bell, Clock, Document, Suitcase, Star,
-  Position
-} from '@element-plus/icons-vue'
+  Camera,
+  Edit,
+  Lock,
+  Iphone,
+  Message,
+  ChatDotRound,
+  Plus,
+  User,
+  Setting,
+  Bell,
+  Clock,
+  Document,
+  Suitcase,
+  Star,
+  Position,
+} from "@element-plus/icons-vue";
+import { useUserStore } from "@/store/user";
+
+// 初始化 userStore
+const userStore = useUserStore();
 
 // 类型定义
 interface MenuItem {
-  key: string
-  label: string
-  icon: Component
+  key: string;
+  label: string;
+  icon: Component;
 }
 
 interface Activity {
-  time: string
-  title: string
-  description: string
-  category: string
-  icon: Component
-  type?: 'primary' | 'success' | 'warning' | 'danger' | 'info'
+  time: string;
+  title: string;
+  description: string;
+  category: string;
+  icon: Component;
+  type?: "primary" | "success" | "warning" | "danger" | "info";
 }
 
 // 默认头像
-const defaultAvatar = 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'
+const defaultAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=default";
 
 // 状态
-const activeTab = ref('basic')
-const isEditing = ref(false)
-const showAvatarUpload = ref(false)
-const showPasswordDialog = ref(false)
-const avatarPreview = ref('')
+const activeTab = ref("basic");
+const isEditing = ref(false);
+const showAvatarUpload = ref(false);
+const showPasswordDialog = ref(false);
+const avatarPreview = ref("");
 
-// 用户信息
+// 用户信息 - 从 userStore 获取并响应式更新
 const userInfo = reactive({
-  name: '张三',
-  role: 'HR经理',
-  avatar: '',
-  phone: '138****8888',
-  email: 'zhang***@example.com',
+  name: userStore.user?.username || "张三",
+  role:
+    userStore.user?.role === "admin"
+      ? "管理员"
+      : userStore.user?.role === "hr"
+        ? "HR经理"
+        : "用户",
+  avatar: userStore.user?.avatar || "",
+  phone: userStore.user?.phone || "138****8888",
+  email: userStore.user?.email || "zhang***@example.com",
   jobCount: 12,
   talentCount: 86,
   interviewCount: 24,
-  wechatBound: false
-})
+  wechatBound: false,
+});
+
+// 监听 userStore 变化，同步更新 userInfo
+watch(
+  () => userStore.user,
+  (newUser) => {
+    if (newUser) {
+      userInfo.name = newUser.username || "张三";
+      userInfo.role =
+        newUser.role === "admin"
+          ? "管理员"
+          : newUser.role === "hr"
+            ? "HR经理"
+            : "用户";
+      userInfo.avatar = newUser.avatar || "";
+      userInfo.phone = newUser.phone || "138****8888";
+      userInfo.email = newUser.email || "zhang***@example.com";
+    }
+  },
+  { immediate: true, deep: true },
+);
 
 // 表单
-const profileFormRef = ref<FormInstance>()
-const passwordFormRef = ref<FormInstance>()
+const profileFormRef = ref<FormInstance>();
+const passwordFormRef = ref<FormInstance>();
 
 const profileForm = reactive({
-  name: '张三',
-  gender: 'male',
-  phone: '13812345678',
-  email: 'zhangsan@example.com',
-  company: '字节跳动',
-  position: 'HR经理',
-  city: '北京',
-  joinDate: '2022-03-15',
-  bio: '资深HR，专注于技术人才招聘，擅长人才识别与团队建设。'
-})
+  name: "张三",
+  gender: "male",
+  phone: "13812345678",
+  email: "zhangsan@example.com",
+  company: "字节跳动",
+  position: "HR经理",
+  city: "北京",
+  joinDate: "2022-03-15",
+  bio: "资深HR，专注于技术人才招聘，擅长人才识别与团队建设。",
+});
 
 const passwordForm = reactive({
-  oldPassword: '',
-  newPassword: '',
-  confirmPassword: ''
-})
+  oldPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+});
 
 // 验证规则
 const profileRules: FormRules = {
-  name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
+  name: [{ required: true, message: "请输入姓名", trigger: "blur" }],
   phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+    { required: true, message: "请输入手机号", trigger: "blur" },
+    {
+      pattern: /^1[3-9]\d{9}$/,
+      message: "请输入正确的手机号",
+      trigger: "blur",
+    },
   ],
   email: [
-    { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
-  ]
-}
+    { required: true, message: "请输入邮箱", trigger: "blur" },
+    { type: "email", message: "请输入正确的邮箱格式", trigger: "blur" },
+  ],
+};
 
 const passwordRules: FormRules = {
-  oldPassword: [{ required: true, message: '请输入当前密码', trigger: 'blur' }],
+  oldPassword: [{ required: true, message: "请输入当前密码", trigger: "blur" }],
   newPassword: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' }
+    { required: true, message: "请输入新密码", trigger: "blur" },
+    { min: 6, max: 20, message: "密码长度在 6 到 20 个字符", trigger: "blur" },
   ],
   confirmPassword: [
-    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    { required: true, message: "请再次输入新密码", trigger: "blur" },
     {
       validator: (_rule, value, callback) => {
         if (value !== passwordForm.newPassword) {
-          callback(new Error('两次输入密码不一致'))
+          callback(new Error("两次输入密码不一致"));
         } else {
-          callback()
+          callback();
         }
       },
-      trigger: 'blur'
-    }
-  ]
-}
+      trigger: "blur",
+    },
+  ],
+};
 
 // 菜单项
 const menuItems = ref<MenuItem[]>([
-  { key: 'basic', label: '基本信息', icon: markRaw(User) },
-  { key: 'security', label: '账户安全', icon: markRaw(Lock) },
-  { key: 'notification', label: '通知设置', icon: markRaw(Bell) },
-  { key: 'activity', label: '操作记录', icon: markRaw(Clock) }
-])
+  { key: "basic", label: "基本信息", icon: markRaw(User) },
+  { key: "security", label: "账户安全", icon: markRaw(Lock) },
+  { key: "notification", label: "通知设置", icon: markRaw(Bell) },
+  { key: "activity", label: "操作记录", icon: markRaw(Clock) },
+]);
 
 // 通知设置
 const notificationSettings = reactive({
@@ -527,124 +600,164 @@ const notificationSettings = reactive({
   recommend: true,
   inApp: true,
   email: true,
-  sms: false
-})
+  sms: false,
+});
 
 // 登录记录
 const loginHistory = ref([
-  { time: '2024-01-10 09:30:22', ip: '192.168.1.100', location: '北京', device: 'Chrome / Windows', status: '成功' },
-  { time: '2024-01-09 18:45:11', ip: '192.168.1.100', location: '北京', device: 'Safari / macOS', status: '成功' },
-  { time: '2024-01-09 08:20:33', ip: '10.0.0.55', location: '上海', device: 'Mobile / iOS', status: '成功' },
-  { time: '2024-01-08 22:15:44', ip: '203.156.78.90', location: '深圳', device: 'Chrome / Windows', status: '失败' },
-  { time: '2024-01-08 14:30:00', ip: '192.168.1.100', location: '北京', device: 'Chrome / Windows', status: '成功' }
-])
+  {
+    time: "2024-01-10 09:30:22",
+    ip: "192.168.1.100",
+    location: "北京",
+    device: "Chrome / Windows",
+    status: "成功",
+  },
+  {
+    time: "2024-01-09 18:45:11",
+    ip: "192.168.1.100",
+    location: "北京",
+    device: "Safari / macOS",
+    status: "成功",
+  },
+  {
+    time: "2024-01-09 08:20:33",
+    ip: "10.0.0.55",
+    location: "上海",
+    device: "Mobile / iOS",
+    status: "成功",
+  },
+  {
+    time: "2024-01-08 22:15:44",
+    ip: "203.156.78.90",
+    location: "深圳",
+    device: "Chrome / Windows",
+    status: "失败",
+  },
+  {
+    time: "2024-01-08 14:30:00",
+    ip: "192.168.1.100",
+    location: "北京",
+    device: "Chrome / Windows",
+    status: "成功",
+  },
+]);
 
 // 操作记录
 const activities = ref<Activity[]>([
   {
-    time: '2024-01-10 10:30',
-    title: '发布了新职位',
+    time: "2024-01-10 10:30",
+    title: "发布了新职位",
     description: '发布了"高级前端工程师"职位，薪资范围30-50K',
-    category: 'job',
+    category: "job",
     icon: markRaw(Suitcase),
-    type: 'primary'
+    type: "primary",
   },
   {
-    time: '2024-01-10 09:15',
-    title: '收藏了人才',
+    time: "2024-01-10 09:15",
+    title: "收藏了人才",
     description: '将"李明 - 资深前端工程师"添加到收藏夹',
-    category: 'talent',
+    category: "talent",
     icon: markRaw(Star),
-    type: 'success'
+    type: "success",
   },
   {
-    time: '2024-01-09 16:45',
-    title: '安排了面试',
+    time: "2024-01-09 16:45",
+    title: "安排了面试",
     description: '为"王强 - 后端工程师"安排了技术面试，时间：1月15日 14:00',
-    category: 'interview',
+    category: "interview",
     icon: markRaw(Position),
-    type: 'warning'
+    type: "warning",
   },
   {
-    time: '2024-01-09 11:20',
-    title: '查看了简历',
+    time: "2024-01-09 11:20",
+    title: "查看了简历",
     description: '查看了"张伟"的简历详情',
-    category: 'resume',
-    icon: markRaw(Document)
+    category: "resume",
+    icon: markRaw(Document),
   },
   {
-    time: '2024-01-08 15:30',
-    title: '修改了职位信息',
+    time: "2024-01-08 15:30",
+    title: "修改了职位信息",
     description: '更新了"产品经理"职位的薪资范围和工作要求',
-    category: 'job',
-    icon: markRaw(Edit)
-  }
-])
+    category: "job",
+    icon: markRaw(Edit),
+  },
+]);
 
 // 取消编辑
 const cancelEdit = () => {
-  isEditing.value = false
+  isEditing.value = false;
   // 重置表单
-}
+};
 
 // 保存个人信息
 const saveProfile = async () => {
-  if (!profileFormRef.value) return
-  await profileFormRef.value.validate()
-  ElMessage.success('个人信息保存成功')
-  isEditing.value = false
-}
+  if (!profileFormRef.value) return;
+  await profileFormRef.value.validate();
+  ElMessage.success("个人信息保存成功");
+  isEditing.value = false;
+};
 
 // 头像上传前检查
 const beforeAvatarUpload = (file: UploadRawFile) => {
-  const isImage = file.type.startsWith('image/')
-  const isLt2M = file.size / 1024 / 1024 < 2
+  const isImage = file.type.startsWith("image/");
+  const isLt2M = file.size / 1024 / 1024 < 2;
 
   if (!isImage) {
-    ElMessage.error('只能上传图片文件!')
-    return false
+    ElMessage.error("只能上传图片文件!");
+    return false;
   }
   if (!isLt2M) {
-    ElMessage.error('图片大小不能超过 2MB!')
-    return false
+    ElMessage.error("图片大小不能超过 2MB!");
+    return false;
   }
-  return true
-}
+  return true;
+};
 
 // 处理头像上传
 const handleAvatarUpload = (options: { file: File }) => {
-  const reader = new FileReader()
+  const reader = new FileReader();
   reader.onload = (e) => {
-    avatarPreview.value = e.target?.result as string
-  }
-  reader.readAsDataURL(options.file)
-}
+    avatarPreview.value = e.target?.result as string;
+  };
+  reader.readAsDataURL(options.file);
+};
 
-// 确认更换头像
-const confirmAvatarUpload = () => {
+// 确认更换头像 - 同步到 userStore 和后端
+const confirmAvatarUpload = async () => {
   if (avatarPreview.value) {
-    userInfo.avatar = avatarPreview.value
-    ElMessage.success('头像更换成功')
-    showAvatarUpload.value = false
-    avatarPreview.value = ''
+    try {
+      // 更新本地显示
+      userInfo.avatar = avatarPreview.value;
+
+      // 同步到 userStore 和后端
+      await userStore.updateProfile({ avatar: avatarPreview.value });
+
+      ElMessage.success("头像更换成功");
+      showAvatarUpload.value = false;
+      avatarPreview.value = "";
+    } catch (error: any) {
+      console.error("头像更新失败:", error);
+      ElMessage.error(error.message || "头像更新失败，请重试");
+    }
   }
-}
+};
 
 // 修改密码
 const changePassword = async () => {
-  if (!passwordFormRef.value) return
-  await passwordFormRef.value.validate()
-  ElMessage.success('密码修改成功')
-  showPasswordDialog.value = false
-  passwordForm.oldPassword = ''
-  passwordForm.newPassword = ''
-  passwordForm.confirmPassword = ''
-}
+  if (!passwordFormRef.value) return;
+  await passwordFormRef.value.validate();
+  ElMessage.success("密码修改成功");
+  showPasswordDialog.value = false;
+  passwordForm.oldPassword = "";
+  passwordForm.newPassword = "";
+  passwordForm.confirmPassword = "";
+};
 
 // 保存通知设置
 const saveNotificationSettings = () => {
-  ElMessage.success('通知设置已保存')
-}
+  ElMessage.success("通知设置已保存");
+};
 </script>
 
 <style scoped lang="scss">
@@ -791,7 +904,11 @@ const saveNotificationSettings = () => {
     }
 
     &.active {
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba(102, 126, 234, 0.1) 0%,
+        rgba(118, 75, 162, 0.1) 100%
+      );
       color: #667eea;
       font-weight: 600;
     }
@@ -868,9 +985,15 @@ const saveNotificationSettings = () => {
         color: white;
       }
 
-      &.phone { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-      &.email { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-      &.wechat { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+      &.phone {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      }
+      &.email {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      }
+      &.wechat {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      }
     }
 
     .security-detail {
@@ -973,10 +1096,18 @@ const saveNotificationSettings = () => {
       color: white;
     }
 
-    &.job { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    &.talent { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-    &.interview { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-    &.resume { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    &.job {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    &.talent {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    &.interview {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    &.resume {
+      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
   }
 
   .activity-content {

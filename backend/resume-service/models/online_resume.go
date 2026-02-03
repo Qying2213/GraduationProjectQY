@@ -133,9 +133,9 @@ type OnlineResume struct {
 	Gender         string             `gorm:"size:10" json:"gender,omitempty"`
 	Age            int                `json:"age,omitempty"`
 	Summary        string             `gorm:"type:text" json:"summary,omitempty"`
-	WorkExperience WorkExperienceList `gorm:"type:jsonb" json:"work_experience"`
-	Education      EducationList      `gorm:"type:jsonb" json:"education"`
-	Skills         SkillList          `gorm:"type:jsonb" json:"skills"`
+	WorkExperience WorkExperienceList `gorm:"type:json" json:"work_experience"`
+	Education      EducationList      `gorm:"type:json" json:"education"`
+	Skills         SkillList          `gorm:"type:json" json:"skills"`
 	IsComplete     bool               `gorm:"default:false" json:"is_complete"` // 简历是否完整
 }
 

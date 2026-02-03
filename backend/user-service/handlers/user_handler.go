@@ -212,9 +212,16 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	user.RealName = req.RealName
-	user.Phone = req.Phone
-	user.Avatar = req.Avatar
+	// 只更新非空字段，避免覆盖原有数据
+	if req.RealName != "" {
+		user.RealName = req.RealName
+	}
+	if req.Phone != "" {
+		user.Phone = req.Phone
+	}
+	if req.Avatar != "" {
+		user.Avatar = req.Avatar
+	}
 
 	if err := h.DB.Save(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})

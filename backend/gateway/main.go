@@ -335,6 +335,20 @@ func ReverseProxy(target string) gin.HandlerFunc {
 			return
 		}
 		proxy := httputil.NewSingleHostReverseProxy(remote)
+
+		// 设置自定义 Transport，增加超时时间到 120 秒（用于 AI 评估等耗时请求）
+		proxy.Transport = &http.Transport{
+			DialContext: (&net.Dialer{
+				Timeout:   120 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).DialContext,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+			ResponseHeaderTimeout: 120 * time.Second, // 响应头超时
+		}
+
 		proxy.Director = func(req *http.Request) {
 			req.Header = c.Request.Header
 			req.Host = remote.Host
