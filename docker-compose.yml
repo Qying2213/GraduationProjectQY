@@ -18,8 +18,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-      - ./backend/database/init_data.sql:/docker-entrypoint-initdb.d/02-init-data.sql
+      - ./backend/databaseSQL/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./backend/databaseSQL/init_data.sql:/docker-entrypoint-initdb.d/02-init-data.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -80,6 +80,7 @@ services:
       - "8086:8086"   # Talent Service
       - "8087:8087"   # Recommendation Service
       - "8088:8088"   # Log Service
+      - "8090:8090"   # Evaluator Service
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432

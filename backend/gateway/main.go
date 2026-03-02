@@ -318,14 +318,17 @@ func (h *StatsHandler) GetJobRank(c *gin.Context) {
 // ==================== 服务注册与代理 ====================
 
 var serviceRegistry = map[string]string{
-	"user":           "http://localhost:8081",
-	"job":            "http://localhost:8082",
-	"interview":      "http://localhost:8083",
-	"resume":         "http://localhost:8084",
-	"message":        "http://localhost:8085",
-	"talent":         "http://localhost:8086",
-	"recommendation": "http://localhost:8087",
+	"user":           getEnv("USER_SERVICE_URL", "http://localhost:8081"),
+	"job":            getEnv("JOB_SERVICE_URL", "http://localhost:8082"),
+	"interview":      getEnv("INTERVIEW_SERVICE_URL", "http://localhost:8083"),
+	"resume":         getEnv("RESUME_SERVICE_URL", "http://localhost:8084"),
+	"message":        getEnv("MESSAGE_SERVICE_URL", "http://localhost:8085"),
+	"talent":         getEnv("TALENT_SERVICE_URL", "http://localhost:8086"),
+	"recommendation": getEnv("RECOMMENDATION_SERVICE_URL", "http://localhost:8087"),
+	"log":            getEnv("LOG_SERVICE_URL", "http://localhost:8088"),
 }
+
+var messageWSHost = getEnv("MESSAGE_WS_HOST", "localhost:8085")
 
 func ReverseProxy(target string) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -529,12 +532,20 @@ func main() {
 	// Requirements: 8.1 (WebSocket connection), 8.2 (Real-time message delivery)
 	api.GET("/ws", func(c *gin.Context) {
 		// WebSocket 需要特殊处理，不能用普通的反向代理
-		wsProxyHandler(c, "localhost:8085")
+		wsProxyHandler(c, messageWSHost)
 	})
+
+	// 在线状态接口（转发到 message-service）
+	api.Any("/online-status", ReverseProxy(serviceRegistry["message"]))
+	api.Any("/online-status/*path", ReverseProxy(serviceRegistry["message"]))
 
 	// 面试服务
 	api.Any("/interviews", ReverseProxy(serviceRegistry["interview"]))
 	api.Any("/interviews/*path", ReverseProxy(serviceRegistry["interview"]))
+
+	// 日志服务
+	api.Any("/logs", ReverseProxy(serviceRegistry["log"]))
+	api.Any("/logs/*path", ReverseProxy(serviceRegistry["log"]))
 
 	// 统计服务（从数据库查真实数据）
 	statsHandler := NewStatsHandler()

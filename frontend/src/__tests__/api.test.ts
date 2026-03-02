@@ -3,7 +3,10 @@
  * 测试所有API接口的调用
  */
 
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect } from 'vitest'
+
+const RUN_INTEGRATION_TESTS = process.env.RUN_INTEGRATION_TESTS === 'true'
+const describeIntegration = RUN_INTEGRATION_TESTS ? describe : describe.skip
 
 // 各服务地址
 const SERVICES = {
@@ -30,7 +33,7 @@ async function fetchService(service: keyof typeof SERVICES, endpoint: string, op
   }
 }
 
-describe('用户服务 (user-service)', () => {
+describeIntegration('用户服务 (user-service)', () => {
   describe('认证接口', () => {
     it('POST /login - 正确密码登录成功', async () => {
       const res = await fetchService('user', '/login', {
@@ -70,7 +73,7 @@ describe('用户服务 (user-service)', () => {
   })
 })
 
-describe('职位服务 (job-service)', () => {
+describeIntegration('职位服务 (job-service)', () => {
   describe('职位列表', () => {
     it('GET /jobs - 获取职位列表', async () => {
       const res = await fetchService('job', '/jobs')
@@ -134,7 +137,7 @@ describe('职位服务 (job-service)', () => {
   })
 })
 
-describe('面试服务 (interview-service)', () => {
+describeIntegration('面试服务 (interview-service)', () => {
   describe('面试列表', () => {
     it('GET /interviews - 获取面试列表', async () => {
       const res = await fetchService('interview', '/interviews')
@@ -169,7 +172,7 @@ describe('面试服务 (interview-service)', () => {
   })
 })
 
-describe('简历服务 (resume-service)', () => {
+describeIntegration('简历服务 (resume-service)', () => {
   describe('简历列表', () => {
     it('GET /resumes - 获取简历列表', async () => {
       const res = await fetchService('resume', '/resumes')
@@ -208,7 +211,7 @@ describe('简历服务 (resume-service)', () => {
   })
 })
 
-describe('人才服务 (talent-service)', () => {
+describeIntegration('人才服务 (talent-service)', () => {
   describe('人才列表', () => {
     it('GET /talents - 获取人才列表', async () => {
       const res = await fetchService('talent', '/talents')
@@ -237,7 +240,7 @@ describe('人才服务 (talent-service)', () => {
   })
 })
 
-describe('消息服务 (message-service)', () => {
+describeIntegration('消息服务 (message-service)', () => {
   describe('消息列表', () => {
     it('GET /messages?user_id=1 - 获取消息列表', async () => {
       const res = await fetchService('message', '/messages?user_id=1')

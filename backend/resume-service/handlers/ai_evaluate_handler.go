@@ -384,7 +384,7 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 
 	// 如果有embedding，保存到向量数据库
 	if len(resumeEmbedding) > 0 {
-		h.saveResumeEmbedding(resume.ID, resumeEmbedding)
+		h.saveResumeEmbedding(&resume, resumeEmbedding)
 	}
 
 	// 保存评估结果到 EvaluationResult 表
@@ -554,14 +554,20 @@ func (h *AIEvaluateHandler) queryRAG(text string, embedding []float64) string {
 	return context
 }
 
-// saveResumeEmbedding 保存简历向量到数据库
-func (h *AIEvaluateHandler) saveResumeEmbedding(resumeID uint, embedding []float64) {
-	// 调用 recommendation-service 索引接口
-	indexURL := "http://localhost:8087/api/v1/rag/index-resume"
+// saveResumeEmbedding 将简历对应人才写入向量索引
+func (h *AIEvaluateHandler) saveResumeEmbedding(resume *models.Resume, embedding []float64) {
+	_ = embedding
+
+	if resume == nil || resume.TalentID == nil || *resume.TalentID == 0 {
+		fmt.Printf("[Embedding] 跳过索引：resume_id=%d 未关联 talent_id\n", resume.ID)
+		return
+	}
+
+	// recommendation-service 当前支持 index-talent/index-job 接口
+	indexURL := "http://localhost:8087/api/v1/recommendations/rag/index-talent"
 
 	reqBody := map[string]interface{}{
-		"resume_id": resumeID,
-		"embedding": embedding,
+		"talent_id": *resume.TalentID,
 	}
 
 	jsonBody, _ := json.Marshal(reqBody)
@@ -577,8 +583,12 @@ func (h *AIEvaluateHandler) saveResumeEmbedding(resumeID uint, embedding []float
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 200 {
-		fmt.Printf("[Embedding] 简历向量已保存到数据库\n")
+		fmt.Printf("[Embedding] 人才向量索引完成: talent_id=%d\n", *resume.TalentID)
+		return
 	}
+
+	body, _ := io.ReadAll(resp.Body)
+	fmt.Printf("[Embedding] 索引失败: status=%d, body=%s\n", resp.StatusCode, string(body))
 }
 
 // EvaluateUploadedFile 上传文件并进行AI评估

@@ -752,11 +752,11 @@ const handleUpload = async () => {
       formData.append("job_id", String(uploadJobId.value));
 
       try {
-        // 直接请求后端，绕过 Vite 代理测试
-        console.log("  直接请求后端 http://localhost:8084 ...");
+        // 通过统一 API 路径请求，兼容开发/生产环境
+        console.log("  请求后端 /api/v1/resumes/upload ...");
         const token = localStorage.getItem("token");
         const response = await fetch(
-          "http://localhost:8084/api/v1/resumes/upload",
+          "/api/v1/resumes/upload",
           {
             method: "POST",
             headers: token ? { Authorization: `Bearer ${token}` } : {},

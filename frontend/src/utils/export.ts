@@ -17,6 +17,11 @@ export interface ExportOptions {
 
 // 下载Blob
 function downloadBlob(blob: Blob, filename: string) {
+  // 单测/SSR 环境下可能不存在浏览器下载能力，直接跳过
+  if (typeof document === 'undefined' || typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+    return
+  }
+
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
@@ -122,7 +127,7 @@ export const talentExportColumns: ExportColumn[] = [
   { key: 'experience', title: '工作经验(年)' },
   { key: 'education', title: '学历' },
   { key: 'status', title: '状态', formatter: (v) => {
-    const map: Record<string, string> = { active: '活跃', hired: '已雇佣', pending: '待处理', rejected: '已拒绝' }
+    const map: Record<string, string> = { active: '在职看机会', hired: '已雇佣', pending: '待处理', rejected: '已拒绝' }
     return map[v] || v
   }},
   { key: 'location', title: '所在地' },

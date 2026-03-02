@@ -179,23 +179,7 @@ func (h *InterviewHandler) sendInterviewNotification(interview *models.Interview
 		"content":     content,
 		"type":        "interview",
 	}
-
-	jsonData, err := json.Marshal(notificationPayload)
-	if err != nil {
-		fmt.Printf("Failed to marshal notification: %v\n", err)
-		return
-	}
-
-	resp, err := http.Post(messageServiceURL+"/api/messages", "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		fmt.Printf("Failed to send notification: %v\n", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
-		fmt.Printf("Notification service returned status: %d\n", resp.StatusCode)
-	}
+	h.sendInternalMessage(messageServiceURL, notificationPayload)
 }
 
 // ListInterviews 获取面试列表
@@ -764,17 +748,38 @@ func (h *InterviewHandler) sendRescheduleNotification(interview *models.Intervie
 		"content":     content,
 		"type":        "interview",
 	}
+	h.sendInternalMessage(messageServiceURL, notificationPayload)
+}
 
-	jsonData, err := json.Marshal(notificationPayload)
+// sendInternalMessage 发送系统内部消息到 message-service
+func (h *InterviewHandler) sendInternalMessage(messageServiceURL string, payload map[string]interface{}) {
+	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		fmt.Printf("Failed to marshal notification: %v\n", err)
 		return
 	}
 
-	resp, err := http.Post(messageServiceURL+"/api/messages", "application/json", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest(http.MethodPost, messageServiceURL+"/internal/messages", bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Printf("Failed to create notification request: %v\n", err)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	// 服务间认证（可选）
+	if token := os.Getenv("INTERNAL_API_KEY"); token != "" {
+		req.Header.Set("X-Internal-Token", token)
+	}
+
+	client := &http.Client{Timeout: 8 * time.Second}
+	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Printf("Failed to send notification: %v\n", err)
 		return
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		fmt.Printf("Notification service returned status: %d\n", resp.StatusCode)
+	}
 }

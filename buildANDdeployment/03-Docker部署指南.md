@@ -88,8 +88,8 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-      - ./backend/database/mock_data.sql:/docker-entrypoint-initdb.d/02-mock_data.sql
+      - ./backend/databaseSQL/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./backend/databaseSQL/mock_data.sql:/docker-entrypoint-initdb.d/02-mock_data.sql
     ports:
       - "5432:5432"
     healthcheck:

@@ -25,10 +25,35 @@ func (h *JobHandler) CreateJob(c *gin.Context) {
 		return
 	}
 
+	// 优先使用认证上下文中的 user_id；未启用认证时回退到请求体中的 created_by
 	if userID, exists := c.Get("user_id"); exists {
-		if uid, ok := userID.(uint); ok {
+		switch uid := userID.(type) {
+		case uint:
 			job.CreatedBy = uid
+		case int:
+			if uid > 0 {
+				job.CreatedBy = uint(uid)
+			}
+		case float64:
+			if uid > 0 {
+				job.CreatedBy = uint(uid)
+			}
 		}
+	}
+
+	// 兼容无鉴权调用：自动绑定一个有效用户，避免 created_by 外键失败
+	if job.CreatedBy == 0 {
+		var creator struct {
+			ID uint `gorm:"column:id"`
+		}
+		if err := h.DB.Table("users").Select("id").Order("id ASC").Limit(1).First(&creator).Error; err == nil && creator.ID > 0 {
+			job.CreatedBy = creator.ID
+		}
+	}
+
+	if job.CreatedBy == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "created_by is required and no valid user exists"})
+		return
 	}
 
 	if err := h.DB.Create(&job).Error; err != nil {

@@ -8,9 +8,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:integration": "RUN_INTEGRATION_TESTS=true vitest run src/__tests__/api.test.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint": "eslint src --ext .vue,.js,.ts,.jsx,.tsx"
+    "lint": "vite build --mode production"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",

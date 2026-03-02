@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"message-service/handlers"
 	"message-service/models"
 	"message-service/websocket"
+	"net/http"
 	"os"
 
 	"common/middleware"
@@ -140,6 +142,17 @@ func main() {
 		api.DELETE("/:id", messageHandler.DeleteMessage)
 	}
 
+	// Internal API for service-to-service notifications
+	// Uses optional INTERNAL_API_KEY verification when configured.
+	r.POST("/internal/messages", func(c *gin.Context) {
+		internalAPIKey := getEnv("INTERNAL_API_KEY", "")
+		if internalAPIKey != "" && c.GetHeader("X-Internal-Token") != internalAPIKey {
+			c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "error": "invalid internal token"})
+			return
+		}
+		messageHandler.SendMessage(c)
+	})
+
 	// Chat conversations API (new)
 	// Requirements: 9.1 (Conversation List), 9.2 (Last Message Preview), 9.3 (Unread Count)
 	chatAPI := r.Group("/api/v1/conversations")
@@ -181,10 +194,14 @@ func main() {
 
 // parseUint parses a string to uint
 func parseUint(s string) (uint, error) {
+	if s == "" {
+		return 0, fmt.Errorf("empty input")
+	}
+
 	var n uint
 	for _, c := range s {
 		if c < '0' || c > '9' {
-			return 0, nil
+			return 0, fmt.Errorf("invalid character: %c", c)
 		}
 		n = n*10 + uint(c-'0')
 	}

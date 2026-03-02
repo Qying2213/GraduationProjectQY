@@ -48,20 +48,22 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     print_info "检测到 macOS 系统，将为每个服务打开独立终端"
     echo ""
     
-    # 定义服务列表: 目录名:端口:服务名
+    # 定义服务列表: 目录名:端口:服务名:启动命令
     services=(
-        "gateway:8080:Gateway网关"
-        "user-service:8081:用户服务"
-        "job-service:8082:职位服务"
-        "interview-service:8083:面试服务"
-        "resume-service:8084:简历服务"
-        "message-service:8085:消息服务"
-        "talent-service:8086:人才服务"
-        "recommendation-service:8087:推荐服务"
+        "gateway:8080:Gateway网关:go run main.go"
+        "user-service:8081:用户服务:go run main.go"
+        "job-service:8082:职位服务:go run main.go"
+        "interview-service:8083:面试服务:go run main.go"
+        "resume-service:8084:简历服务:go run main.go"
+        "message-service:8085:消息服务:go run main.go"
+        "talent-service:8086:人才服务:go run main.go"
+        "recommendation-service:8087:推荐服务:go run main.go"
+        "log-service:8088:日志服务:go run main.go"
+        "evaluator-service:8090:AI评估服务:go run cmd/server/main.go"
     )
     
     for service in "${services[@]}"; do
-        IFS=':' read -r dir port name <<< "$service"
+        IFS=':' read -r dir port name cmd <<< "$service"
         
         print_info "启动 $name (端口: $port)..."
         
@@ -69,7 +71,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         osascript <<EOF
 tell application "Terminal"
     activate
-    do script "cd '$PROJECT_ROOT/backend/$dir' && if [ -f '$ENV_FILE' ]; then export \$(grep -v '^#' '$ENV_FILE' | xargs); fi && echo '========================================' && echo '  $name - 端口 $port' && echo '========================================' && echo '' && go run main.go"
+    do script "cd '$PROJECT_ROOT/backend/$dir' && if [ -f '$ENV_FILE' ]; then export \$(grep -v '^#' '$ENV_FILE' | xargs); fi && echo '========================================' && echo '  $name - 端口 $port' && echo '========================================' && echo '' && $cmd"
 end tell
 EOF
         
@@ -91,6 +93,8 @@ EOF
     echo "  消息服务:        http://localhost:8085"
     echo "  人才服务:        http://localhost:8086"
     echo "  推荐服务:        http://localhost:8087"
+    echo "  日志服务:        http://localhost:8088"
+    echo "  AI评估服务:      http://localhost:8090"
     echo ""
     echo "=========================================="
     echo ""
@@ -111,21 +115,23 @@ else
     fi
     
     services=(
-        "gateway:8080:Gateway"
-        "user-service:8081:User Service"
-        "job-service:8082:Job Service"
-        "interview-service:8083:Interview Service"
-        "resume-service:8084:Resume Service"
-        "message-service:8085:Message Service"
-        "talent-service:8086:Talent Service"
-        "recommendation-service:8087:Recommendation Service"
+        "gateway:8080:Gateway:go run main.go"
+        "user-service:8081:User Service:go run main.go"
+        "job-service:8082:Job Service:go run main.go"
+        "interview-service:8083:Interview Service:go run main.go"
+        "resume-service:8084:Resume Service:go run main.go"
+        "message-service:8085:Message Service:go run main.go"
+        "talent-service:8086:Talent Service:go run main.go"
+        "recommendation-service:8087:Recommendation Service:go run main.go"
+        "log-service:8088:Log Service:go run main.go"
+        "evaluator-service:8090:Evaluator Service:go run cmd/server/main.go"
     )
     
     for service in "${services[@]}"; do
-        IFS=':' read -r dir port name <<< "$service"
+        IFS=':' read -r dir port name cmd <<< "$service"
         
         print_info "启动 $name (端口: $port)..."
-        (cd "$PROJECT_ROOT/backend/$dir" && go run main.go > "/tmp/${dir}.log" 2>&1 &)
+        (cd "$PROJECT_ROOT/backend/$dir" && eval "$cmd" > "/tmp/${dir}.log" 2>&1 &)
         sleep 1
     done
     

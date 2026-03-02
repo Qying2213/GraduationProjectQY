@@ -83,9 +83,9 @@ export default defineConfig({
                 target: 'http://localhost:8080',
                 changeOrigin: true
             },
-            // 日志服务 (Elasticsearch)
+            // 日志服务（统一走 Gateway，避免生产环境断链）
             '/api/v1/logs': {
-                target: 'http://localhost:8088',
+                target: 'http://localhost:8080',
                 changeOrigin: true
             },
             // 聊天会话服务 (message-service)

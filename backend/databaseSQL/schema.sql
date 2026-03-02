@@ -119,7 +119,8 @@ CREATE TABLE IF NOT EXISTS interviews (
     rating INTEGER DEFAULT 0,
     created_by INTEGER REFERENCES users(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 -- 面试反馈表
@@ -133,7 +134,8 @@ CREATE TABLE IF NOT EXISTS interview_feedbacks (
     comments TEXT,
     recommendation VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 -- 消息表
@@ -236,6 +238,8 @@ CREATE INDEX IF NOT EXISTS idx_interviews_status ON interviews(status);
 CREATE INDEX IF NOT EXISTS idx_interviews_date ON interviews(date);
 CREATE INDEX IF NOT EXISTS idx_interviews_candidate ON interviews(candidate_id);
 CREATE INDEX IF NOT EXISTS idx_interviews_interviewer ON interviews(interviewer_id);
+CREATE INDEX IF NOT EXISTS idx_interviews_deleted_at ON interviews(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_interview_feedbacks_deleted_at ON interview_feedbacks(deleted_at);
 CREATE INDEX IF NOT EXISTS idx_messages_receiver ON messages(receiver_id);
 CREATE INDEX IF NOT EXISTS idx_messages_read ON messages(is_read);
 CREATE INDEX IF NOT EXISTS idx_evaluation_results_status ON evaluation_results(status);

@@ -17,3 +17,4 @@ onMounted(() => {
 <style>
 /* Global app styles handled in global.scss */
 </style>
+

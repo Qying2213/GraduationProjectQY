@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -46,6 +47,7 @@ func setupTestRouter(db *gorm.DB) *gin.Engine {
 func TestCreateInterview(t *testing.T) {
 	db := setupTestDB()
 	router := setupTestRouter(db)
+	futureDate := time.Now().Add(24 * time.Hour).Format("2006-01-02")
 
 	tests := []struct {
 		name           string
@@ -61,7 +63,7 @@ func TestCreateInterview(t *testing.T) {
 				PositionID:    1,
 				Position:      "Go开发工程师",
 				Type:          "initial",
-				Date:          "2024-12-25",
+				Date:          futureDate,
 				Time:          "14:00",
 				Duration:      60,
 				InterviewerID: 1,

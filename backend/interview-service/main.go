@@ -22,18 +22,21 @@ func main() {
 	dbName := getEnv("DB_NAME", "talent_platform")
 	dbSSLMode := getEnv("DB_SSLMODE", "disable")
 
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		dbHost, dbPort, dbUser, dbPassword, dbName, dbSSLMode)
+	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=%s",
+		dbHost, dbPort, dbUser, dbName, dbSSLMode)
+	if dbPassword != "" {
+		dsn = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+			dbHost, dbPort, dbUser, dbPassword, dbName, dbSSLMode)
+	}
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	// 数据库表已通过SQL脚本创建，跳过自动迁移
-	// if err := db.AutoMigrate(&models.Interview{}, &models.InterviewFeedback{}); err != nil {
-	// 	log.Fatal("Failed to migrate database:", err)
-	// }
+	if err := ensureInterviewSchema(db); err != nil {
+		log.Fatal("Failed to ensure interview schema:", err)
+	}
 
 	// 初始化处理器
 	interviewHandler := handlers.NewInterviewHandler(db)
@@ -84,4 +87,21 @@ func getEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+func ensureInterviewSchema(db *gorm.DB) error {
+	sqls := []string{
+		"ALTER TABLE interviews ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP",
+		"ALTER TABLE interview_feedbacks ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP",
+		"CREATE INDEX IF NOT EXISTS idx_interviews_deleted_at ON interviews(deleted_at)",
+		"CREATE INDEX IF NOT EXISTS idx_interview_feedbacks_deleted_at ON interview_feedbacks(deleted_at)",
+	}
+
+	for _, stmt := range sqls {
+		if err := db.Exec(stmt).Error; err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

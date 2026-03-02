@@ -52,10 +52,9 @@ func main() {
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Printf("Warning: Failed to connect to database: %v", err)
-	} else {
-		log.Println("Database connected")
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
+	log.Println("Database connected")
 
 	// 初始化 Redis 缓存
 	redisHost := getEnv("REDIS_HOST", "localhost")

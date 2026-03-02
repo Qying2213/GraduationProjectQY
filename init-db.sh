@@ -34,8 +34,8 @@ if psql -h $DB_HOST -p $DB_PORT -U $DB_USER -lqt | cut -d \| -f 1 | grep -qw $DB
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo "正在重置数据库..."
-        psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f backend/database/schema.sql
-        psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f backend/database/mock_data.sql
+        psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f backend/databaseSQL/schema.sql
+        psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f backend/databaseSQL/init_data.sql
         echo "✅ 数据库已重置"
     fi
 else
@@ -43,10 +43,10 @@ else
     createdb -h $DB_HOST -p $DB_PORT -U $DB_USER $DB_NAME
     
     echo "正在初始化表结构..."
-    psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f backend/database/schema.sql
+    psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f backend/databaseSQL/schema.sql
     
     echo "正在导入测试数据..."
-    psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f backend/database/mock_data.sql
+    psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f backend/databaseSQL/init_data.sql
     
     echo "✅ 数据库初始化完成"
 fi

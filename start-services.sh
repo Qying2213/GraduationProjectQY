@@ -36,6 +36,9 @@ echo "[INFO] 启动 Recommendation Service (8087)..."
 echo "[INFO] 启动 Log Service (8088)..."
 ./log-service &
 
+echo "[INFO] 启动 Evaluator Service (8090)..."
+./evaluator-service &
+
 # 等待微服务启动
 sleep 3
 

@@ -324,26 +324,27 @@ cd talent-platform
 psql -U postgres -c "CREATE DATABASE talent_platform;"
 
 # 导入表结构
-psql -U postgres -d talent_platform -f backend/database/schema.sql
+psql -U postgres -d talent_platform -f backend/databaseSQL/schema.sql
 
 # 导入模拟数据（可选）
-psql -U postgres -d talent_platform -f backend/database/mock_data.sql
+psql -U postgres -d talent_platform -f backend/databaseSQL/mock_data.sql
 ```
 
 ### 3️⃣ 安装后端依赖
 
 ```bash
-cd backend
-chmod +x setup-deps.sh
-./setup-deps.sh  # 使用国内镜像加速
+# 首次启动前，建议为各微服务拉取依赖
+for svc in gateway user-service job-service interview-service resume-service message-service talent-service recommendation-service; do
+  (cd backend/$svc && go mod tidy)
+done
 ```
 
 ### 4️⃣ 启动后端服务
 
 ```bash
-# 一键启动所有微服务（会打开多个终端窗口）
-chmod +x start-backend.sh
-./start-backend.sh
+# 一键启动所有微服务（macOS 会打开多个终端窗口）
+chmod +x start-all.sh
+./start-all.sh
 ```
 
 ### 5️⃣ 启动前端
@@ -447,22 +448,25 @@ talent-platform/
 │   │   ├── elasticsearch/         # ES 客户端
 │   │   ├── middleware/            # 中间件 (CORS/日志/认证)
 │   │   └── response/              # 统一响应
-│   ├── database/                   # 数据库脚本
+│   ├── databaseSQL/                # 数据库脚本
 │   │   ├── schema.sql             # 表结构 (10张核心表)
 │   │   └── mock_data*.sql         # 模拟数据
-│   └── test_api.sh                 # API 测试脚本
+│
+├── 📂 ztest/                        # 综合测试脚本与报告
+│   ├── run_all_tests.sh            # 全链路 API 测试
+│   └── test_api.py                 # Python API 测试
 │
 ├── 📂 docs/                         # 项目文档
-│   ├── ARCHITECTURE.md             # 架构设计
-│   ├── SYSTEM_DESIGN.md            # 系统设计
-│   ├── DATABASE_DESIGN.md          # 数据库设计
-│   ├── QUICKSTART.md               # 快速启动
-│   ├── DEPLOYMENT.md               # 部署文档
-│   ├── TEST_GUIDE.md               # 测试指南
-│   └── CODE_GUIDE.md               # 代码规范
+│   ├── 01-项目概述.md              # 项目概览与研究目标
+│   ├── 02-技术架构设计.md          # 架构设计
+│   ├── 06-API接口文档.md           # 接口文档
+│   ├── 07-部署指南.md              # 部署文档
+│   ├── 08-性能测试指南.md          # 性能测试
+│   ├── 快速启动指南.md             # 快速启动
+│   └── 开题报告.md                 # 毕设开题报告
 │
 ├── docker-compose.yml              # Docker 编排
-├── start-backend.sh                # 后端启动脚本
+├── start-all.sh                    # 一键启动脚本
 ├── init-db.sh                      # 数据库初始化
 ├── Makefile                        # 构建命令
 └── README.md                       # 项目说明
@@ -476,9 +480,9 @@ talent-platform/
 ### 后端 API 测试
 
 ```bash
-cd backend
-chmod +x test_api.sh
-./test_api.sh
+cd ztest
+chmod +x run_all_tests.sh
+./run_all_tests.sh
 ```
 
 ### 前端单元测试
@@ -496,13 +500,14 @@ npm run test
 
 | 文档 | 说明 | 链接 |
 |------|------|------|
-| 📐 **系统架构** | 微服务架构设计、服务通信、技术选型 | [查看文档](docs/ARCHITECTURE.md) |
-| 📋 **系统设计** | 功能模块设计、接口设计、安全设计 | [查看文档](docs/SYSTEM_DESIGN.md) |
-| 🗄️ **数据库设计** | 表结构设计、ER图、数据字典、索引设计 | [查看文档](docs/DATABASE_DESIGN.md) |
-| 🚀 **快速启动** | 环境配置、安装步骤、服务启动 | [查看文档](docs/QUICKSTART.md) |
-| 🐳 **部署文档** | Docker部署、生产环境配置 | [查看文档](docs/DEPLOYMENT.md) |
-| 🧪 **测试指南** | API测试、功能测试、测试用例 | [查看文档](docs/TEST_GUIDE.md) |
-| 📝 **代码规范** | 目录结构、代码风格、开发指南 | [查看文档](docs/CODE_GUIDE.md) |
+| 📖 **项目概述** | 研究目标、核心模块、功能全景 | [查看文档](docs/01-项目概述.md) |
+| 📐 **技术架构** | 微服务架构、数据流、性能目标 | [查看文档](docs/02-技术架构设计.md) |
+| 📋 **API 文档** | 网关路由与接口定义 | [查看文档](docs/06-API接口文档.md) |
+| 🚀 **快速启动** | 环境配置、安装步骤、服务启动 | [查看文档](docs/快速启动指南.md) |
+| 🐳 **部署文档** | Docker部署、生产环境配置 | [查看文档](docs/07-部署指南.md) |
+| 🧪 **性能测试** | 压测脚本与指标说明 | [查看文档](docs/08-性能测试指南.md) |
+| 🎓 **开题报告** | 毕业设计目标、进度与预期成果 | [查看文档](docs/开题报告.md) |
+| ✅ **验收清单** | 毕设验收项、测试步骤与演示建议 | [查看文档](docs/毕业设计验收清单.md) |
 
 ---
 
@@ -556,8 +561,10 @@ pkill -f "go run main.go"
 # 使用国内镜像
 export GOPROXY=https://goproxy.cn,direct
 
-# 或运行脚本
-cd backend && ./setup-deps.sh
+# 或逐个服务拉取依赖
+for svc in gateway user-service job-service interview-service resume-service message-service talent-service recommendation-service; do
+  (cd backend/$svc && go mod tidy)
+done
 ```
 </details>
 
@@ -579,7 +586,7 @@ export DB_PORT=5432
 
 Elasticsearch 是可选组件，不启动不影响其他功能。如需启用：
 ```bash
-cd backend && ./start-es.sh
+docker compose up -d elasticsearch
 ```
 </details>
 
