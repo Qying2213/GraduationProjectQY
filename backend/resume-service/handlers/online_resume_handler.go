@@ -16,10 +16,7 @@ type OnlineResumeHandler struct {
 
 // NewOnlineResumeHandler 创建在线简历处理器
 func NewOnlineResumeHandler(db *gorm.DB) *OnlineResumeHandler {
-	// 自动迁移在线简历表
-	if err := db.AutoMigrate(&models.OnlineResume{}); err != nil {
-		log.Printf("Warning: Failed to migrate OnlineResume table: %v", err)
-	}
+	// online_resumes 由 databaseSQL/schema.sql 管理，避免运行时自动迁移引入噪音与副作用
 	return &OnlineResumeHandler{DB: db}
 }
 

@@ -346,6 +346,11 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 	// 读取简历文件（Coze需要原始PDF）
 	pdfBytes, err := os.ReadFile(resolveFilePath(resume.FilePath))
 	if err != nil {
+		h.DB.Model(&resume).Update("status", "failed")
+		if os.IsNotExist(err) {
+			c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "简历文件不存在，请重新上传简历"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "读取简历文件失败"})
 		return
 	}

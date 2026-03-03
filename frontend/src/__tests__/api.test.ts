@@ -3,7 +3,7 @@
  * 测试所有API接口的调用
  */
 
-import { describe, it, expect } from 'vitest'
+import { beforeAll, describe, it, expect } from 'vitest'
 
 const RUN_INTEGRATION_TESTS = process.env.RUN_INTEGRATION_TESTS === 'true'
 const describeIntegration = RUN_INTEGRATION_TESTS ? describe : describe.skip
@@ -18,13 +18,26 @@ const SERVICES = {
   talent: 'http://localhost:8086/api/v1',
 }
 
+let authToken = ''
+
 // 辅助函数
-async function fetchService(service: keyof typeof SERVICES, endpoint: string, options?: RequestInit) {
+async function fetchService(
+  service: keyof typeof SERVICES,
+  endpoint: string,
+  options?: RequestInit,
+  withAuth: boolean = true,
+) {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string> | undefined),
+  }
+
+  if (withAuth && authToken && !headers.Authorization) {
+    headers.Authorization = `Bearer ${authToken}`
+  }
+
   const response = await fetch(`${SERVICES[service]}${endpoint}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
+    headers,
     ...options,
   })
   return {
@@ -33,6 +46,27 @@ async function fetchService(service: keyof typeof SERVICES, endpoint: string, op
   }
 }
 
+beforeAll(async () => {
+  const login = await fetchService(
+    'user',
+    '/login',
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        username: 'admin',
+        password: 'admin123',
+      }),
+    },
+    false,
+  )
+
+  const token = login.data?.data?.token
+  if (login.status !== 200 || !token) {
+    throw new Error(`集成测试初始化失败，无法获取 token，status=${login.status}`)
+  }
+  authToken = token
+})
+
 describeIntegration('用户服务 (user-service)', () => {
   describe('认证接口', () => {
     it('POST /login - 正确密码登录成功', async () => {
@@ -40,9 +74,9 @@ describeIntegration('用户服务 (user-service)', () => {
         method: 'POST',
         body: JSON.stringify({
           username: 'admin',
-          password: 'password123',
+          password: 'admin123',
         }),
-      })
+      }, false)
       expect(res.status).toBe(200)
       expect(res.data).toHaveProperty('data')
     })
@@ -54,7 +88,7 @@ describeIntegration('用户服务 (user-service)', () => {
           username: 'admin',
           password: 'wrongpassword',
         }),
-      })
+      }, false)
       expect(res.status).toBe(401)
     })
   })

@@ -1048,7 +1048,9 @@ class TalentPlatformTests:
                     response_time_ms=elapsed,
                 )
             )
-        elif code == 500 and "读取简历文件失败" in str(data):
+        elif (code == 500 and "读取简历文件失败" in str(data)) or (
+            code == 404 and "简历文件不存在" in str(data)
+        ):
             suite.add(
                 TestResult(
                     name="AI 简历评估",
