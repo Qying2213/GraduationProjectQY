@@ -16,9 +16,12 @@ const SERVICES = {
   resume: 'http://localhost:8084/api/v1',
   message: 'http://localhost:8085/api/v1',
   talent: 'http://localhost:8086/api/v1',
+  recommendation: 'http://localhost:8087/api/v1',
 }
 
 let authToken = ''
+let integrationUsername = 'admin'
+let integrationPassword = 'admin123'
 
 // 辅助函数
 async function fetchService(
@@ -47,20 +50,52 @@ async function fetchService(
 }
 
 beforeAll(async () => {
-  const login = await fetchService(
+  const loginWith = async (username: string, password: string) =>
+    fetchService(
+      'user',
+      '/login',
+      {
+        method: 'POST',
+        body: JSON.stringify({ username, password }),
+      },
+      false,
+    )
+
+  // 1) 优先尝试默认管理员账号（兼容本地初始化数据）
+  let login = await loginWith(integrationUsername, integrationPassword)
+  let token = login.data?.data?.token || login.data?.token
+
+  if (login.status === 200 && token) {
+    authToken = token
+    return
+  }
+
+  // 2) 管理员不可用时自动注册临时测试用户，确保集成测试可在任意数据集运行
+  integrationUsername = `itest_${Date.now()}`
+  integrationPassword = 'Test123456'
+  const integrationEmail = `${integrationUsername}@example.com`
+
+  const register = await fetchService(
     'user',
-    '/login',
+    '/register',
     {
       method: 'POST',
       body: JSON.stringify({
-        username: 'admin',
-        password: 'admin123',
+        username: integrationUsername,
+        email: integrationEmail,
+        password: integrationPassword,
+        role: 'hr',
       }),
     },
     false,
   )
 
-  const token = login.data?.data?.token
+  if (register.status !== 200 && register.status !== 201) {
+    throw new Error(`集成测试初始化失败，注册测试用户失败，status=${register.status}`)
+  }
+
+  login = await loginWith(integrationUsername, integrationPassword)
+  token = login.data?.data?.token || login.data?.token
   if (login.status !== 200 || !token) {
     throw new Error(`集成测试初始化失败，无法获取 token，status=${login.status}`)
   }
@@ -73,8 +108,8 @@ describeIntegration('用户服务 (user-service)', () => {
       const res = await fetchService('user', '/login', {
         method: 'POST',
         body: JSON.stringify({
-          username: 'admin',
-          password: 'admin123',
+          username: integrationUsername,
+          password: integrationPassword,
         }),
       }, false)
       expect(res.status).toBe(200)
@@ -85,7 +120,7 @@ describeIntegration('用户服务 (user-service)', () => {
       const res = await fetchService('user', '/login', {
         method: 'POST',
         body: JSON.stringify({
-          username: 'admin',
+          username: integrationUsername,
           password: 'wrongpassword',
         }),
       }, false)
@@ -183,13 +218,28 @@ describeIntegration('面试服务 (interview-service)', () => {
       const res = await fetchService('interview', '/interviews?status=scheduled')
       expect(res.status).toBe(200)
     })
+
+    it('GET /interviews?start_date&end_date - 按日期范围筛选', async () => {
+      const res = await fetchService('interview', '/interviews?start_date=2020-01-01&end_date=2030-12-31')
+      expect(res.status).toBe(200)
+    })
   })
 
   describe('面试详情', () => {
     it('GET /interviews/1 - 获取面试详情', async () => {
-      const res = await fetchService('interview', '/interviews/1')
-      expect(res.status).toBe(200)
-      expect(res.data.data).toHaveProperty('ID', 1)
+      const list = await fetchService('interview', '/interviews')
+      const interviews = list.data?.data?.interviews || []
+
+      if (interviews.length > 0) {
+        const id = interviews[0].id ?? interviews[0].ID
+        const res = await fetchService('interview', `/interviews/${id}`)
+        expect(res.status).toBe(200)
+        const interview = res.data?.data ?? {}
+        expect(interview.id ?? interview.ID).toBe(id)
+      } else {
+        const res = await fetchService('interview', '/interviews/1')
+        expect(res.status).toBe(404)
+      }
     })
   })
 
@@ -202,6 +252,32 @@ describeIntegration('面试服务 (interview-service)', () => {
     it('GET /interviews/today - 获取今日面试', async () => {
       const res = await fetchService('interview', '/interviews/today')
       expect(res.status).toBe(200)
+    })
+  })
+
+  describe('面试创建校验', () => {
+    it('POST /interviews - 过去时间应返回校验失败', async () => {
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000)
+      const date = yesterday.toISOString().slice(0, 10)
+      const res = await fetchService('interview', '/interviews', {
+        method: 'POST',
+        body: JSON.stringify({
+          candidate_id: 1,
+          candidate_name: '集成测试候选人',
+          position_id: 1,
+          position: '测试岗位',
+          type: 'initial',
+          date,
+          time: '10:00',
+          duration: 30,
+          interviewer_id: 1,
+          interviewer: '测试面试官',
+          method: 'video',
+          location: '线上会议',
+        }),
+      })
+      expect(res.status).toBe(400)
+      expect(res.data?.code).toBe(1005)
     })
   })
 })
@@ -232,8 +308,17 @@ describeIntegration('简历服务 (resume-service)', () => {
 
   describe('简历详情', () => {
     it('GET /resumes/1 - 获取简历详情', async () => {
-      const res = await fetchService('resume', '/resumes/1')
-      expect(res.status).toBe(200)
+      const list = await fetchService('resume', '/resumes')
+      const resumes = list.data?.data?.resumes || []
+
+      if (resumes.length > 0) {
+        const id = resumes[0].id ?? resumes[0].ID
+        const res = await fetchService('resume', `/resumes/${id}`)
+        expect(res.status).toBe(200)
+      } else {
+        const res = await fetchService('resume', '/resumes/1')
+        expect(res.status).toBe(404)
+      }
     })
   })
 
@@ -261,8 +346,17 @@ describeIntegration('人才服务 (talent-service)', () => {
 
   describe('人才详情', () => {
     it('GET /talents/1 - 获取人才详情', async () => {
-      const res = await fetchService('talent', '/talents/1')
-      expect(res.status).toBe(200)
+      const list = await fetchService('talent', '/talents')
+      const talents = list.data?.data?.talents || []
+
+      if (talents.length > 0) {
+        const id = talents[0].id ?? talents[0].ID
+        const res = await fetchService('talent', `/talents/${id}`)
+        expect(res.status).toBe(200)
+      } else {
+        const res = await fetchService('talent', '/talents/1')
+        expect(res.status).toBe(404)
+      }
     })
   })
 
@@ -302,6 +396,58 @@ describeIntegration('消息服务 (message-service)', () => {
         }),
       })
       expect(res.status).toBe(201)
+    })
+  })
+})
+
+describeIntegration('推荐服务 (recommendation-service)', () => {
+  describe('推荐统计', () => {
+    it('GET /recommendations/stats - 获取推荐统计', async () => {
+      const res = await fetchService('recommendation', '/recommendations/stats')
+      expect(res.status).toBe(200)
+      expect(res.data).toHaveProperty('data')
+    })
+  })
+
+  describe('推荐接口', () => {
+    it('POST /recommendations/jobs-for-talent - 人才推荐职位', async () => {
+      const res = await fetchService('recommendation', '/recommendations/jobs-for-talent', {
+        method: 'POST',
+        body: JSON.stringify({
+          id: 1,
+          name: '推荐测试人才',
+          skills: ['Go', 'Docker'],
+          experience: 4,
+          education: '本科',
+          location: '北京',
+        }),
+      })
+      expect(res.status).toBe(200)
+      expect(Array.isArray(res.data?.data)).toBe(true)
+    })
+
+    it('POST /recommendations/talents-for-job - 职位推荐人才', async () => {
+      const res = await fetchService('recommendation', '/recommendations/talents-for-job', {
+        method: 'POST',
+        body: JSON.stringify({
+          id: 1,
+          title: '高级Go开发工程师',
+          skills: ['Go', 'Docker'],
+          location: '北京',
+          level: 'senior',
+        }),
+      })
+      expect(res.status).toBe(200)
+      expect(Array.isArray(res.data?.data)).toBe(true)
+    })
+
+    it('POST /recommendations/jobs-for-talent - 非法JSON应返回400', async () => {
+      const res = await fetchService('recommendation', '/recommendations/jobs-for-talent', {
+        method: 'POST',
+        body: '{',
+      })
+      expect(res.status).toBe(400)
+      expect(res.data?.code).toBe(1)
     })
   })
 })

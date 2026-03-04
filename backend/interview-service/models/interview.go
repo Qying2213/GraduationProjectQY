@@ -37,7 +37,9 @@ const (
 
 // Interview 面试模型
 type Interview struct {
-	gorm.Model
+	ID            uint            `json:"id" gorm:"primaryKey"`
+	CreatedAt     time.Time       `json:"created_at"`
+	UpdatedAt     time.Time       `json:"updated_at"`
 	CandidateID   uint            `json:"candidate_id" gorm:"index;not null"`
 	CandidateName string          `json:"candidate_name" gorm:"size:100;not null"`
 	PositionID    uint            `json:"position_id" gorm:"index;not null"`
@@ -59,13 +61,15 @@ type Interview struct {
 
 // InterviewFeedback 面试反馈
 type InterviewFeedback struct {
-	gorm.Model
-	InterviewID   uint   `json:"interview_id" gorm:"index;not null"`
-	InterviewerID uint   `json:"interviewer_id" gorm:"index;not null"`
-	Rating        int    `json:"rating" gorm:"not null"` // 1-5
-	Strengths     string `json:"strengths" gorm:"type:text"`
-	Weaknesses    string `json:"weaknesses" gorm:"type:text"`
-	Comments      string `json:"comments" gorm:"type:text"`
+	ID             uint      `json:"id" gorm:"primaryKey"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+	InterviewID    uint      `json:"interview_id" gorm:"index;not null"`
+	InterviewerID  uint      `json:"interviewer_id" gorm:"index;not null"`
+	Rating         int       `json:"rating" gorm:"not null"` // 1-5
+	Strengths      string    `json:"strengths" gorm:"type:text"`
+	Weaknesses     string    `json:"weaknesses" gorm:"type:text"`
+	Comments       string    `json:"comments" gorm:"type:text"`
 	Recommendation string `json:"recommendation" gorm:"size:50"` // pass, fail, pending
 }
 

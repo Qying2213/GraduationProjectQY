@@ -27,17 +27,18 @@ ENV_FILE="$PROJECT_ROOT/backend/.env"
 LOG_DIR="$PROJECT_ROOT/logs"
 PID_DIR="$PROJECT_ROOT/.pids"
 
-# 服务定义: 目录名:端口:服务名
+# 服务定义: 目录名:端口:服务名:启动命令:健康检查路径
 SERVICES=(
-    "gateway:8080:Gateway网关"
-    "user-service:8081:用户服务"
-    "job-service:8082:职位服务"
-    "interview-service:8083:面试服务"
-    "resume-service:8084:简历服务"
-    "message-service:8085:消息服务"
-    "talent-service:8086:人才服务"
-    "recommendation-service:8087:推荐服务"
-    "log-service:8088:日志服务"
+    "gateway:8080:Gateway网关:go run main.go:/health"
+    "user-service:8081:用户服务:go run main.go:/health"
+    "job-service:8082:职位服务:go run main.go:/health"
+    "interview-service:8083:面试服务:go run main.go:/health"
+    "resume-service:8084:简历服务:go run main.go:/health"
+    "message-service:8085:消息服务:go run main.go:/health"
+    "talent-service:8086:人才服务:go run main.go:/health"
+    "recommendation-service:8087:推荐服务:go run main.go:/health"
+    "log-service:8088:日志服务:go run main.go:/health"
+    "evaluator-service:8090:AI评估服务:go run cmd/server/main.go:/"
 )
 
 print_banner() {
@@ -110,11 +111,45 @@ check_port() {
     fi
 }
 
+# 检查服务健康
+check_service_health() {
+    local port=$1
+    local health_path=$2
+    if [ -n "$health_path" ]; then
+        curl -fsS -m 2 "http://localhost:${port}${health_path}" >/dev/null 2>&1
+        return $?
+    fi
+    check_port "$port"
+}
+
+# 等待服务就绪（兼容首次 go run 编译较慢）
+wait_for_service_ready() {
+    local port=$1
+    local pid=$2
+    local health_path=$3
+    local timeout=${4:-30}
+    local i=0
+
+    while [ $i -lt "$timeout" ]; do
+        if check_service_health "$port" "$health_path"; then
+            return 0
+        fi
+        if ! kill -0 "$pid" 2>/dev/null; then
+            return 1
+        fi
+        sleep 1
+        i=$((i + 1))
+    done
+    return 1
+}
+
 # 启动单个后端服务
 start_service() {
     local dir=$1
     local port=$2
     local name=$3
+    local cmd=$4
+    local health_path=$5
     local service_path="$PROJECT_ROOT/backend/$dir"
     local log_file="$LOG_DIR/$dir.log"
     local pid_file="$PID_DIR/$dir.pid"
@@ -125,27 +160,35 @@ start_service() {
         return 1
     fi
     
-    # 检查端口
-    if check_port $port; then
+    # 检查服务是否已健康运行
+    if check_service_health "$port" "$health_path"; then
         print_warn "$name (端口 $port) 已在运行"
         return 0
+    fi
+
+    # 端口被占用但健康检查失败，提示并中止，避免误判“启动成功”
+    if check_port "$port"; then
+        print_error "$name 端口 $port 已被占用，但健康检查失败，请先释放端口"
+        lsof -nP -iTCP:$port -sTCP:LISTEN | head -n 5
+        return 1
     fi
     
     print_info "启动 $name (端口: $port)..."
     
     # 启动服务
     cd "$service_path"
-    nohup go run main.go > "$log_file" 2>&1 &
+    nohup /bin/sh -c "$cmd" > "$log_file" 2>&1 &
     local pid=$!
     echo $pid > "$pid_file"
     
-    # 等待服务启动
-    sleep 2
-    
-    if check_port $port; then
+    # 等待服务启动（首次编译可能较慢）
+    if wait_for_service_ready "$port" "$pid" "$health_path" 40; then
         print_success "$name 启动成功 (PID: $pid)"
     else
         print_error "$name 启动失败，查看日志: $log_file"
+        if [ -f "$log_file" ]; then
+            tail -n 20 "$log_file"
+        fi
         return 1
     fi
 }
@@ -158,8 +201,8 @@ start_backend() {
     load_env
     
     for service in "${SERVICES[@]}"; do
-        IFS=':' read -r dir port name <<< "$service"
-        start_service "$dir" "$port" "$name"
+        IFS=':' read -r dir port name cmd health_path <<< "$service"
+        start_service "$dir" "$port" "$name" "$cmd" "$health_path"
     done
     
     echo ""
@@ -213,7 +256,7 @@ stop_all() {
     
     # 停止后端服务
     for service in "${SERVICES[@]}"; do
-        IFS=':' read -r dir port name <<< "$service"
+        IFS=':' read -r dir port name cmd health_path <<< "$service"
         local pid_file="$PID_DIR/$dir.pid"
         
         if [ -f "$pid_file" ]; then
@@ -272,8 +315,8 @@ show_status() {
     echo "─────────────────────────────────────────────"
     
     for service in "${SERVICES[@]}"; do
-        IFS=':' read -r dir port name <<< "$service"
-        if check_port $port; then
+        IFS=':' read -r dir port name cmd health_path <<< "$service"
+        if check_service_health "$port" "$health_path"; then
             printf "%-20s %-8s ${GREEN}%-10s${NC}\n" "$name" "$port" "运行中"
         else
             printf "%-20s %-8s ${RED}%-10s${NC}\n" "$name" "$port" "未运行"

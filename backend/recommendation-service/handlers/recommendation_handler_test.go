@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -157,6 +158,72 @@ func TestRecommendTalentsForJob(t *testing.T) {
 	}
 }
 
+func TestRecommendJobsForTalentInvalidJSON(t *testing.T) {
+	router := setupRouter()
+
+	req, _ := http.NewRequest("POST", "/api/v1/recommendations/jobs-for-talent", strings.NewReader("{"))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, float64(1), response["code"])
+}
+
+func TestRecommendTalentsForJobInvalidJSON(t *testing.T) {
+	router := setupRouter()
+
+	req, _ := http.NewRequest("POST", "/api/v1/recommendations/talents-for-job", strings.NewReader("{"))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, float64(1), response["code"])
+}
+
+func TestRecommendJobsForTalentScoreSortedDesc(t *testing.T) {
+	router := setupRouter()
+
+	talent := TalentProfile{
+		ID:         9,
+		Name:       "测试候选人",
+		Skills:     []string{"Go", "Docker"},
+		Experience: 4,
+		Education:  "本科",
+		Location:   "北京",
+	}
+
+	body, _ := json.Marshal(talent)
+	req, _ := http.NewRequest("POST", "/api/v1/recommendations/jobs-for-talent", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	data := response["data"].([]interface{})
+	assert.Greater(t, len(data), 1)
+
+	lastScore := data[0].(map[string]interface{})["score"].(float64)
+	for i := 1; i < len(data); i++ {
+		score := data[i].(map[string]interface{})["score"].(float64)
+		assert.LessOrEqual(t, score, lastScore, "推荐结果应按分数降序排序")
+		lastScore = score
+	}
+}
+
 func TestGetRecommendationStats(t *testing.T) {
 	router := setupRouter()
 
@@ -174,6 +241,28 @@ func TestGetRecommendationStats(t *testing.T) {
 	assert.Contains(t, data, "total_recommendations")
 	assert.Contains(t, data, "successful_matches")
 	assert.Contains(t, data, "success_rate")
+}
+
+func TestCalculateAdvancedMatchScoreDeterministic(t *testing.T) {
+	talent := TalentProfile{
+		Skills:     []string{"Go", "Docker", "Kubernetes"},
+		Experience: 5,
+		Education:  "本科",
+		Location:   "北京",
+		Salary:     "30-40K",
+	}
+	job := JobProfile{
+		Skills:   []string{"Go", "Docker"},
+		Location: "北京",
+		Level:    "senior",
+		Salary:   "30-50K",
+	}
+
+	score1, details1 := calculateAdvancedMatchScore(talent, job)
+	score2, details2 := calculateAdvancedMatchScore(talent, job)
+
+	assert.Equal(t, score1, score2)
+	assert.Equal(t, details1, details2)
 }
 
 func TestCalculateAdvancedMatchScore(t *testing.T) {
@@ -279,6 +368,12 @@ func TestSkillMatch(t *testing.T) {
 	}
 }
 
+func TestSkillMatchWithEmptyJobSkills(t *testing.T) {
+	score, details := calculateSkillMatch([]string{"Go"}, []string{})
+	assert.Equal(t, 0.5, score)
+	assert.Contains(t, details[0], "职位未指定技能要求")
+}
+
 func TestLocationMatch(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -310,6 +405,37 @@ func TestLocationMatch(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			score, _ := calculateLocationMatch(tt.talentLoc, tt.jobLoc)
 			assert.GreaterOrEqual(t, score, tt.minScore)
+		})
+	}
+}
+
+func TestParseSkills(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected []string
+	}{
+		{
+			name:     "PostgreSQL数组格式",
+			input:    "{Go,Docker, Kubernetes}",
+			expected: []string{"Go", "Docker", "Kubernetes"},
+		},
+		{
+			name:     "空字符串",
+			input:    "",
+			expected: []string{},
+		},
+		{
+			name:     "仅大括号",
+			input:    "{}",
+			expected: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := parseSkills(tt.input)
+			assert.Equal(t, tt.expected, result)
 		})
 	}
 }

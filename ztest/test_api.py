@@ -79,22 +79,57 @@ def test_login():
     """测试用户登录"""
     global TOKEN
     try:
-        r = requests.post(f"{BASE_URL}/login", json={
-            "username": "admin",
-            "password": "admin123"
-        }, timeout=10)
+        ts = int(time.time())
+        username = f"apitest_{ts}"
+        password = "Test123456"
+        email = f"{username}@example.com"
+
+        # 优先使用新注册用户登录，避免依赖固定 admin 凭据
+        requests.post(
+            f"{BASE_URL}/register",
+            json={
+                "username": username,
+                "email": email,
+                "password": password,
+                "role": "hr"
+            },
+            timeout=10
+        )
+
+        r = requests.post(
+            f"{BASE_URL}/login",
+            json={"username": username, "password": password},
+            timeout=10
+        )
+
         if r.status_code == 200:
             data = r.json()
-            if data.get("code") == 0 and data.get("data", {}).get("token"):
-                TOKEN = data["data"]["token"]
-                results.add_pass("用户登录 (admin)")
+            token = data.get("data", {}).get("token")
+            if data.get("code") == 0 and token:
+                TOKEN = token
+                results.add_pass("用户登录 (测试用户)")
                 return True
-            else:
-                results.add_fail("用户登录", f"响应: {data}")
-                return False
-        else:
-            results.add_fail("用户登录", f"状态码 {r.status_code}")
-            return False
+
+        # 兼容老环境，回退 admin 账号
+        r = requests.post(
+            f"{BASE_URL}/login",
+            json={"username": "admin", "password": "admin123"},
+            timeout=10
+        )
+        if r.status_code == 200:
+            data = r.json()
+            token = data.get("data", {}).get("token")
+            if data.get("code") == 0 and token:
+                TOKEN = token
+                results.add_pass("用户登录 (admin 回退)")
+                return True
+
+        try:
+            data = r.json()
+        except Exception:
+            data = {"raw": r.text[:200]}
+        results.add_fail("用户登录", f"状态码 {r.status_code}, 响应: {data}")
+        return False
     except Exception as e:
         results.add_fail("用户登录", str(e))
         return False

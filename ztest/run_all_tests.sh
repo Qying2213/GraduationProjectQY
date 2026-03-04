@@ -150,7 +150,9 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 # 2.1 用户注册测试
 ((TOTAL_TESTS++))
 RANDOM_EMAIL="test_$(date +%s)@example.com"
-response=$(http_post "$BASE_URL/register" "{\"username\":\"testuser_$$\",\"email\":\"$RANDOM_EMAIL\",\"password\":\"Test123456\",\"role\":\"hr\"}")
+TEST_USERNAME="testuser_$$"
+TEST_PASSWORD="Test123456"
+response=$(http_post "$BASE_URL/register" "{\"username\":\"$TEST_USERNAME\",\"email\":\"$RANDOM_EMAIL\",\"password\":\"$TEST_PASSWORD\",\"role\":\"hr\"}")
 parsed=$(parse_response "$response")
 body=$(echo "$parsed" | cut -d'|' -f1)
 status=$(echo "$parsed" | cut -d'|' -f2)
@@ -167,7 +169,7 @@ fi
 
 # 2.2 用户登录测试 (使用 admin 账号)
 ((TOTAL_TESTS++))
-response=$(http_post "$BASE_URL/login" '{"username":"admin","password":"admin123"}')
+response=$(http_post "$BASE_URL/login" "{\"username\":\"$TEST_USERNAME\",\"password\":\"$TEST_PASSWORD\"}")
 parsed=$(parse_response "$response")
 body=$(echo "$parsed" | cut -d'|' -f1)
 status=$(echo "$parsed" | cut -d'|' -f2)
@@ -175,9 +177,24 @@ if [ "$status" == "200" ]; then
     code=$(echo "$body" | grep -o '"code":[0-9]*' | cut -d: -f2)
     if [ "$code" == "0" ]; then
         TOKEN=$(echo "$body" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
-        log_pass "用户登录 - admin 登录成功"
+        log_pass "用户登录 - 测试用户登录成功"
     else
-        log_fail "用户登录" "业务码 code=$code"
+        # 回退尝试默认 admin 账号，兼容老数据环境
+        response=$(http_post "$BASE_URL/login" '{"username":"admin","password":"admin123"}')
+        parsed=$(parse_response "$response")
+        body=$(echo "$parsed" | cut -d'|' -f1)
+        status=$(echo "$parsed" | cut -d'|' -f2)
+        if [ "$status" == "200" ]; then
+            code=$(echo "$body" | grep -o '"code":[0-9]*' | cut -d: -f2)
+            if [ "$code" == "0" ]; then
+                TOKEN=$(echo "$body" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+                log_pass "用户登录 - admin 回退登录成功"
+            else
+                log_fail "用户登录" "业务码 code=$code"
+            fi
+        else
+            log_fail "用户登录" "HTTP状态码 $status"
+        fi
     fi
 else
     log_fail "用户登录" "HTTP状态码 $status"
@@ -206,7 +223,7 @@ fi
 
 # 2.4 错误密码登录测试
 ((TOTAL_TESTS++))
-response=$(http_post "$BASE_URL/login" '{"username":"admin","password":"wrongpassword"}')
+response=$(http_post "$BASE_URL/login" "{\"username\":\"$TEST_USERNAME\",\"password\":\"wrongpassword\"}")
 parsed=$(parse_response "$response")
 body=$(echo "$parsed" | cut -d'|' -f1)
 status=$(echo "$parsed" | cut -d'|' -f2)
@@ -378,10 +395,63 @@ fi
 echo ""
 
 # ------------------------------------------------------------------------------
-# 8. 面试服务测试
+# 8. 日志服务测试
 # ------------------------------------------------------------------------------
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "📅 测试 8: 面试服务"
+echo "🧾 测试 8: 日志服务"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# 8.1 查询日志
+((TOTAL_TESTS++))
+response=$(http_get "$BASE_URL/logs" "$TOKEN")
+parsed=$(parse_response "$response")
+status=$(echo "$parsed" | cut -d'|' -f2)
+if [ "$status" == "200" ]; then
+    log_pass "查询日志 - GET /logs"
+else
+    log_fail "查询日志" "HTTP状态码 $status"
+fi
+
+# 8.2 日志统计
+((TOTAL_TESTS++))
+response=$(http_get "$BASE_URL/logs/stats" "$TOKEN")
+parsed=$(parse_response "$response")
+status=$(echo "$parsed" | cut -d'|' -f2)
+if [ "$status" == "200" ]; then
+    log_pass "日志统计 - GET /logs/stats"
+else
+    log_fail "日志统计" "HTTP状态码 $status"
+fi
+
+# 8.3 服务列表
+((TOTAL_TESTS++))
+response=$(http_get "$BASE_URL/logs/services" "$TOKEN")
+parsed=$(parse_response "$response")
+status=$(echo "$parsed" | cut -d'|' -f2)
+if [ "$status" == "200" ]; then
+    log_pass "日志服务列表 - GET /logs/services"
+else
+    log_fail "日志服务列表" "HTTP状态码 $status"
+fi
+
+# 8.4 操作类型列表
+((TOTAL_TESTS++))
+response=$(http_get "$BASE_URL/logs/actions" "$TOKEN")
+parsed=$(parse_response "$response")
+status=$(echo "$parsed" | cut -d'|' -f2)
+if [ "$status" == "200" ]; then
+    log_pass "日志操作类型 - GET /logs/actions"
+else
+    log_fail "日志操作类型" "HTTP状态码 $status"
+fi
+
+echo ""
+
+# ------------------------------------------------------------------------------
+# 9. 面试服务测试
+# ------------------------------------------------------------------------------
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📅 测试 9: 面试服务"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # 8.1 获取面试列表
@@ -398,10 +468,10 @@ fi
 echo ""
 
 # ------------------------------------------------------------------------------
-# 9. 统计服务测试
+# 10. 统计服务测试
 # ------------------------------------------------------------------------------
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "📊 测试 9: 统计服务"
+echo "📊 测试 10: 统计服务"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 STATS_ENDPOINTS=(

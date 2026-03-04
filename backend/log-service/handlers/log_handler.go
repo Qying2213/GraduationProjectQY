@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"common/elasticsearch"
@@ -12,6 +13,30 @@ import (
 
 type LogHandler struct {
 	logService *elasticsearch.LogService
+}
+
+func isESUnavailable(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	msg := strings.ToLower(err.Error())
+	keywords := []string{
+		"es client not initialized",
+		"connect: connection refused",
+		"no such host",
+		"i/o timeout",
+		"context deadline exceeded",
+		"dial tcp",
+	}
+
+	for _, keyword := range keywords {
+		if strings.Contains(msg, keyword) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func NewLogHandler() *LogHandler {
@@ -64,6 +89,21 @@ func (h *LogHandler) QueryLogs(c *gin.Context) {
 
 	result, err := h.logService.Query(params)
 	if err != nil {
+		if isESUnavailable(err) {
+			c.JSON(http.StatusOK, gin.H{
+				"code":    0,
+				"message": "success",
+				"warning": "Elasticsearch unavailable, returned empty logs",
+				"data": gin.H{
+					"total":     0,
+					"logs":      []interface{}{},
+					"page":      params.Page,
+					"page_size": params.PageSize,
+				},
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code":    500,
 			"message": "查询日志失败: " + err.Error(),
@@ -106,6 +146,19 @@ func (h *LogHandler) GetStats(c *gin.Context) {
 
 	stats, err := h.logService.GetStats(startTime, endTime)
 	if err != nil {
+		if isESUnavailable(err) {
+			c.JSON(http.StatusOK, gin.H{
+				"code":    0,
+				"message": "success",
+				"warning": "Elasticsearch unavailable, returned empty stats",
+				"data": gin.H{
+					"total": 0,
+					"docs":  []interface{}{},
+				},
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code":    500,
 			"message": "获取统计失败: " + err.Error(),

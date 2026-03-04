@@ -43,14 +43,14 @@ services:
 
   # Elasticsearch 日志存储
   elasticsearch:
-    image: elasticsearch:8.11.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     container_name: talent-elasticsearch
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:
-      - "9200:9200"
+      - "19200:9200"
     volumes:
       - es_data:/usr/share/elasticsearch/data
     networks:
