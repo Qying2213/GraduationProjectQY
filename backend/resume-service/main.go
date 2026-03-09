@@ -112,6 +112,7 @@ func main() {
 		{
 			evaluations.GET("", evalHandler.ListEvaluations)
 			evaluations.GET("/stats", evalHandler.GetEvaluationStats)
+			evaluations.GET("/:id/process", evalHandler.GetEvaluationProcess)
 			evaluations.GET("/:id", evalHandler.GetEvaluation)
 			evaluations.DELETE("/:id", evalHandler.DeleteEvaluation)
 		}

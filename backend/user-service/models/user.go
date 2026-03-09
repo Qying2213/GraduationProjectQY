@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -23,13 +24,20 @@ type User struct {
 	Status     string         `gorm:"size:20;default:'active'" json:"status"` // active, inactive, suspended
 }
 
-// HashPassword 密码存储（明文，仅用于开发环境）
+// HashPassword 使用 bcrypt 存储密码
 func (u *User) HashPassword(password string) error {
-	u.Password = password
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	u.Password = string(hashed)
 	return nil
 }
 
-// CheckPassword 验证密码（明文比较）
+// CheckPassword 兼容 bcrypt 与历史明文数据
 func (u *User) CheckPassword(password string) bool {
+	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)); err == nil {
+		return true
+	}
 	return u.Password == password
 }

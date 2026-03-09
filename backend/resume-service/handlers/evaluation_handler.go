@@ -105,6 +105,50 @@ func (h *EvaluationHandler) GetEvaluation(c *gin.Context) {
 	})
 }
 
+// GetEvaluationProcess 获取评估链路详情（OCR/Embedding/RAG/LLM）
+func (h *EvaluationHandler) GetEvaluationProcess(c *gin.Context) {
+	id := c.Param("id")
+
+	var processLog models.AIProcessLog
+	err := h.DB.Where("evaluation_id = ?", id).
+		Order("created_at DESC").
+		First(&processLog).Error
+
+	// 兼容：若没有 evaluation_id 关联记录，则按 resume_id 回查最近一条
+	if err != nil {
+		var eval models.EvaluationResult
+		if e := h.DB.Select("resume_id").First(&eval, id).Error; e == nil && eval.ResumeID > 0 {
+			err = h.DB.Where("resume_id = ?", eval.ResumeID).
+				Order("created_at DESC").
+				First(&processLog).Error
+		}
+	}
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "未找到流程链路记录"})
+		return
+	}
+
+	trace := map[string]interface{}{}
+	if processLog.ProcessTrace != "" {
+		_ = json.Unmarshal([]byte(processLog.ProcessTrace), &trace)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data": gin.H{
+			"id":            processLog.ID,
+			"evaluation_id": processLog.EvaluationID,
+			"resume_id":     processLog.ResumeID,
+			"status":        processLog.Status,
+			"error_msg":     processLog.ErrorMsg,
+			"trace":         trace,
+			"created_at":    processLog.CreatedAt,
+		},
+	})
+}
+
 // DeleteEvaluation 删除评估结果
 func (h *EvaluationHandler) DeleteEvaluation(c *gin.Context) {
 	id := c.Param("id")

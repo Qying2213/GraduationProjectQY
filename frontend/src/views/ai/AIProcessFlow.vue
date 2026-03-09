@@ -129,8 +129,8 @@
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="viewDetail(row)" v-if="row.status === 'completed'">
-              <el-icon><View /></el-icon> 查看详情
+            <el-button link type="primary" @click="viewDetail(row)">
+              <el-icon><View /></el-icon> 查看链路
             </el-button>
           </template>
         </el-table-column>
@@ -151,7 +151,7 @@
 
     <!-- 详情抽屉 -->
     <el-drawer v-model="showDetailDrawer" title="处理详情" size="600px">
-      <div class="detail-content" v-if="currentDetail">
+      <div class="detail-content" v-if="currentDetail" v-loading="loadingDetail">
         <!-- 基本信息 -->
         <div class="detail-section">
           <h4>基本信息</h4>
@@ -163,21 +163,59 @@
           </el-descriptions>
         </div>
 
+        <!-- OCR结果 -->
+        <div class="detail-section">
+          <h4><el-icon><Document /></el-icon> OCR文本提取</h4>
+          <div class="embedding-info">
+            <el-tag :type="processTrace?.ocr?.success ? 'success' : 'danger'">
+              {{ processTrace?.ocr?.success ? 'OCR成功' : 'OCR失败' }}
+            </el-tag>
+            <el-tag v-if="processTrace?.ocr?.pages">页数: {{ processTrace.ocr.pages }}</el-tag>
+            <el-tag v-if="processTrace?.ocr?.text_length">文本长度: {{ processTrace.ocr.text_length }}</el-tag>
+            <el-tag v-if="processTrace?.ocr?.confidence">置信度: {{ Number(processTrace.ocr.confidence).toFixed(2) }}</el-tag>
+          </div>
+          <p v-if="processTrace?.ocr?.error" class="error-text">错误: {{ processTrace.ocr.error }}</p>
+          <el-input
+            v-if="processTrace?.ocr?.text_preview"
+            :model-value="processTrace.ocr.text_preview"
+            type="textarea"
+            :rows="6"
+            readonly
+            class="trace-preview"
+          />
+        </div>
+
         <!-- Embedding结果 -->
         <div class="detail-section">
           <h4><el-icon><Connection /></el-icon> Embedding向量化</h4>
           <div class="embedding-info">
-            <el-tag type="success">向量维度: 1024</el-tag>
-            <el-tag type="info">模型: doubao-embedding-large</el-tag>
+            <el-tag :type="processTrace?.embedding?.success ? 'success' : 'warning'">
+              {{ processTrace?.embedding?.success ? '向量化成功' : '未成功/未执行' }}
+            </el-tag>
+            <el-tag type="info">模型: {{ processTrace?.embedding?.model || '-' }}</el-tag>
+            <el-tag v-if="processTrace?.embedding?.dimension">向量维度: {{ processTrace.embedding.dimension }}</el-tag>
           </div>
+          <p v-if="processTrace?.embedding?.error" class="error-text">错误: {{ processTrace.embedding.error }}</p>
         </div>
 
         <!-- RAG检索结果 -->
         <div class="detail-section">
           <h4><el-icon><Search /></el-icon> RAG检索匹配</h4>
           <div class="rag-info">
-            <p>检索到 <strong>{{ currentDetail.rag_matches || 5 }}</strong> 个相似职位</p>
-            <p>最高相似度: <strong>{{ (currentDetail.max_similarity || 0.85) * 100 }}%</strong></p>
+            <el-tag :type="processTrace?.rag?.success ? 'success' : 'warning'">
+              {{ processTrace?.rag?.success ? '检索成功' : '未成功/未执行' }}
+            </el-tag>
+            <p>检索到 <strong>{{ processTrace?.rag?.hits?.length || 0 }}</strong> 条相似结果</p>
+          </div>
+          <p v-if="processTrace?.rag?.error" class="error-text">错误: {{ processTrace.rag.error }}</p>
+          <div v-if="processTrace?.rag?.hits?.length" class="rag-hits">
+            <div v-for="(hit, idx) in processTrace.rag.hits" :key="idx" class="rag-hit-item">
+              <div class="rag-hit-head">
+                <span>Top {{ idx + 1 }}</span>
+                <el-tag size="small" type="info">相似度 {{ (Number(hit.similarity) * 100).toFixed(1) }}%</el-tag>
+              </div>
+              <p>{{ hit.content }}</p>
+            </div>
           </div>
         </div>
 
@@ -235,6 +273,8 @@ const total = ref(0)
 // 详情
 const showDetailDrawer = ref(false)
 const currentDetail = ref<any>(null)
+const processTrace = ref<any>(null)
+const loadingDetail = ref(false)
 
 // 轮询定时器
 let pollTimer: any = null
@@ -266,10 +306,28 @@ const refreshHistory = () => {
   fetchHistory()
 }
 
-// 查看详情
-const viewDetail = (row: any) => {
+// 查看详情（含链路过程）
+const viewDetail = async (row: any) => {
   currentDetail.value = row
+  processTrace.value = null
   showDetailDrawer.value = true
+
+  if (!row?.id) return
+
+  loadingDetail.value = true
+  try {
+    const res = await request.get(`/evaluations/${row.id}/process`)
+    if (res.data?.code === 0) {
+      processTrace.value = res.data.data?.trace || null
+    } else {
+      ElMessage.warning('该记录暂无链路详情')
+    }
+  } catch (error) {
+    console.error('获取流程链路失败:', error)
+    ElMessage.warning('该记录暂无链路详情')
+  } finally {
+    loadingDetail.value = false
+  }
 }
 
 // 跳转到简历列表
@@ -491,6 +549,46 @@ onUnmounted(() => {
     p {
       margin: 4px 0;
       color: var(--text-secondary);
+    }
+  }
+
+  .error-text {
+    margin: 10px 0;
+    color: #f56c6c;
+    font-size: 13px;
+  }
+
+  .trace-preview {
+    margin-top: 8px;
+  }
+
+  .rag-hits {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .rag-hit-item {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 12px;
+
+      .rag-hit-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      p {
+        margin: 0;
+        color: var(--text-primary);
+        line-height: 1.5;
+        white-space: pre-wrap;
+      }
     }
   }
 

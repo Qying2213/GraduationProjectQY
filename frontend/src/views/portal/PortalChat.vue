@@ -265,8 +265,11 @@ const handleSendMessage = async (content: string) => {
     if (res.data?.code === 0 && res.data.data) {
       const newMessage = res.data.data
       
-      // Add message to local list
-      messages.value.push(newMessage)
+      // WebSocket may arrive before this HTTP response; dedupe by ID.
+      const exists = messages.value.some(m => m.id === newMessage.id)
+      if (!exists) {
+        messages.value.push(newMessage)
+      }
       
       // Update conversation's last message
       updateConversationLastMessage(selectedConversationId.value, newMessage)

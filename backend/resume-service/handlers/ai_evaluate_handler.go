@@ -35,6 +35,52 @@ type EmbeddingClient struct {
 	ModelID  string
 }
 
+// ProcessTrace 评估链路追踪数据，用于页面展示 OCR/Embedding/RAG/LLM 过程
+type ProcessTrace struct {
+	GeneratedAt time.Time          `json:"generated_at"`
+	OCR         OCRStepTrace       `json:"ocr"`
+	Embedding   EmbeddingStepTrace `json:"embedding"`
+	RAG         RAGStepTrace       `json:"rag"`
+	LLM         LLMStepTrace       `json:"llm"`
+}
+
+type OCRStepTrace struct {
+	Enabled     bool    `json:"enabled"`
+	Success     bool    `json:"success"`
+	Pages       int     `json:"pages"`
+	Confidence  float64 `json:"confidence"`
+	TextLength  int     `json:"text_length"`
+	TextPreview string  `json:"text_preview"`
+	Error       string  `json:"error"`
+}
+
+type EmbeddingStepTrace struct {
+	Enabled   bool   `json:"enabled"`
+	Success   bool   `json:"success"`
+	Model     string `json:"model"`
+	Dimension int    `json:"dimension"`
+	Error     string `json:"error"`
+}
+
+type RAGHit struct {
+	Content    string  `json:"content"`
+	Similarity float64 `json:"similarity"`
+}
+
+type RAGStepTrace struct {
+	Enabled bool     `json:"enabled"`
+	Success bool     `json:"success"`
+	TopK    int      `json:"top_k"`
+	Hits    []RAGHit `json:"hits"`
+	Error   string   `json:"error"`
+}
+
+type LLMStepTrace struct {
+	Provider string `json:"provider"`
+	Success  bool   `json:"success"`
+	Error    string `json:"error"`
+}
+
 // NewAIEvaluateHandler 创建 AI 评估处理器
 func NewAIEvaluateHandler(db *gorm.DB) *AIEvaluateHandler {
 	// 初始化 Embedding 客户端
@@ -46,12 +92,14 @@ func NewAIEvaluateHandler(db *gorm.DB) *AIEvaluateHandler {
 
 	ragEnabled := embeddingClient.APIKey != ""
 
-	return &AIEvaluateHandler{
+	handler := &AIEvaluateHandler{
 		DB:              db,
 		Evaluator:       evaluator.NewCozeEvaluator(),
 		EmbeddingClient: embeddingClient,
 		RAGEnabled:      ragEnabled,
 	}
+	handler.ensureAIProcessLogTable()
+	return handler
 }
 
 func getEnvDefault(key, defaultVal string) string {
@@ -59,6 +107,65 @@ func getEnvDefault(key, defaultVal string) string {
 		return v
 	}
 	return defaultVal
+}
+
+// ensureAIProcessLogTable 确保 AI 过程日志表存在（避免依赖手动迁移）
+func (h *AIEvaluateHandler) ensureAIProcessLogTable() {
+	sqls := []string{
+		`CREATE TABLE IF NOT EXISTS ai_process_logs (
+			id SERIAL PRIMARY KEY,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			deleted_at TIMESTAMP,
+			evaluation_id INTEGER REFERENCES evaluation_results(id),
+			resume_id INTEGER REFERENCES resumes(id) NOT NULL,
+			status VARCHAR(20) DEFAULT 'completed',
+			process_trace TEXT,
+			error_msg TEXT
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_ai_process_logs_evaluation_id ON ai_process_logs(evaluation_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_ai_process_logs_resume_id ON ai_process_logs(resume_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_ai_process_logs_status ON ai_process_logs(status)`,
+		`CREATE INDEX IF NOT EXISTS idx_ai_process_logs_created_at ON ai_process_logs(created_at DESC)`,
+	}
+
+	for _, sql := range sqls {
+		if err := h.DB.Exec(sql).Error; err != nil {
+			fmt.Printf("[AIProcessLog] ensure table failed: %v\n", err)
+			return
+		}
+	}
+}
+
+func (h *AIEvaluateHandler) saveProcessLog(evaluationID *uint, resumeID uint, status string, trace *ProcessTrace, errorMsg string) {
+	if trace == nil || resumeID == 0 {
+		return
+	}
+
+	traceJSON, err := json.Marshal(trace)
+	if err != nil {
+		fmt.Printf("[AIProcessLog] marshal failed: %v\n", err)
+		return
+	}
+
+	logRow := &models.AIProcessLog{
+		EvaluationID: evaluationID,
+		ResumeID:     resumeID,
+		Status:       status,
+		ProcessTrace: string(traceJSON),
+		ErrorMsg:     errorMsg,
+	}
+
+	if err := h.DB.Create(logRow).Error; err != nil {
+		fmt.Printf("[AIProcessLog] save failed: %v\n", err)
+	}
+}
+
+func tracePreview(text string, maxLen int) string {
+	if maxLen <= 0 || len(text) <= maxLen {
+		return text
+	}
+	return text[:maxLen] + "..."
 }
 
 // resolveFilePath 解析简历文件路径，处理绝对路径和相对路径两种情况
@@ -298,6 +405,25 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 		candidateName = resume.FileName
 	}
 
+	trace := &ProcessTrace{
+		GeneratedAt: time.Now(),
+		OCR: OCRStepTrace{
+			Enabled: true,
+		},
+		Embedding: EmbeddingStepTrace{
+			Enabled: h.RAGEnabled,
+			Model:   h.EmbeddingClient.ModelID,
+		},
+		RAG: RAGStepTrace{
+			Enabled: h.RAGEnabled,
+			TopK:    3,
+			Hits:    []RAGHit{},
+		},
+		LLM: LLMStepTrace{
+			Provider: "coze",
+		},
+	}
+
 	// ========== 步骤1: OCR 提取文本 ==========
 	fmt.Println("\n========== [AI评估] 步骤1: OCR文本提取 ==========")
 	ocrResult, err := ocr.ExtractTextFromFile(resolveFilePath(resume.FilePath))
@@ -305,8 +431,15 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 	if err != nil {
 		fmt.Printf("[OCR] 提取失败: %v，将使用PDF直接上传\n", err)
 		resumeText = ""
+		trace.OCR.Success = false
+		trace.OCR.Error = err.Error()
 	} else {
 		resumeText = ocrResult.Text
+		trace.OCR.Success = true
+		trace.OCR.Pages = ocrResult.Pages
+		trace.OCR.Confidence = ocrResult.Confidence
+		trace.OCR.TextLength = len(resumeText)
+		trace.OCR.TextPreview = tracePreview(resumeText, 500)
 		fmt.Printf("[OCR] 成功提取文本，长度: %d 字符，页数: %d，置信度: %.2f\n",
 			len(resumeText), ocrResult.Pages, ocrResult.Confidence)
 		// 打印前500字符预览
@@ -325,19 +458,35 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 		embedding, err := h.getEmbedding(resumeText)
 		if err != nil {
 			fmt.Printf("[Embedding] 向量化失败: %v\n", err)
+			trace.Embedding.Success = false
+			trace.Embedding.Error = err.Error()
 		} else {
 			resumeEmbedding = embedding
+			trace.Embedding.Success = true
+			trace.Embedding.Dimension = len(embedding)
 			fmt.Printf("[Embedding] 成功生成向量，维度: %d\n", len(embedding))
 
 			// ========== 步骤3: RAG 检索相似人才 ==========
 			fmt.Println("\n========== [AI评估] 步骤3: RAG检索相似人才 ==========")
-			ragContext = h.queryRAG(resumeText, resumeEmbedding)
+			ragHitsContext, ragHits, ragErr := h.queryRAG(resumeText, resumeEmbedding)
+			ragContext = ragHitsContext
+			if ragErr != nil {
+				trace.RAG.Success = false
+				trace.RAG.Error = ragErr.Error()
+			} else {
+				trace.RAG.Success = len(ragHits) > 0
+				trace.RAG.Hits = ragHits
+			}
 			if ragContext != "" {
 				fmt.Printf("[RAG] 检索到相似人才信息，长度: %d 字符\n", len(ragContext))
 			}
 		}
 	} else {
 		fmt.Println("\n========== [AI评估] 步骤2&3: 跳过Embedding和RAG (未配置或无文本) ==========")
+		if h.RAGEnabled && resumeText == "" {
+			trace.Embedding.Error = "OCR未提取到可用文本"
+			trace.RAG.Error = "OCR未提取到可用文本"
+		}
 	}
 
 	// ========== 步骤4: Coze AI 评估 ==========
@@ -347,6 +496,9 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 	pdfBytes, err := os.ReadFile(resolveFilePath(resume.FilePath))
 	if err != nil {
 		h.DB.Model(&resume).Update("status", "failed")
+		trace.LLM.Success = false
+		trace.LLM.Error = err.Error()
+		h.saveProcessLog(nil, resume.ID, "failed", trace, err.Error())
 		if os.IsNotExist(err) {
 			c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "简历文件不存在，请重新上传简历"})
 			return
@@ -369,9 +521,13 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 	result, err := h.Evaluator.EvaluateResume(ctx, candidateName, enhancedJD, pdfBytes)
 	if err != nil {
 		h.DB.Model(&resume).Update("status", "failed")
+		trace.LLM.Success = false
+		trace.LLM.Error = err.Error()
+		h.saveProcessLog(nil, resume.ID, "failed", trace, err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "AI 评估失败: " + err.Error()})
 		return
 	}
+	trace.LLM.Success = true
 
 	fmt.Printf("[Coze] 评估完成! 总分: %.1f, 等级: %s\n", result.TotalScore, result.Grade)
 
@@ -394,6 +550,7 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 
 	// 保存评估结果到 EvaluationResult 表
 	evalResult := h.saveEvaluationResult(&resume, result, candidateName, "ai_evaluate")
+	h.saveProcessLog(&evalResult.ID, resume.ID, "completed", trace, "")
 
 	fmt.Println("\n========== [AI评估] 完成! ==========")
 
@@ -492,7 +649,9 @@ func (h *AIEvaluateHandler) getEmbedding(text string) ([]float64, error) {
 }
 
 // queryRAG 查询RAG获取相似人才信息
-func (h *AIEvaluateHandler) queryRAG(text string, embedding []float64) string {
+func (h *AIEvaluateHandler) queryRAG(text string, embedding []float64) (string, []RAGHit, error) {
+	_ = embedding
+
 	// 调用 recommendation-service 的 RAG 接口
 	ragURL := "http://localhost:8087/api/v1/recommendations/rag/query"
 
@@ -504,30 +663,26 @@ func (h *AIEvaluateHandler) queryRAG(text string, embedding []float64) string {
 
 	jsonBody, err := json.Marshal(reqBody)
 	if err != nil {
-		fmt.Printf("[RAG] 请求构建失败: %v\n", err)
-		return ""
+		return "", nil, fmt.Errorf("请求构建失败: %w", err)
 	}
 
 	req, err := http.NewRequest("POST", ragURL, bytes.NewBuffer(jsonBody))
 	if err != nil {
-		fmt.Printf("[RAG] 请求创建失败: %v\n", err)
-		return ""
+		return "", nil, fmt.Errorf("请求创建失败: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("[RAG] 请求失败: %v\n", err)
-		return ""
+		return "", nil, fmt.Errorf("请求失败: %w", err)
 	}
 	defer resp.Body.Close()
 
 	body, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode != 200 {
-		fmt.Printf("[RAG] 响应错误: %d - %s\n", resp.StatusCode, string(body))
-		return ""
+		return "", nil, fmt.Errorf("响应错误: %d - %s", resp.StatusCode, string(body))
 	}
 
 	// 解析响应
@@ -542,21 +697,25 @@ func (h *AIEvaluateHandler) queryRAG(text string, embedding []float64) string {
 	}
 
 	if err := json.Unmarshal(body, &result); err != nil {
-		fmt.Printf("[RAG] 响应解析失败: %v\n", err)
-		return ""
+		return "", nil, fmt.Errorf("响应解析失败: %w", err)
 	}
 
 	if result.Code != 0 || len(result.Data.Results) == 0 {
-		return ""
+		return "", []RAGHit{}, nil
 	}
 
 	// 组合相似人才信息
 	var context string
+	hits := make([]RAGHit, 0, len(result.Data.Results))
 	for i, r := range result.Data.Results {
 		context += fmt.Sprintf("【相似人才%d】(相似度: %.1f%%)\n%s\n\n", i+1, r.Similarity*100, r.Content)
+		hits = append(hits, RAGHit{
+			Content:    tracePreview(r.Content, 200),
+			Similarity: r.Similarity,
+		})
 	}
 
-	return context
+	return context, hits, nil
 }
 
 // saveResumeEmbedding 将简历对应人才写入向量索引
@@ -670,7 +829,12 @@ func (h *AIEvaluateHandler) EvaluateUploadedFile(c *gin.Context) {
 
 			// ========== 步骤3: RAG 检索 ==========
 			fmt.Println("\n========== [AI评估-上传] 步骤3: RAG检索 ==========")
-			ragContext = h.queryRAG(resumeText, embedding)
+			ragResultContext, _, ragErr := h.queryRAG(resumeText, embedding)
+			if ragErr != nil {
+				fmt.Printf("[RAG] 检索失败: %v\n", ragErr)
+			} else {
+				ragContext = ragResultContext
+			}
 		}
 	}
 
