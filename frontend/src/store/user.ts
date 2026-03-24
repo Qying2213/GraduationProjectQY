@@ -62,7 +62,7 @@ export const useUserStore = defineStore('user', () => {
     const isAdmin = computed(() => user.value?.role === 'admin')
 
     // 是否是HR
-    const isHR = computed(() => user.value?.role === 'hr')
+    const isHR = computed(() => ['hr', 'hr_manager', 'recruiter'].includes(user.value?.role || ''))
 
     // 是否是候选人
     const isCandidate = computed(() => user.value?.role === 'candidate')

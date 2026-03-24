@@ -22,6 +22,8 @@ type Job struct {
 	CreatedBy    uint           `json:"created_by"`
 	Department   string         `gorm:"size:100" json:"department"`
 	Level        string         `gorm:"size:50" json:"level"` // junior, mid, senior, lead
+	Education    string         `gorm:"size:50" json:"education"`
 	Skills       pq.StringArray `gorm:"type:text[]" json:"skills"`
 	Benefits     pq.StringArray `gorm:"type:text[]" json:"benefits"`
+	Headcount    int            `gorm:"default:1" json:"headcount"`
 }

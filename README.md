@@ -28,11 +28,11 @@
 智能人才招聘管理平台是一个功能完善的企业级招聘管理系统，采用**微服务架构**设计，包含**企业管理后台**、**求职者门户**和**数据大屏**三大模块。
 
 - 🏢 **后端**：Go 语言开发 **8个业务微服务 + API网关 + AI评估服务**，支持独立部署和弹性扩展
-- � **前端***：Vue3 + TypeScript + Element Plus，响应式设计，支持暗色主题
+- 💻 **前端**：Vue3 + TypeScript + Element Plus，响应式设计，支持暗色主题
 - 🤖 **AI能力**：集成 Coze AI 实现智能简历评估、人岗匹配推荐
 - 📊 **数据分析**：ECharts 数据可视化，实时招聘数据大屏
-- � **日志系析统**：Elasticsearch 全文搜索，操作日志可追溯
-- �  **权限管理**：RBAC 角色权限控制，5种预设角色
+- 📝 **日志系统**：Elasticsearch 全文搜索，操作日志可追溯
+- 🔐 **权限管理**：RBAC 角色权限控制，5种预设角色
 
 
 ### 🌐 系统入口
@@ -320,14 +320,13 @@ cd talent-platform
 ### 2️⃣ 初始化数据库
 
 ```bash
-# 创建数据库
+# 推荐：自动创建数据库、导入结构并重置为演示数据
+./init-db.sh
+
+# 手动方式
 psql -U postgres -c "CREATE DATABASE talent_platform;"
-
-# 导入表结构
 psql -U postgres -d talent_platform -f backend/databaseSQL/schema.sql
-
-# 导入模拟数据（可选）
-psql -U postgres -d talent_platform -f backend/databaseSQL/mock_data.sql
+psql -U postgres -d talent_platform -f backend/databaseSQL/init_data.sql
 ```
 
 ### 3️⃣ 安装后端依赖
@@ -339,26 +338,34 @@ for svc in gateway user-service job-service interview-service resume-service mes
 done
 ```
 
-### 4️⃣ 启动后端服务
+### 4️⃣ 一键启动开发环境
 
 ```bash
-# 一键启动所有微服务（macOS 会打开多个终端窗口）
+# 一键后台启动所有微服务、前端和开发日志面板
 chmod +x start-all.sh
 ./start-all.sh
 ```
 
-### 5️⃣ 启动前端
+启动完成后，可以直接打开：
+
+- 开发启动面板：`http://localhost:8091`
+- 管理后台：`http://localhost:5173/login`
+- 求职者门户：`http://localhost:5173/portal`
+- 数据大屏：`http://localhost:5173/data-screen`
+- API 网关：`http://localhost:8080/api/v1`
+
+### 5️⃣ 停止开发环境
 
 ```bash
-cd frontend
-npm install
-npm run dev
+chmod +x stop-all.sh
+./stop-all.sh
 ```
 
 ### 6️⃣ 访问系统
 
 | 入口 | 地址 |
 |------|------|
+| 开发启动面板 | http://localhost:8091 |
 | 管理后台 | http://localhost:5173/login |
 | 求职者门户 | http://localhost:5173/portal |
 | 数据大屏 | http://localhost:5173/data-screen |
@@ -370,11 +377,11 @@ npm run dev
 
 | 用户名 | 密码 | 角色 | 权限说明 |
 |--------|------|------|----------|
-| admin | password123 | 超级管理员 | 所有权限 |
-| hr_zhang | password123 | HR主管 | 招聘全流程管理 |
-| hr_li | password123 | 招聘专员 | 日常招聘操作 |
-| tech_chen | password123 | 面试官 | 面试评估 |
-| viewer_test | password123 | 只读用户 | 仅查看 |
+| admin | admin123 | 超级管理员 | 所有权限 |
+| hr1 | 123456 | HR经理 | 招聘全流程管理 |
+| hr2 | 123456 | HR专员 | 日常招聘操作 |
+| hr3 | 123456 | HR专员 | 招聘执行与简历筛选 |
+| candidate01 | 123456 | 求职者 | 门户登录、投递与简历管理 |
 
 ---
 
@@ -383,6 +390,7 @@ npm run dev
 | 服务 | 端口 | 说明 |
 |------|------|------|
 | 前端 | 5173 | Vite 开发服务器 |
+| 开发启动面板 | 8091 | 聚合查看所有服务日志、端口和运行状态 |
 | API Gateway | 8080 | 统一网关（路由分发/限流/日志） |
 | user-service | 8081 | 用户认证、权限管理、用户信息 |
 | job-service | 8082 | 职位 CRUD、搜索筛选、职位统计 |

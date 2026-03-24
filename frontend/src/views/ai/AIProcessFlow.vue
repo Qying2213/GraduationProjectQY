@@ -163,60 +163,66 @@
           </el-descriptions>
         </div>
 
-        <!-- OCR结果 -->
-        <div class="detail-section">
-          <h4><el-icon><Document /></el-icon> OCR文本提取</h4>
-          <div class="embedding-info">
-            <el-tag :type="processTrace?.ocr?.success ? 'success' : 'danger'">
-              {{ processTrace?.ocr?.success ? 'OCR成功' : 'OCR失败' }}
-            </el-tag>
-            <el-tag v-if="processTrace?.ocr?.pages">页数: {{ processTrace.ocr.pages }}</el-tag>
-            <el-tag v-if="processTrace?.ocr?.text_length">文本长度: {{ processTrace.ocr.text_length }}</el-tag>
-            <el-tag v-if="processTrace?.ocr?.confidence">置信度: {{ Number(processTrace.ocr.confidence).toFixed(2) }}</el-tag>
+        <template v-if="processTrace">
+          <!-- OCR结果 -->
+          <div class="detail-section">
+            <h4><el-icon><Document /></el-icon> OCR文本提取</h4>
+            <div class="embedding-info">
+              <el-tag :type="processTrace?.ocr?.success ? 'success' : 'danger'">
+                {{ processTrace?.ocr?.success ? 'OCR成功' : 'OCR失败' }}
+              </el-tag>
+              <el-tag v-if="processTrace?.ocr?.pages">页数: {{ processTrace.ocr.pages }}</el-tag>
+              <el-tag v-if="processTrace?.ocr?.text_length">文本长度: {{ processTrace.ocr.text_length }}</el-tag>
+              <el-tag v-if="processTrace?.ocr?.confidence">置信度: {{ Number(processTrace.ocr.confidence).toFixed(2) }}</el-tag>
+            </div>
+            <p v-if="processTrace?.ocr?.error" class="error-text">错误: {{ processTrace.ocr.error }}</p>
+            <el-input
+              v-if="processTrace?.ocr?.text_preview"
+              :model-value="processTrace.ocr.text_preview"
+              type="textarea"
+              :rows="6"
+              readonly
+              class="trace-preview"
+            />
           </div>
-          <p v-if="processTrace?.ocr?.error" class="error-text">错误: {{ processTrace.ocr.error }}</p>
-          <el-input
-            v-if="processTrace?.ocr?.text_preview"
-            :model-value="processTrace.ocr.text_preview"
-            type="textarea"
-            :rows="6"
-            readonly
-            class="trace-preview"
-          />
-        </div>
 
-        <!-- Embedding结果 -->
-        <div class="detail-section">
-          <h4><el-icon><Connection /></el-icon> Embedding向量化</h4>
-          <div class="embedding-info">
-            <el-tag :type="processTrace?.embedding?.success ? 'success' : 'warning'">
-              {{ processTrace?.embedding?.success ? '向量化成功' : '未成功/未执行' }}
-            </el-tag>
-            <el-tag type="info">模型: {{ processTrace?.embedding?.model || '-' }}</el-tag>
-            <el-tag v-if="processTrace?.embedding?.dimension">向量维度: {{ processTrace.embedding.dimension }}</el-tag>
+          <!-- Embedding结果 -->
+          <div class="detail-section">
+            <h4><el-icon><Connection /></el-icon> Embedding向量化</h4>
+            <div class="embedding-info">
+              <el-tag :type="processTrace?.embedding?.success ? 'success' : 'warning'">
+                {{ processTrace?.embedding?.success ? '向量化成功' : '未成功/未执行' }}
+              </el-tag>
+              <el-tag type="info">模型: {{ processTrace?.embedding?.model || '-' }}</el-tag>
+              <el-tag v-if="processTrace?.embedding?.dimension">向量维度: {{ processTrace.embedding.dimension }}</el-tag>
+            </div>
+            <p v-if="processTrace?.embedding?.error" class="error-text">错误: {{ processTrace.embedding.error }}</p>
           </div>
-          <p v-if="processTrace?.embedding?.error" class="error-text">错误: {{ processTrace.embedding.error }}</p>
-        </div>
 
-        <!-- RAG检索结果 -->
-        <div class="detail-section">
-          <h4><el-icon><Search /></el-icon> RAG检索匹配</h4>
-          <div class="rag-info">
-            <el-tag :type="processTrace?.rag?.success ? 'success' : 'warning'">
-              {{ processTrace?.rag?.success ? '检索成功' : '未成功/未执行' }}
-            </el-tag>
-            <p>检索到 <strong>{{ processTrace?.rag?.hits?.length || 0 }}</strong> 条相似结果</p>
-          </div>
-          <p v-if="processTrace?.rag?.error" class="error-text">错误: {{ processTrace.rag.error }}</p>
-          <div v-if="processTrace?.rag?.hits?.length" class="rag-hits">
-            <div v-for="(hit, idx) in processTrace.rag.hits" :key="idx" class="rag-hit-item">
-              <div class="rag-hit-head">
-                <span>Top {{ idx + 1 }}</span>
-                <el-tag size="small" type="info">相似度 {{ (Number(hit.similarity) * 100).toFixed(1) }}%</el-tag>
+          <!-- RAG检索结果 -->
+          <div class="detail-section">
+            <h4><el-icon><Search /></el-icon> RAG检索匹配</h4>
+            <div class="rag-info">
+              <el-tag :type="processTrace?.rag?.success ? 'success' : 'warning'">
+                {{ processTrace?.rag?.success ? '检索成功' : '未成功/未执行' }}
+              </el-tag>
+              <p>检索到 <strong>{{ processTrace?.rag?.hits?.length || 0 }}</strong> 条相似结果</p>
+            </div>
+            <p v-if="processTrace?.rag?.error" class="error-text">错误: {{ processTrace.rag.error }}</p>
+            <div v-if="processTrace?.rag?.hits?.length" class="rag-hits">
+              <div v-for="(hit, idx) in processTrace.rag.hits" :key="idx" class="rag-hit-item">
+                <div class="rag-hit-head">
+                  <span>Top {{ idx + 1 }}</span>
+                  <el-tag size="small" type="info">相似度 {{ (Number(hit.similarity) * 100).toFixed(1) }}%</el-tag>
+                </div>
+                <p>{{ hit.content }}</p>
               </div>
-              <p>{{ hit.content }}</p>
             </div>
           </div>
+        </template>
+
+        <div v-else class="detail-section">
+          <el-empty :description="traceHint || '该记录暂无链路详情'" />
         </div>
 
         <!-- AI评估结果 -->
@@ -274,6 +280,7 @@ const total = ref(0)
 const showDetailDrawer = ref(false)
 const currentDetail = ref<any>(null)
 const processTrace = ref<any>(null)
+const traceHint = ref('')
 const loadingDetail = ref(false)
 
 // 轮询定时器
@@ -310,6 +317,7 @@ const refreshHistory = () => {
 const viewDetail = async (row: any) => {
   currentDetail.value = row
   processTrace.value = null
+  traceHint.value = ''
   showDetailDrawer.value = true
 
   if (!row?.id) return
@@ -319,12 +327,18 @@ const viewDetail = async (row: any) => {
     const res = await request.get(`/evaluations/${row.id}/process`)
     if (res.data?.code === 0) {
       processTrace.value = res.data.data?.trace || null
+      traceHint.value = res.data?.message || '该记录暂无链路详情'
+      if (!processTrace.value) {
+        ElMessage.info(traceHint.value)
+      }
     } else {
-      ElMessage.warning('该记录暂无链路详情')
+      traceHint.value = res.data?.message || '该记录暂无链路详情'
+      ElMessage.warning(traceHint.value)
     }
   } catch (error) {
     console.error('获取流程链路失败:', error)
-    ElMessage.warning('该记录暂无链路详情')
+    traceHint.value = '获取流程链路失败，请检查 resume-service 日志'
+    ElMessage.error(traceHint.value)
   } finally {
     loadingDetail.value = false
   }

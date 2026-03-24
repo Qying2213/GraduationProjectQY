@@ -102,8 +102,8 @@ POST /api/v1/register
 ```
 POST /api/v1/login
 {
-  "username": "testuser",
-  "password": "password123"
+  "username": "admin",
+  "password": "admin123"
 }
 ```
 

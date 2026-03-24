@@ -2,9 +2,14 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"resume-service/ai"
@@ -31,40 +36,35 @@ func NewAIParseHandler(db *gorm.DB) *AIParseHandler {
 
 // AIParseRequest AI解析请求
 type AIParseRequest struct {
-	ResumeID uint   `json:"resume_id" binding:"required"`
-	JDText   string `json:"jd_text"`
+	ResumeID uint   `json:"resume_id" form:"resume_id"`
+	JDText   string `json:"jd_text" form:"jd_text"`
+}
+
+type parseSource struct {
+	Resume   *models.Resume
+	FileName string
+	FilePath string
+	FileData []byte
+	JDText   string
+	Cleanup  func()
 }
 
 // AIParseResume AI智能解析简历
 func (h *AIParseHandler) AIParseResume(c *gin.Context) {
-	var req AIParseRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "参数错误: " + err.Error()})
+	source, ok := h.resolveParseSource(c)
+	if !ok {
 		return
 	}
+	defer cleanupSource(source)
 
-	// 获取简历记录
-	var resume models.Resume
-	if err := h.DB.First(&resume, req.ResumeID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "简历不存在"})
-		return
+	if source.Resume != nil {
+		log.Printf("[AI解析] 开始解析简历: ID=%d, 文件=%s", source.Resume.ID, source.FileName)
+	} else {
+		log.Printf("[AI解析] 开始解析上传文件: 文件=%s", source.FileName)
 	}
-
-	// 检查文件是否存在
-	if resume.FilePath == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "简历文件不存在"})
-		return
-	}
-
-	if _, err := os.Stat(resume.FilePath); os.IsNotExist(err) {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "简历文件已被删除"})
-		return
-	}
-
-	log.Printf("[AI解析] 开始解析简历: ID=%d, 文件=%s", req.ResumeID, resume.FileName)
 
 	// 1. 使用OCR提取文本
-	ocrResult, err := ocr.ExtractTextFromFile(resume.FilePath)
+	ocrResult, err := ocr.ExtractTextFromFile(source.FilePath)
 	if err != nil {
 		log.Printf("[AI解析] OCR提取失败: %v", err)
 		// OCR失败不阻断流程，继续尝试AI解析
@@ -72,14 +72,7 @@ func (h *AIParseHandler) AIParseResume(c *gin.Context) {
 		log.Printf("[AI解析] OCR提取成功: 页数=%d, 文本长度=%d", ocrResult.Pages, len(ocrResult.Text))
 	}
 
-	// 2. 读取文件内容
-	fileData, err := os.ReadFile(resume.FilePath)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "读取文件失败"})
-		return
-	}
-
-	// 3. 调用Coze AI解析
+	// 2. 调用Coze AI解析
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 120*time.Second)
 	defer cancel()
 
@@ -87,7 +80,7 @@ func (h *AIParseHandler) AIParseResume(c *gin.Context) {
 
 	if h.CozeClient.IsConfigured() {
 		log.Printf("[AI解析] 调用Coze AI解析...")
-		aiResult, err := h.CozeClient.ParseResumeWithAI(ctx, resume.FileName, fileData, req.JDText)
+		aiResult, err := h.CozeClient.ParseResumeWithAI(ctx, source.FileName, source.FileData, source.JDText)
 		if err != nil {
 			log.Printf("[AI解析] Coze解析失败: %v, 降级到本地解析", err)
 			// 降级到本地解析
@@ -101,19 +94,40 @@ func (h *AIParseHandler) AIParseResume(c *gin.Context) {
 		result = h.localParse(ocrResult)
 	}
 
-	// 4. 更新简历状态
-	resume.Status = "parsed"
-	h.DB.Save(&resume)
+	// 3. 更新简历状态
+	ocrText := ""
+	ocrPages := 0
+	ocrConfidence := 0.0
+	if ocrResult != nil {
+		ocrText = ocrResult.Text
+		ocrPages = ocrResult.Pages
+		ocrConfidence = ocrResult.Confidence
+	}
+
+	if source.Resume != nil {
+		source.Resume.Status = "parsed"
+		if resultJSON, err := json.Marshal(result); err == nil {
+			source.Resume.ParsedData = string(resultJSON)
+		}
+		if ocrText != "" {
+			source.Resume.ExtractedText = ocrText
+		}
+		if err := h.DB.Save(source.Resume).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "保存解析结果失败"})
+			return
+		}
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "解析成功",
 		"data": gin.H{
-			"resume_id":      req.ResumeID,
+			"resume_id":      source.resumeID(),
 			"parsed_result":  result,
-			"ocr_text":       truncateText(ocrResult.Text, 500),
-			"ocr_pages":      ocrResult.Pages,
-			"ocr_confidence": ocrResult.Confidence,
+			"ocr_text":       truncateText(ocrText, 500),
+			"ocr_pages":      ocrPages,
+			"ocr_confidence": ocrConfidence,
+			"file_name":      source.FileName,
 		},
 	})
 }
@@ -143,38 +157,170 @@ func (h *AIParseHandler) localParse(ocrResult *ocr.OCRResult) map[string]interfa
 
 // OCRExtract 单独的OCR提取接口
 func (h *AIParseHandler) OCRExtract(c *gin.Context) {
-	var req struct {
-		ResumeID uint `json:"resume_id" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "参数错误"})
+	source, ok := h.resolveParseSource(c)
+	if !ok {
 		return
 	}
-
-	// 获取简历记录
-	var resume models.Resume
-	if err := h.DB.First(&resume, req.ResumeID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "简历不存在"})
-		return
-	}
+	defer cleanupSource(source)
 
 	// OCR提取
-	result, err := ocr.ExtractTextFromFile(resume.FilePath)
+	result, err := ocr.ExtractTextFromFile(source.FilePath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "OCR提取失败: " + err.Error()})
 		return
+	}
+
+	if source.Resume != nil && result.Text != "" {
+		source.Resume.ExtractedText = result.Text
+		_ = h.DB.Save(source.Resume).Error
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "提取成功",
 		"data": gin.H{
+			"resume_id":  source.resumeID(),
+			"file_name":  source.FileName,
 			"text":       result.Text,
 			"pages":      result.Pages,
 			"confidence": result.Confidence,
 		},
 	})
+}
+
+func cleanupSource(source *parseSource) {
+	if source != nil && source.Cleanup != nil {
+		source.Cleanup()
+	}
+}
+
+func (s *parseSource) resumeID() uint {
+	if s != nil && s.Resume != nil {
+		return s.Resume.ID
+	}
+	return 0
+}
+
+func (h *AIParseHandler) resolveParseSource(c *gin.Context) (*parseSource, bool) {
+	contentType := c.GetHeader("Content-Type")
+	if strings.Contains(contentType, "multipart/form-data") {
+		return h.resolveMultipartSource(c)
+	}
+	return h.resolveStoredResumeSource(c)
+}
+
+func (h *AIParseHandler) resolveStoredResumeSource(c *gin.Context) (*parseSource, bool) {
+	var req AIParseRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "参数错误: " + err.Error()})
+		return nil, false
+	}
+
+	if req.ResumeID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "resume_id 不能为空"})
+		return nil, false
+	}
+
+	resume, ok := h.loadResume(c, req.ResumeID)
+	if !ok {
+		return nil, false
+	}
+
+	fileData, err := os.ReadFile(resume.FilePath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "读取文件失败"})
+		return nil, false
+	}
+
+	return &parseSource{
+		Resume:   resume,
+		FileName: resume.FileName,
+		FilePath: resume.FilePath,
+		FileData: fileData,
+		JDText:   req.JDText,
+	}, true
+}
+
+func (h *AIParseHandler) resolveMultipartSource(c *gin.Context) (*parseSource, bool) {
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "请选择要解析的文件"})
+		return nil, false
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "读取上传文件失败"})
+		return nil, false
+	}
+	defer file.Close()
+
+	fileData, err := io.ReadAll(file)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "读取上传文件失败"})
+		return nil, false
+	}
+
+	tempFile, err := os.CreateTemp("", "resume-ai-*"+filepath.Ext(fileHeader.Filename))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "创建临时文件失败"})
+		return nil, false
+	}
+
+	if _, err := tempFile.Write(fileData); err != nil {
+		tempFile.Close()
+		_ = os.Remove(tempFile.Name())
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "保存临时文件失败"})
+		return nil, false
+	}
+	if err := tempFile.Close(); err != nil {
+		_ = os.Remove(tempFile.Name())
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "保存临时文件失败"})
+		return nil, false
+	}
+
+	var resume *models.Resume
+	if resumeIDStr := c.PostForm("resume_id"); resumeIDStr != "" {
+		if resumeID, err := strconv.Atoi(resumeIDStr); err == nil && resumeID > 0 {
+			loadedResume, ok := h.loadResume(c, uint(resumeID))
+			if !ok {
+				_ = os.Remove(tempFile.Name())
+				return nil, false
+			}
+			resume = loadedResume
+		}
+	}
+
+	return &parseSource{
+		Resume:   resume,
+		FileName: fileHeader.Filename,
+		FilePath: tempFile.Name(),
+		FileData: fileData,
+		JDText:   c.PostForm("jd_text"),
+		Cleanup: func() {
+			_ = os.Remove(tempFile.Name())
+		},
+	}, true
+}
+
+func (h *AIParseHandler) loadResume(c *gin.Context, resumeID uint) (*models.Resume, bool) {
+	var resume models.Resume
+	if err := h.DB.First(&resume, resumeID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "简历不存在"})
+		return nil, false
+	}
+
+	if resume.FilePath == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "简历文件不存在"})
+		return nil, false
+	}
+
+	if _, err := os.Stat(resume.FilePath); os.IsNotExist(err) {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "简历文件已被删除"})
+		return nil, false
+	}
+
+	return &resume, true
 }
 
 // 辅助函数

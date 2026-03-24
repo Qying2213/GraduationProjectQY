@@ -3,20 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PID_DIR="$ROOT_DIR/.pids"
-
-SERVICES=(
-  "frontend"
-  "gateway"
-  "user-service"
-  "job-service"
-  "interview-service"
-  "resume-service"
-  "message-service"
-  "talent-service"
-  "recommendation-service"
-  "log-service"
-  "evaluator-service"
-)
+source "$ROOT_DIR/scripts/service-config.sh"
 
 timestamp() {
   date "+%Y-%m-%d %H:%M:%S"
@@ -33,24 +20,6 @@ warn() {
 is_pid_running() {
   local pid="$1"
   kill -0 "$pid" >/dev/null 2>&1
-}
-
-get_service_port() {
-  local name="$1"
-  case "$name" in
-    frontend) echo "5173" ;;
-    gateway) echo "8080" ;;
-    user-service) echo "8081" ;;
-    job-service) echo "8082" ;;
-    interview-service) echo "8083" ;;
-    resume-service) echo "8084" ;;
-    message-service) echo "8085" ;;
-    talent-service) echo "8086" ;;
-    recommendation-service) echo "8087" ;;
-    log-service) echo "8088" ;;
-    evaluator-service) echo "8090" ;;
-    *) echo "" ;;
-  esac
 }
 
 stop_by_port() {
@@ -86,9 +55,8 @@ stop_by_port() {
 
 stop_pid_file() {
   local name="$1"
+  local port="$2"
   local pid_file="$PID_DIR/$name.pid"
-  local port
-  port="$(get_service_port "$name")"
 
   if [[ ! -f "$pid_file" ]]; then
     stop_by_port "$name" "$port"
@@ -137,8 +105,9 @@ if [[ ! -d "$PID_DIR" ]]; then
   exit 0
 fi
 
-for svc in "${SERVICES[@]}"; do
-  stop_pid_file "$svc"
+for spec in "${STOPPABLE_SERVICE_SPECS[@]}"; do
+  parse_service_spec "$spec"
+  stop_pid_file "$SERVICE_NAME" "$SERVICE_PORT"
 done
 
 info "All stop tasks finished."

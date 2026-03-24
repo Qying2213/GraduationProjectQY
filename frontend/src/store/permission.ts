@@ -216,6 +216,12 @@ export const PERMISSION_GROUPS = [
   }
 ]
 
+const ROLE_ALIASES: Record<string, string> = {
+  hr: 'hr_manager'
+}
+
+const normalizeRoleCode = (roleCode: string) => ROLE_ALIASES[roleCode] || roleCode
+
 export const usePermissionStore = defineStore('permission', () => {
   // 当前用户角色
   const currentRole = ref<Role | null>(null)
@@ -248,11 +254,16 @@ export const usePermissionStore = defineStore('permission', () => {
 
   // 设置当前角色
   const setRole = (roleCode: string) => {
-    const role = roles.value.find(r => r.code === roleCode)
+    const normalizedCode = normalizeRoleCode(roleCode)
+    const role = roles.value.find(r => r.code === normalizedCode)
     if (role) {
       currentRole.value = role
-      localStorage.setItem('user-role', roleCode)
+      localStorage.setItem('user-role', normalizedCode)
+      return
     }
+
+    currentRole.value = null
+    localStorage.removeItem('user-role')
   }
 
   // 添加角色

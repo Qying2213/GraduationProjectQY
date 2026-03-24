@@ -72,7 +72,12 @@ func main() {
 	{
 		auth.GET("/profile", userHandler.GetProfile)
 		auth.PUT("/profile", userHandler.UpdateProfile)
-		auth.GET("/users", userHandler.ListUsers)
+	}
+
+	adminOrHR := r.Group("/api/v1")
+	adminOrHR.Use(middleware.JWTAuth(), middleware.RoleAuth("admin", "hr", "hr_manager", "recruiter"))
+	{
+		adminOrHR.GET("/users", userHandler.ListUsers)
 	}
 
 	log.Println("User service is running on :8081")

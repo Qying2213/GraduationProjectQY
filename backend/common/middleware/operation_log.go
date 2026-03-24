@@ -64,11 +64,12 @@ func OperationLog(config *OperationLogConfig) gin.HandlerFunc {
 
 		if config.LogRequestBody && c.Request.Body != nil && !isMultipart {
 			bodyBytes, _ := io.ReadAll(c.Request.Body)
-			if len(bodyBytes) > config.MaxBodySize {
-				bodyBytes = bodyBytes[:config.MaxBodySize]
+			logBodyBytes := bodyBytes
+			if len(logBodyBytes) > config.MaxBodySize {
+				logBodyBytes = logBodyBytes[:config.MaxBodySize]
 			}
-			requestBody = string(bodyBytes)
-			// 重新设置请求体
+			requestBody = string(logBodyBytes)
+			// 重新设置完整请求体，避免后续处理器读取到被截断的 JSON
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		} else if isMultipart {
 			requestBody = "[multipart/form-data - skipped]"

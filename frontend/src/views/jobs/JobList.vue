@@ -645,9 +645,9 @@ const handleExport = (format: 'excel' | 'csv') => {
     salaryMin: j.salary?.split('-')[0] || '',
     salaryMax: j.salary?.split('-')[1]?.replace('K', '') || '',
     experience: j.level === 'junior' ? '1-3年' : j.level === 'senior' ? '5年以上' : '3-5年',
-    education: '本科',
-    headcount: Math.floor(Math.random() * 5) + 1,
-    urgent: Math.random() > 0.7,
+    education: j.education || '不限',
+    headcount: j.headcount || 1,
+    urgent: j.status === 'open' && (j.applicants || 0) < (j.headcount || 1),
     publishDate: j.created_at,
     deadline: ''
   }))

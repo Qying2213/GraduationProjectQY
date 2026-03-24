@@ -9,6 +9,34 @@ export default defineConfig({
             '@': fileURLToPath(new URL('./src', import.meta.url))
         }
     },
+    build: {
+        chunkSizeWarningLimit: 1200,
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (!id.includes('node_modules')) {
+                        return
+                    }
+
+                    if (id.includes('echarts')) {
+                        return 'echarts-vendor'
+                    }
+
+                    if (id.includes('xlsx')) {
+                        return 'xlsx-vendor'
+                    }
+
+                    if (id.includes('element-plus') || id.includes('@element-plus/icons-vue')) {
+                        return 'element-plus-vendor'
+                    }
+
+                    if (id.includes('/vue/') || id.includes('/vue-router/') || id.includes('/pinia/')) {
+                        return 'vue-vendor'
+                    }
+                }
+            }
+        }
+    },
     server: {
         port: 5173,
         proxy: {
@@ -87,6 +115,12 @@ export default defineConfig({
             '/api/v1/logs': {
                 target: 'http://localhost:8080',
                 changeOrigin: true
+            },
+            // 开发日志大屏（同源代理，避免 iframe 跨端口空白）
+            '/__dev_dashboard': {
+                target: 'http://localhost:8091',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/__dev_dashboard/, '')
             },
             // 聊天会话服务 (message-service)
             '/api/v1/conversations': {

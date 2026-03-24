@@ -57,13 +57,18 @@ func main() {
 
 	api := r.Group("/api/v1/jobs")
 	{
-		api.POST("", jobHandler.CreateJob)
 		api.GET("", jobHandler.ListJobs)
 		api.GET("/stats", jobHandler.GetJobStats)
 		api.GET("/:id", jobHandler.GetJob)
-		api.PUT("/:id", jobHandler.UpdateJob)
-		api.DELETE("/:id", jobHandler.DeleteJob)
-		api.GET("/:id/applications", jobHandler.GetJobApplications)
+	}
+
+	protected := r.Group("/api/v1/jobs")
+	protected.Use(middleware.JWTAuth(), middleware.RoleAuth("admin", "hr", "hr_manager", "recruiter"))
+	{
+		protected.POST("", jobHandler.CreateJob)
+		protected.PUT("/:id", jobHandler.UpdateJob)
+		protected.DELETE("/:id", jobHandler.DeleteJob)
+		protected.GET("/:id/applications", jobHandler.GetJobApplications)
 	}
 
 	log.Println("Job service is running on :8082")

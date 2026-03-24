@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"resume-service/models"
 	"strconv"
@@ -125,7 +126,21 @@ func (h *EvaluationHandler) GetEvaluationProcess(c *gin.Context) {
 	}
 
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "未找到流程链路记录"})
+		log.Printf("[EvaluationProcess] trace not found for evaluation_id=%s", id)
+		c.JSON(http.StatusOK, gin.H{
+			"code":    0,
+			"message": "该记录暂无链路详情",
+			"data": gin.H{
+				"id":              nil,
+				"evaluation_id":   id,
+				"resume_id":       nil,
+				"status":          "missing",
+				"error_msg":       "",
+				"trace":           nil,
+				"created_at":      nil,
+				"trace_available": false,
+			},
+		})
 		return
 	}
 
@@ -133,6 +148,13 @@ func (h *EvaluationHandler) GetEvaluationProcess(c *gin.Context) {
 	if processLog.ProcessTrace != "" {
 		_ = json.Unmarshal([]byte(processLog.ProcessTrace), &trace)
 	}
+
+	log.Printf(
+		"[EvaluationProcess] trace loaded for evaluation_id=%s process_log_id=%d status=%s",
+		id,
+		processLog.ID,
+		processLog.Status,
+	)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
@@ -145,6 +167,7 @@ func (h *EvaluationHandler) GetEvaluationProcess(c *gin.Context) {
 			"error_msg":     processLog.ErrorMsg,
 			"trace":         trace,
 			"created_at":    processLog.CreatedAt,
+			"trace_available": true,
 		},
 	})
 }

@@ -15,6 +15,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/auth/Register.vue'),
         meta: { requiresAuth: false }
     },
+    {
+        path: '/dev-logs',
+        name: 'DevLogs',
+        component: () => import('@/views/system/DevLogsPage.vue'),
+        meta: { title: '后台运行终端日志', requiresAuth: false, hideDevLogEntry: true }
+    },
     // 前台求职端
     {
         path: '/portal',
@@ -253,7 +259,7 @@ router.beforeEach((to, from, next) => {
     // 求职者不能访问后台管理页面（除了 /portal 开头的路由）
     if (userStore.isLoggedIn && userStore.role === 'candidate') {
         const isPortalRoute = to.path.startsWith('/portal')
-        const isPublicRoute = ['/login', '/register', '/portal'].includes(to.path) || to.path.startsWith('/portal')
+        const isPublicRoute = to.meta.requiresAuth === false
         
         if (!isPortalRoute && !isPublicRoute && to.path !== '/') {
             next('/portal')

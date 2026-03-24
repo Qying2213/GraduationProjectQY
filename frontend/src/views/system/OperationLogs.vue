@@ -288,7 +288,7 @@ const generateMockLogs = (): OperationLog[] => {
   const methods = ['GET', 'POST', 'PUT', 'DELETE']
   const paths = ['/api/v1/users', '/api/v1/jobs', '/api/v1/talents', '/api/v1/login', '/api/v1/resumes']
   const levels = ['info', 'warn', 'error']
-  const users = ['admin', 'hr_zhang', 'hr_li', '']
+  const users = ['admin', 'hr1', 'hr2', 'candidate01', '']
 
   return Array.from({ length: pageSize.value }, (_, i) => ({
     id: `log-${Date.now()}-${i}`,

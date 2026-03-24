@@ -56,6 +56,13 @@ func (h *JobHandler) CreateJob(c *gin.Context) {
 		return
 	}
 
+	if job.Education == "" {
+		job.Education = "不限"
+	}
+	if job.Headcount <= 0 {
+		job.Headcount = 1
+	}
+
 	if err := h.DB.Create(&job).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create job"})
 		return
@@ -77,6 +84,7 @@ func (h *JobHandler) ListJobs(c *gin.Context) {
 	status := c.Query("status")
 	jobType := c.Query("type")
 	location := c.Query("location")
+	education := c.Query("education")
 	search := c.Query("search")
 	keyword := c.Query("keyword")
 	level := c.Query("level")
@@ -98,6 +106,10 @@ func (h *JobHandler) ListJobs(c *gin.Context) {
 
 	if location != "" {
 		query = query.Where("location ILIKE ?", "%"+location+"%")
+	}
+
+	if education != "" {
+		query = query.Where("education = ?", education)
 	}
 
 	// 支持 keyword 搜索（标题、描述、技能）
@@ -132,7 +144,7 @@ func (h *JobHandler) ListJobs(c *gin.Context) {
 	query.Count(&total)
 
 	// 排序
-	allowedSortFields := map[string]bool{"created_at": true, "salary": true, "title": true}
+	allowedSortFields := map[string]bool{"created_at": true, "salary": true, "title": true, "headcount": true}
 	if !allowedSortFields[sortBy] {
 		sortBy = "created_at"
 	}

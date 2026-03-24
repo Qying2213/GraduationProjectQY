@@ -16,7 +16,7 @@ type User struct {
 	Email      string         `gorm:"uniqueIndex;size:100;not null" json:"email"`
 	Password   string         `gorm:"size:255;not null" json:"-"`
 	Role       string         `gorm:"size:20;default:'candidate'" json:"role"` // admin, hr_manager, recruiter, interviewer, viewer
-	Avatar     string         `gorm:"size:255" json:"avatar"`
+	Avatar     string         `gorm:"type:text" json:"avatar"`
 	Phone      string         `gorm:"size:20" json:"phone"`
 	Department string         `gorm:"size:50" json:"department"`
 	Position   string         `gorm:"size:50" json:"position"`

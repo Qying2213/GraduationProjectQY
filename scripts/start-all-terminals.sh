@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$ROOT_DIR/scripts/service-config.sh"
 BACKEND_ENV="$ROOT_DIR/backend/.env"
 GOCACHE_VALUE="${GOCACHE:-/tmp/go-build-cache}"
 PID_DIR="$ROOT_DIR/.pids"
@@ -69,24 +70,10 @@ if [[ ! -d "$ROOT_DIR/frontend/node_modules" ]]; then
   echo "[WARN] frontend/node_modules not found. Run: cd frontend && npm install"
 fi
 
-services=(
-  "user-service|$ROOT_DIR/backend/user-service|go run main.go|8081|true"
-  "job-service|$ROOT_DIR/backend/job-service|go run main.go|8082|true"
-  "interview-service|$ROOT_DIR/backend/interview-service|go run main.go|8083|true"
-  "resume-service|$ROOT_DIR/backend/resume-service|go run main.go|8084|true"
-  "message-service|$ROOT_DIR/backend/message-service|go run main.go|8085|true"
-  "talent-service|$ROOT_DIR/backend/talent-service|go run main.go|8086|true"
-  "recommendation-service|$ROOT_DIR/backend/recommendation-service|go run main.go|8087|true"
-  "log-service|$ROOT_DIR/backend/log-service|go run main.go|8088|true"
-  "evaluator-service|$ROOT_DIR/backend/evaluator-service|go run ./cmd/server|8090|true"
-  "gateway|$ROOT_DIR/backend/gateway|go run main.go|8080|true"
-  "frontend|$ROOT_DIR/frontend|npm run dev -- --host 0.0.0.0 --port 5173|5173|false"
-)
-
 echo "[INFO] Opening one Terminal window per service..."
 
-for svc in "${services[@]}"; do
-  IFS='|' read -r name workdir run_cmd port load_backend_env <<< "$svc"
+for svc in "${TERMINAL_SERVICE_SPECS[@]}"; do
+  IFS='|' read -r name workdir run_cmd port load_backend_env _log_file _url <<< "$svc"
   open_terminal_for_service "$name" "$workdir" "$run_cmd" "$port" "$load_backend_env"
   sleep 0.2
 done

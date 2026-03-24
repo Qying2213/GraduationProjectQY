@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"user-service/models"
 
@@ -27,6 +28,17 @@ func setupRouter(handler *UserHandler) *gin.Engine {
 	r := gin.Default()
 	r.POST("/register", handler.Register)
 	r.POST("/login", handler.Login)
+	return r
+}
+
+func setupAuthedRouter(handler *UserHandler, userID uint) *gin.Engine {
+	gin.SetMode(gin.TestMode)
+	r := gin.Default()
+	r.Use(func(c *gin.Context) {
+		c.Set("user_id", userID)
+		c.Next()
+	})
+	r.PUT("/profile", handler.UpdateProfile)
 	return r
 }
 
@@ -187,4 +199,37 @@ func TestGenerateToken(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, token)
 	})
+}
+
+func TestUpdateProfileWithLargeAvatar(t *testing.T) {
+	db := setupTestDB()
+	handler := NewUserHandler(db)
+
+	user := models.User{
+		Username: "profileuser",
+		Email:    "profile@example.com",
+		Status:   "active",
+		Phone:    "13800000000",
+	}
+	user.HashPassword("password123")
+	db.Create(&user)
+
+	router := setupAuthedRouter(handler, user.ID)
+
+	body := map[string]string{
+		"avatar": "data:image/png;base64," + strings.Repeat("a", 8192),
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("PUT", "/profile", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+	var updated models.User
+	err := db.First(&updated, user.ID).Error
+	assert.NoError(t, err)
+	assert.Len(t, updated.Avatar, len(body["avatar"]))
 }

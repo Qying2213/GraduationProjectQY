@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"recommendation-service/handlers"
+	"recommendation-service/rag"
 
 	"common/database"
 
@@ -55,6 +56,10 @@ func main() {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	log.Println("Database connected")
+
+	if err := db.AutoMigrate(&rag.TalentEmbedding{}, &rag.JobEmbedding{}); err != nil {
+		log.Printf("Warning: Failed to ensure RAG tables: %v", err)
+	}
 
 	// 初始化 Redis 缓存
 	redisHost := getEnv("REDIS_HOST", "localhost")

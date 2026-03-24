@@ -29,10 +29,12 @@
 
           <div class="profile-card">
             <div class="avatar-section">
-              <el-avatar :size="100" :style="{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }">
-                {{ userStore.user?.username?.charAt(0).toUpperCase() }}
+              <el-avatar :size="100" class="profile-avatar">
+                <img :src="profileAvatar" :alt="profileDisplayName" />
               </el-avatar>
-              <el-button type="primary" plain size="small">更换头像</el-button>
+              <el-button type="primary" plain size="small" @click="goToProfile">
+                前往个人中心更换头像
+              </el-button>
             </div>
 
             <el-form :model="profileForm" label-width="100px" class="profile-form">
@@ -319,7 +321,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, markRaw } from 'vue'
+import { ref, reactive, markRaw, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { useThemeStore, type ThemeMode } from '@/store/theme'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -328,8 +331,11 @@ import {
   Sunny, Moon, Monitor, Download, Document, ChatDotRound, MagicStick
 } from '@element-plus/icons-vue'
 
+const router = useRouter()
 const userStore = useUserStore()
 const themeStore = useThemeStore()
+
+const defaultAvatar = 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'
 
 const activeSection = ref('profile')
 const showPasswordDialog = ref(false)
@@ -357,9 +363,24 @@ const profileForm = reactive({
   username: userStore.user?.username || '',
   email: userStore.user?.email || '',
   phone: userStore.user?.phone || '',
-  department: '',
-  position: ''
+  department: userStore.user?.department || '',
+  position: userStore.user?.position || ''
 })
+
+const profileAvatar = computed(() => userStore.user?.avatar || defaultAvatar)
+const profileDisplayName = computed(() => userStore.user?.real_name || userStore.user?.username || '用户')
+
+watch(
+  () => userStore.user,
+  (user) => {
+    profileForm.username = user?.username || ''
+    profileForm.email = user?.email || ''
+    profileForm.phone = user?.phone || ''
+    profileForm.department = user?.department || ''
+    profileForm.position = user?.position || ''
+  },
+  { immediate: true, deep: true }
+)
 
 const passwordForm = reactive({
   oldPassword: '',
@@ -391,6 +412,10 @@ const appearanceSettings = reactive({
 
 const saveProfile = () => {
   ElMessage.success('个人信息已保存')
+}
+
+const goToProfile = () => {
+  router.push('/profile')
 }
 
 const changePassword = () => {
@@ -523,6 +548,17 @@ const clearCache = () => {
     margin-bottom: 32px;
     padding-bottom: 32px;
     border-bottom: 1px solid var(--border-light);
+  }
+
+  .profile-avatar {
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
   }
 
   .profile-form {

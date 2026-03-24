@@ -232,7 +232,7 @@ const fetchJobDetail = async () => {
         salary: jobData.salary || '面议',
         location: jobData.location || '',
         experience: formatExperience(jobData.level),
-        education: jobData.education || '本科',
+        education: jobData.education || '不限',
         postTime: formatPostTime(jobData.created_at),
         tags: jobData.skills?.slice(0, 3) || [],
         description: jobData.description || '',

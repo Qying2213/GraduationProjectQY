@@ -287,7 +287,7 @@ const fetchJobs = async () => {
         companyType: '互联网',
         location: job.location || '全国',
         experience: formatExperience(job.level),
-        education: '本科',
+        education: job.education || '不限',
         skills: job.skills || []
       }))
       total.value = res.data.data.total || 0

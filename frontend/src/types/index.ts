@@ -45,8 +45,10 @@ export interface Job {
     created_by: number
     department: string
     level: string
+    education?: string
     skills: string[]
     benefits: string[]
+    headcount?: number
     created_at: string
     updated_at: string
     applicants?: number  // 申请人数（可选，用于职位列表显示）

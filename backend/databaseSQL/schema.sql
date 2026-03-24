@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) DEFAULT 'candidate',
-    avatar VARCHAR(255),
+    avatar TEXT,
     phone VARCHAR(20),
     department VARCHAR(50),
     position VARCHAR(50),
@@ -32,12 +32,19 @@ CREATE TABLE IF NOT EXISTS jobs (
     created_by INTEGER REFERENCES users(id),
     department VARCHAR(100),
     level VARCHAR(50),
+    education VARCHAR(50),
     skills TEXT[],
     benefits TEXT[],
+    headcount INTEGER DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP
 );
+
+ALTER TABLE users ALTER COLUMN avatar TYPE TEXT;
+
+ALTER TABLE jobs ADD COLUMN IF NOT EXISTS education VARCHAR(50);
+ALTER TABLE jobs ADD COLUMN IF NOT EXISTS headcount INTEGER DEFAULT 1;
 
 -- 人才表
 CREATE TABLE IF NOT EXISTS talents (
@@ -226,6 +233,25 @@ CREATE TABLE IF NOT EXISTS online_resumes (
     deleted_at TIMESTAMP
 );
 
+-- RAG 向量索引表（使用 JSONB 存储 embedding，避免依赖 pgvector 扩展）
+CREATE TABLE IF NOT EXISTS talent_embeddings (
+    id SERIAL PRIMARY KEY,
+    talent_id INTEGER UNIQUE REFERENCES talents(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    embedding JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS job_embeddings (
+    id SERIAL PRIMARY KEY,
+    job_id INTEGER UNIQUE REFERENCES jobs(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    embedding JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 创建索引
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
 CREATE INDEX IF NOT EXISTS idx_jobs_department ON jobs(department);
@@ -255,3 +281,5 @@ CREATE INDEX IF NOT EXISTS idx_chat_messages_unread ON chat_messages(conversatio
 CREATE INDEX IF NOT EXISTS idx_online_resumes_user_id ON online_resumes(user_id);
 CREATE INDEX IF NOT EXISTS idx_online_resumes_talent_id ON online_resumes(talent_id);
 CREATE INDEX IF NOT EXISTS idx_online_resumes_deleted_at ON online_resumes(deleted_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_talent_embeddings_talent_id ON talent_embeddings(talent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_job_embeddings_job_id ON job_embeddings(job_id);

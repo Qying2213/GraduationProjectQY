@@ -2,8 +2,10 @@ package rag
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"recommendation-service/embedding"
+	"sort"
 	"strings"
 
 	"gorm.io/gorm"
@@ -28,7 +30,7 @@ type TalentEmbedding struct {
 	ID        uint   `gorm:"primaryKey"`
 	TalentID  uint   `gorm:"uniqueIndex"`
 	Content   string `gorm:"type:text"`
-	Embedding string `gorm:"type:vector(1024)"`
+	Embedding string `gorm:"type:jsonb"`
 }
 
 func (TalentEmbedding) TableName() string { return "talent_embeddings" }
@@ -38,7 +40,7 @@ type JobEmbedding struct {
 	ID        uint   `gorm:"primaryKey"`
 	JobID     uint   `gorm:"uniqueIndex"`
 	Content   string `gorm:"type:text"`
-	Embedding string `gorm:"type:vector(1024)"`
+	Embedding string `gorm:"type:jsonb"`
 }
 
 func (JobEmbedding) TableName() string { return "job_embeddings" }
@@ -54,11 +56,12 @@ func (vs *VectorStore) IndexTalent(ctx context.Context, talentID uint, content s
 	// 转换为 pgvector 格式
 	embStr := vectorToString(emb)
 
-	// 使用原生SQL upsert
+	// 使用原生SQL upsert；embedding 使用 JSON 文本，兼容未安装 pgvector 的环境
 	sql := `INSERT INTO talent_embeddings (talent_id, content, embedding) 
-			VALUES (?, ?, ?::vector) 
-			ON CONFLICT (talent_id) DO UPDATE SET content = ?, embedding = ?::vector`
-	return vs.db.Exec(sql, talentID, content, embStr, content, embStr).Error
+			VALUES (?, ?, ?) 
+			ON CONFLICT (talent_id) DO UPDATE 
+			SET content = EXCLUDED.content, embedding = EXCLUDED.embedding, updated_at = CURRENT_TIMESTAMP`
+	return vs.db.WithContext(ctx).Exec(sql, talentID, content, embStr).Error
 }
 
 // IndexJob 索引职位信息
@@ -71,9 +74,10 @@ func (vs *VectorStore) IndexJob(ctx context.Context, jobID uint, content string)
 	embStr := vectorToString(emb)
 
 	sql := `INSERT INTO job_embeddings (job_id, content, embedding) 
-			VALUES (?, ?, ?::vector) 
-			ON CONFLICT (job_id) DO UPDATE SET content = ?, embedding = ?::vector`
-	return vs.db.Exec(sql, jobID, content, embStr, content, embStr).Error
+			VALUES (?, ?, ?) 
+			ON CONFLICT (job_id) DO UPDATE 
+			SET content = EXCLUDED.content, embedding = EXCLUDED.embedding, updated_at = CURRENT_TIMESTAMP`
+	return vs.db.WithContext(ctx).Exec(sql, jobID, content, embStr).Error
 }
 
 // SearchResult 搜索结果
@@ -85,20 +89,36 @@ type SearchResult struct {
 
 // SearchSimilarTalents 搜索相似人才
 func (vs *VectorStore) SearchSimilarTalents(ctx context.Context, query string, limit int) ([]SearchResult, error) {
-	emb, err := vs.embeddingClient.GetEmbedding(ctx, query)
+	queryEmbedding, err := vs.embeddingClient.GetEmbedding(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 
-	embStr := vectorToString(emb)
-
-	var results []SearchResult
-	sql := `SELECT talent_id as id, content, 1 - (embedding <=> ?::vector) as similarity 
-			FROM talent_embeddings 
-			ORDER BY embedding <=> ?::vector 
-			LIMIT ?`
-	if err := vs.db.Raw(sql, embStr, embStr, limit).Scan(&results).Error; err != nil {
+	var rows []TalentEmbedding
+	if err := vs.db.WithContext(ctx).Find(&rows).Error; err != nil {
 		return nil, err
+	}
+
+	results := make([]SearchResult, 0, len(rows))
+	for _, row := range rows {
+		rowEmbedding, err := parseStoredEmbedding(row.Embedding)
+		if err != nil {
+			continue
+		}
+
+		results = append(results, SearchResult{
+			ID:         row.TalentID,
+			Content:    row.Content,
+			Similarity: embedding.CosineSimilarity(queryEmbedding, rowEmbedding),
+		})
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Similarity > results[j].Similarity
+	})
+
+	if limit > 0 && len(results) > limit {
+		results = results[:limit]
 	}
 
 	return results, nil
@@ -106,20 +126,36 @@ func (vs *VectorStore) SearchSimilarTalents(ctx context.Context, query string, l
 
 // SearchSimilarJobs 搜索相似职位
 func (vs *VectorStore) SearchSimilarJobs(ctx context.Context, query string, limit int) ([]SearchResult, error) {
-	emb, err := vs.embeddingClient.GetEmbedding(ctx, query)
+	queryEmbedding, err := vs.embeddingClient.GetEmbedding(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 
-	embStr := vectorToString(emb)
-
-	var results []SearchResult
-	sql := `SELECT job_id as id, content, 1 - (embedding <=> ?::vector) as similarity 
-			FROM job_embeddings 
-			ORDER BY embedding <=> ?::vector 
-			LIMIT ?`
-	if err := vs.db.Raw(sql, embStr, embStr, limit).Scan(&results).Error; err != nil {
+	var rows []JobEmbedding
+	if err := vs.db.WithContext(ctx).Find(&rows).Error; err != nil {
 		return nil, err
+	}
+
+	results := make([]SearchResult, 0, len(rows))
+	for _, row := range rows {
+		rowEmbedding, err := parseStoredEmbedding(row.Embedding)
+		if err != nil {
+			continue
+		}
+
+		results = append(results, SearchResult{
+			ID:         row.JobID,
+			Content:    row.Content,
+			Similarity: embedding.CosineSimilarity(queryEmbedding, rowEmbedding),
+		})
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Similarity > results[j].Similarity
+	})
+
+	if limit > 0 && len(results) > limit {
+		results = results[:limit]
 	}
 
 	return results, nil
@@ -127,9 +163,25 @@ func (vs *VectorStore) SearchSimilarJobs(ctx context.Context, query string, limi
 
 // vectorToString 将向量转换为 pgvector 格式字符串
 func vectorToString(vec []float64) string {
-	strs := make([]string, len(vec))
-	for i, v := range vec {
-		strs[i] = fmt.Sprintf("%f", v)
+	data, err := json.Marshal(vec)
+	if err != nil {
+		strs := make([]string, len(vec))
+		for i, v := range vec {
+			strs[i] = fmt.Sprintf("%f", v)
+		}
+		return "[" + strings.Join(strs, ",") + "]"
 	}
-	return "[" + strings.Join(strs, ",") + "]"
+	return string(data)
+}
+
+func parseStoredEmbedding(raw string) ([]float64, error) {
+	if raw == "" {
+		return nil, fmt.Errorf("empty embedding")
+	}
+
+	var vec []float64
+	if err := json.Unmarshal([]byte(raw), &vec); err != nil {
+		return nil, err
+	}
+	return vec, nil
 }
