@@ -66,16 +66,23 @@ fi
 
 mkdir -p "$PID_DIR"
 
-if [[ ! -d "$ROOT_DIR/frontend/node_modules" ]]; then
-  echo "[WARN] frontend/node_modules not found. Run: cd frontend && npm install"
-fi
-
 echo "[INFO] Opening one Terminal window per service..."
+has_blockers="false"
 
 for svc in "${TERMINAL_SERVICE_SPECS[@]}"; do
   IFS='|' read -r name workdir run_cmd port load_backend_env _log_file _url <<< "$svc"
+  prereq_reason="$(service_prereq_reason "$name" "$workdir" || true)"
+  if [[ -n "$prereq_reason" ]]; then
+    echo "[WARN] Skipping $name: $prereq_reason"
+    has_blockers="true"
+    continue
+  fi
   open_terminal_for_service "$name" "$workdir" "$run_cmd" "$port" "$load_backend_env"
   sleep 0.2
 done
 
 echo "[INFO] All service terminals have been opened."
+
+if [[ "$has_blockers" == "true" ]]; then
+  exit 1
+fi

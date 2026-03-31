@@ -587,7 +587,6 @@ const handleUpload = async () => {
     const file = fileList.value[0]
     const formData = new FormData()
     formData.append('file', file.raw)
-    formData.append('talent_id', '0')
 
     const res = await request.post('/resumes/upload', formData)
     if (res.data?.code === 0) {

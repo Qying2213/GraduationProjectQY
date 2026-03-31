@@ -43,13 +43,8 @@ func main() {
 	}
 
 	// Auto-migrate models
-	if err := db.AutoMigrate(&models.Message{}); err != nil {
+	if err := db.AutoMigrate(&models.Message{}, &models.Notice{}, &models.Conversation{}, &models.ChatMessage{}); err != nil {
 		log.Fatal("Failed to migrate database:", err)
-	}
-
-	// Auto-migrate chat models (conversations and chat_messages)
-	if err := db.AutoMigrate(&models.Conversation{}, &models.ChatMessage{}); err != nil {
-		log.Fatal("Failed to migrate chat tables:", err)
 	}
 
 	// Initialize WebSocket Hub
@@ -64,6 +59,7 @@ func main() {
 
 	messageHandler := handlers.NewMessageHandler(db)
 	chatHandler := handlers.NewChatHandler(db, hub)
+	noticeHandler := handlers.NewNoticeHandler(db)
 
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
@@ -184,6 +180,16 @@ func main() {
 		// Marks all unread messages from other user as read
 		// Requirements: 9.4 (Mark all messages as read when opening conversation)
 		chatAPI.PUT("/:id/read", chatHandler.MarkAsRead)
+	}
+	noticeAPI := r.Group("/api/v1/notices")
+	noticeAPI.Use(middleware.JWTAuth(), middleware.RoleAuth("admin", "hr", "hr_manager", "recruiter"))
+	{
+		noticeAPI.GET("", noticeHandler.ListNotices)
+		noticeAPI.GET("/:id",noticeHandler.GetNotice)
+		noticeAPI.POST("", noticeHandler.CreateNotice)
+		noticeAPI.PUT("/:id", noticeHandler.UpdateNotice)
+		noticeAPI.DELETE("/:id", noticeHandler.DeleteNotice)
+	
 	}
 
 	log.Println("Message service is running on :8085")

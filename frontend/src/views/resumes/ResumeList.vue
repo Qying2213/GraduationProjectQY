@@ -748,7 +748,6 @@ const handleUpload = async () => {
 
       const formData = new FormData();
       formData.append("file", file.raw as File);
-      formData.append("talent_id", "0");
       formData.append("job_id", String(uploadJobId.value));
 
       try {

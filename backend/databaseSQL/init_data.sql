@@ -6,7 +6,7 @@ DO $$
 BEGIN
     -- 只在表存在时清空
     IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users') THEN
-        TRUNCATE TABLE chat_messages, conversations, applications, resumes, interviews, talents, jobs, users RESTART IDENTITY CASCADE;
+        TRUNCATE TABLE notices, chat_messages, conversations, applications, resumes, interviews, talents, jobs, users RESTART IDENTITY CASCADE;
     END IF;
 END $$;
 
@@ -42,6 +42,17 @@ INSERT INTO users (username, email, password, role, real_name, phone, department
 ('candidate18', 'hanxiao@gmail.com', '123456', 'candidate', '韩晓', '13900000018', '', '', 'active', NOW(), NOW()),
 ('candidate19', 'fengyu@gmail.com', '123456', 'candidate', '冯宇', '13900000019', '', '', 'active', NOW(), NOW()),
 ('candidate20', 'caijing@gmail.com', '123456', 'candidate', '蔡静', '13900000020', '', '', 'active', NOW(), NOW());
+
+-- =====================================================
+-- 1.1 公告数据（用于公告管理演示）
+-- =====================================================
+INSERT INTO notices (title, content, status, is_pinned, created_by, created_at, updated_at) VALUES
+('2026校园招聘正式启动', '2026 届校园招聘现已开启，技术、产品、设计、运营等岗位已陆续开放，欢迎各部门积极参与内推。', 'published', true, 1, NOW() - INTERVAL '14 days', NOW() - INTERVAL '14 days'),
+('清明节放假安排通知', '根据公司安排，清明节假期为 4 月 4 日至 4 月 6 日，请各部门提前完成候选人沟通与面试协调。', 'published', true, 1, NOW() - INTERVAL '10 days', NOW() - INTERVAL '9 days'),
+('招聘流程优化试运行', '即日起技术岗新增简历初筛评分卡，请各位 HR 在面试前补充评估意见，以便后续数据分析。', 'published', false, 2, NOW() - INTERVAL '7 days', NOW() - INTERVAL '6 days'),
+('面试官培训安排', '本周五下午将组织结构化面试培训，参加对象为所有用人部门面试官与 HRBP，请准时到场。', 'published', false, 2, NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days'),
+('春招数据复盘会', '下周一上午 10:00 在 5 楼大会议室召开春招复盘会，请各招聘负责人准备阶段性数据和问题清单。', 'published', false, 3, NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days'),
+('新版公告模块演示草稿', '这是用于系统演示的草稿公告，后续可补充编辑、删除、置顶等能力。', 'draft', false, 1, NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day');
 
 -- =====================================================
 -- 2. 职位数据 (24个职位: 18个招聘中, 3个已关闭, 3个待审核)

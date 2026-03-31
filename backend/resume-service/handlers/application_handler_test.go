@@ -25,8 +25,9 @@ type Job struct {
 
 // Talent model for testing (simplified)
 type Talent struct {
-	ID   uint   `gorm:"primarykey" json:"id"`
-	Name string `gorm:"size:100" json:"name"`
+	ID     uint   `gorm:"primarykey" json:"id"`
+	Name   string `gorm:"size:100" json:"name"`
+	UserID *uint  `json:"user_id"`
 }
 
 // Message model for testing
@@ -41,6 +42,8 @@ type Message struct {
 	IsRead     bool      `json:"is_read"`
 }
 
+const testCandidateUserID = uint(10)
+
 // 创建测试数据库
 func setupApplicationTestDB() *gorm.DB {
 	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
@@ -53,6 +56,11 @@ func setupApplicationTestDB() *gorm.DB {
 func setupApplicationRouter(handler *ResumeHandler) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
+	r.Use(func(c *gin.Context) {
+		c.Set("user_id", testCandidateUserID)
+		c.Set("role", "candidate")
+		c.Next()
+	})
 	r.POST("/applications", handler.CreateApplication)
 	r.GET("/applications", handler.ListApplications)
 	r.PUT("/applications/:id", handler.UpdateApplication)
@@ -71,7 +79,7 @@ func TestCreateApplication_Success(t *testing.T) {
 	job := Job{ID: 1, Title: "Go Developer", CreatedBy: hrUserID}
 	db.Create(&job)
 
-	talent := Talent{ID: 1, Name: "张三"}
+	talent := Talent{ID: 1, Name: "张三", UserID: ptrUint(testCandidateUserID)}
 	db.Create(&talent)
 
 	// 创建简历（满足 Requirement 2.6）
@@ -82,7 +90,6 @@ func TestCreateApplication_Success(t *testing.T) {
 	t.Run("成功创建申请，状态应为pending", func(t *testing.T) {
 		body := map[string]interface{}{
 			"job_id":       1,
-			"talent_id":    1,
 			"resume_id":    1,
 			"cover_letter": "I am interested in this position.",
 		}
@@ -117,7 +124,7 @@ func TestCreateApplication_DuplicatePrevention(t *testing.T) {
 	job := Job{ID: 1, Title: "Go Developer", CreatedBy: 1}
 	db.Create(&job)
 
-	talent := Talent{ID: 1, Name: "张三"}
+	talent := Talent{ID: 1, Name: "张三", UserID: ptrUint(testCandidateUserID)}
 	db.Create(&talent)
 
 	talentID := uint(1)
@@ -136,7 +143,6 @@ func TestCreateApplication_DuplicatePrevention(t *testing.T) {
 	t.Run("重复申请应该被拒绝并返回错误码1001", func(t *testing.T) {
 		body := map[string]interface{}{
 			"job_id":    1,
-			"talent_id": 1,
 			"resume_id": 1,
 		}
 		jsonBody, _ := json.Marshal(body)
@@ -167,13 +173,12 @@ func TestCreateApplication_NoResume(t *testing.T) {
 	job := Job{ID: 1, Title: "Go Developer", CreatedBy: 1}
 	db.Create(&job)
 
-	talent := Talent{ID: 1, Name: "张三"}
+	talent := Talent{ID: 1, Name: "张三", UserID: ptrUint(testCandidateUserID)}
 	db.Create(&talent)
 
 	t.Run("没有简历的求职者申请应该被拒绝并返回错误码1002", func(t *testing.T) {
 		body := map[string]interface{}{
 			"job_id":    1,
-			"talent_id": 1,
 			"resume_id": 0,
 		}
 		jsonBody, _ := json.Marshal(body)
@@ -204,7 +209,7 @@ func TestCreateApplication_NotificationSent(t *testing.T) {
 	job := Job{ID: 1, Title: "Go Developer", CreatedBy: hrUserID}
 	db.Create(&job)
 
-	talent := Talent{ID: 1, Name: "李四"}
+	talent := Talent{ID: 1, Name: "李四", UserID: ptrUint(testCandidateUserID)}
 	db.Create(&talent)
 
 	talentID := uint(1)
@@ -214,7 +219,6 @@ func TestCreateApplication_NotificationSent(t *testing.T) {
 	t.Run("创建申请后应该发送通知给HR", func(t *testing.T) {
 		body := map[string]interface{}{
 			"job_id":    1,
-			"talent_id": 1,
 			"resume_id": 1,
 		}
 		jsonBody, _ := json.Marshal(body)
@@ -259,13 +263,13 @@ func TestCreateApplication_MissingJobID(t *testing.T) {
 	})
 }
 
-// TestCreateApplication_MissingTalentID 测试缺少talent_id
-func TestCreateApplication_MissingTalentID(t *testing.T) {
+// TestCreateApplication_MissingTalentProfile 测试当前用户未创建人才档案
+func TestCreateApplication_MissingTalentProfile(t *testing.T) {
 	db := setupApplicationTestDB()
 	handler := NewResumeHandler(db)
 	router := setupApplicationRouter(handler)
 
-	t.Run("缺少talent_id应该返回错误", func(t *testing.T) {
+	t.Run("未创建人才档案应该返回错误", func(t *testing.T) {
 		body := map[string]interface{}{
 			"job_id":    1,
 			"resume_id": 1,
@@ -278,6 +282,10 @@ func TestCreateApplication_MissingTalentID(t *testing.T) {
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "当前用户还未创建人才档案", response["message"])
 	})
 }
 
@@ -293,7 +301,7 @@ func TestCreateApplication_DifferentJobsSameCandidate(t *testing.T) {
 	db.Create(&job1)
 	db.Create(&job2)
 
-	talent := Talent{ID: 1, Name: "张三"}
+	talent := Talent{ID: 1, Name: "张三", UserID: ptrUint(testCandidateUserID)}
 	db.Create(&talent)
 
 	talentID := uint(1)
@@ -312,7 +320,6 @@ func TestCreateApplication_DifferentJobsSameCandidate(t *testing.T) {
 	t.Run("同一求职者可以申请不同的职位", func(t *testing.T) {
 		body := map[string]interface{}{
 			"job_id":    2, // 不同的职位
-			"talent_id": 1,
 			"resume_id": 1,
 		}
 		jsonBody, _ := json.Marshal(body)
@@ -340,6 +347,10 @@ type TalentWithUser struct {
 // TableName specifies the table name for TalentWithUser
 func (TalentWithUser) TableName() string {
 	return "talents"
+}
+
+func ptrUint(v uint) *uint {
+	return &v
 }
 
 // TestUpdateApplication_StatusChangeNotification 测试状态更新时发送通知给求职者

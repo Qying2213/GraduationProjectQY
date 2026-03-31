@@ -96,6 +96,11 @@ export default defineConfig({
                 target: 'http://localhost:8085',
                 changeOrigin: true
             },
+            // 公告服务 (message-service)
+            '/api/v1/notices': {
+                target: 'http://localhost:8085',
+                changeOrigin: true
+            },
             // 人才服务
             '/api/v1/talents': {
                 target: 'http://localhost:8086',

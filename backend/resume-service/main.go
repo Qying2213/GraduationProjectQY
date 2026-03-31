@@ -13,6 +13,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// getEnv 统一读取环境变量。
+// 这样本地开发时可以直接使用默认值，部署时再由外部环境覆盖。
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
@@ -20,11 +22,18 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
+// main 是 resume-service 的组装入口。
+// 新人第一次读这个服务时，建议先看这里：
+// 1. 服务依赖了哪些 handler
+// 2. 暴露了哪些路由分组
+// 3. 哪些接口要求 JWT 认证
 func main() {
 	// 加载 .env 文件 - 从 backend 目录加载
+	// 这里按“离当前进程最近 -> 项目根目录”的顺序尝试，方便在不同目录下启动服务。
 	godotenv.Load("../.env")    // backend/.env (从 resume-service 目录)
 	godotenv.Load(".env")       // 当前目录
 	godotenv.Load("../../.env") // 项目根目录
+
 	// 数据库连接（支持环境变量配置）
 	dbHost := getEnv("DB_HOST", "localhost")
 	dbUser := getEnv("DB_USER", "qinyang")
@@ -54,6 +63,8 @@ func main() {
 	r.Use(middleware.CORS())
 	r.Use(middleware.SimpleOperationLog("resume-service"))
 
+	// 这里集中初始化本服务会用到的所有业务 handler。
+	// 可以把它理解成“接口层”的依赖注入位置。
 	resumeHandler := handlers.NewResumeHandler(db)
 	aiHandler := handlers.NewAIEvaluateHandler(db)
 	aiParseHandler := handlers.NewAIParseHandler(db)
@@ -69,10 +80,12 @@ func main() {
 	api := r.Group("/api/v1")
 	{
 		// Resume routes
+		// 这组接口负责“简历文件生命周期”：
+		// 上传、查询、下载、删除、状态更新、文本解析、岗位匹配。
 		resumes := api.Group("/resumes")
 		{
 			resumes.POST("", resumeHandler.UploadResume)
-			resumes.POST("/upload", resumeHandler.UploadResumeFile)
+			resumes.POST("/upload", middleware.JWTAuth(), resumeHandler.UploadResumeFile)
 			resumes.GET("", resumeHandler.ListResumes)
 			resumes.GET("/evaluation", resumeHandler.ListResumesForEvaluation) // 用于自动评估系统
 			resumes.GET("/file/:filename", resumeHandler.ServeResumeFile)      // 提供文件访问
@@ -95,6 +108,7 @@ func main() {
 		}
 
 		// AI Evaluation routes
+		// 这组接口是 AI 能力入口，负责触发评估、OCR、解析和查询评估结果。
 		ai := api.Group("/ai")
 		{
 			ai.GET("/config", aiHandler.CheckAIConfig)
@@ -108,6 +122,7 @@ func main() {
 		}
 
 		// Evaluation Results routes (评估结果管理)
+		// 这组接口偏“结果视图”，用于后台页面查看和清理 AI 评估记录。
 		evaluations := api.Group("/evaluations")
 		{
 			evaluations.GET("", evalHandler.ListEvaluations)
@@ -118,6 +133,8 @@ func main() {
 		}
 
 		// Application routes (需要JWT认证)
+		// 这组接口负责“职位投递生命周期”。
+		// 因为会涉及当前登录用户，所以整组接口都挂了 JWTAuth。
 		applications := api.Group("/applications")
 		applications.Use(middleware.JWTAuth())
 		{

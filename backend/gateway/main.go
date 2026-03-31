@@ -546,6 +546,9 @@ func main() {
 	// 日志服务
 	api.Any("/logs", ReverseProxy(serviceRegistry["log"]))
 	api.Any("/logs/*path", ReverseProxy(serviceRegistry["log"]))
+	//公告管理
+	api.Any("/notices", ReverseProxy(serviceRegistry["message"]))
+	api.Any("/notices/*path", ReverseProxy(serviceRegistry["message"]))
 
 	// 统计服务（从数据库查真实数据）
 	statsHandler := NewStatsHandler()

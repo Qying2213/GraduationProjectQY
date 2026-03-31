@@ -16,6 +16,8 @@ var (
 	jwtSecretOnce sync.Once
 )
 
+// getJWTSecret 使用 sync.Once 缓存 JWT 密钥。
+// 这样整个进程生命周期内只读取一次环境变量，避免每次请求都重复解析。
 func getJWTSecret() []byte {
 	jwtSecretOnce.Do(func() {
 		secret := os.Getenv("JWT_SECRET")
@@ -27,6 +29,9 @@ func getJWTSecret() []byte {
 	return jwtSecret
 }
 
+// Claims 是项目内 JWT 的自定义载荷。
+// 除了标准注册声明外，还把 user_id / username / role 放进去，
+// 这样后续业务 handler 就可以直接从 context 里拿到这些信息。
 type Claims struct {
 	UserID   uint   `json:"user_id"`
 	Username string `json:"username"`
@@ -68,7 +73,11 @@ func ParseToken(tokenString string) (*Claims, error) {
 	return nil, jwt.ErrSignatureInvalid
 }
 
-// JWTAuth JWT认证中间件
+// JWTAuth JWT 认证中间件。
+// 读取 token 的优先级：
+// 1. Authorization: Bearer <token>
+// 2. URL 查询参数 token（主要给 WebSocket 握手使用）
+// 校验通过后，会把 user_id / username / role 写入 Gin context。
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var tokenString string
@@ -107,7 +116,8 @@ func JWTAuth() gin.HandlerFunc {
 	}
 }
 
-// RoleAuth 角色权限中间件
+// RoleAuth 角色权限中间件。
+// 它依赖 JWTAuth 先把 role 写进 context，因此通常应当和 JWTAuth 组合使用。
 func RoleAuth(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		role, exists := c.Get("role")

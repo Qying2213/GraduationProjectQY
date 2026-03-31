@@ -80,7 +80,10 @@
             <el-icon><ChatLineRound /></el-icon>
             <span>即时聊天</span>
           </el-menu-item>
-
+          <el-menu-item index="/notices">
+            <el-icon><Document /></el-icon>
+            <span>公告管理</span>
+          </el-menu-item>
           <el-menu-item index="/reports">
             <el-icon><DataLine /></el-icon>
             <span>数据报表</span>

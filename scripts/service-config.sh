@@ -43,6 +43,27 @@ parse_service_spec() {
   IFS='|' read -r SERVICE_NAME SERVICE_WORKDIR SERVICE_RUN_CMD SERVICE_PORT SERVICE_LOAD_BACKEND_ENV SERVICE_LOG_FILE SERVICE_URL <<< "$spec"
 }
 
+service_prereq_reason() {
+  local service_name="$1"
+  local service_workdir="${2:-}"
+
+  case "$service_name" in
+    frontend)
+      local frontend_dir="${service_workdir:-$ROOT_DIR/frontend}"
+      if [[ ! -d "$frontend_dir/node_modules" ]]; then
+        printf '%s' "missing frontend/node_modules. Run: cd frontend && npm install"
+        return 0
+      fi
+      if [[ ! -e "$frontend_dir/node_modules/.bin/vite" ]]; then
+        printf '%s' "frontend dependencies are incomplete (vite missing). Run: cd frontend && npm install"
+        return 0
+      fi
+      ;;
+  esac
+
+  return 1
+}
+
 json_escape() {
   local value="$1"
   value="${value//\\/\\\\}"

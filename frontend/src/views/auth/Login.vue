@@ -91,6 +91,14 @@
               <span v-if="!loading">登录</span>
               <span v-else>登录中...</span>
             </el-button>
+
+            <el-button
+              size="large"
+              class="portal-login-btn"
+              @click="goToPortalLogin"
+            >
+              返回求职者登录
+            </el-button>
           </el-form>
 
           <div class="divider">
@@ -220,6 +228,10 @@ const handleLogin = async () => {
       }
     }
   })
+}
+
+const goToPortalLogin = () => {
+  router.push('/portal/login')
 }
 
 onMounted(() => {
@@ -478,6 +490,25 @@ onMounted(() => {
 
       &:active {
         opacity: 0.8;
+      }
+    }
+
+    .portal-login-btn {
+      width: 100%;
+      height: 48px;
+      margin-top: 12px;
+      border-radius: 12px;
+      border: 1px solid #bae6fd;
+      background: #f0f9ff;
+      color: #0369a1;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: #7dd3fc;
+        background: #e0f2fe;
+        color: #075985;
       }
     }
   }

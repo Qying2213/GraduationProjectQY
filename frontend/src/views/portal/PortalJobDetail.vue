@@ -368,7 +368,6 @@ const submitApplication = async () => {
   try {
     const res = await applicationApi.create({
       job_id: job.value.id,
-      talent_id: 0, // 后端会根据当前用户自动设置
       resume_id: applyForm.resumeId,
       cover_letter: applyForm.coverLetter || ''
     })

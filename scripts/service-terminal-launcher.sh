@@ -50,7 +50,10 @@ echo "$service_pid" > "$pid_file"
 echo "[INFO] Launch PID: $service_pid"
 
 startup_ok=false
-for _ in {1..30}; do
+startup_attempts="${LAUNCHER_STARTUP_ATTEMPTS:-120}"
+startup_interval="${LAUNCHER_STARTUP_INTERVAL_SECONDS:-0.5}"
+
+for _ in $(seq 1 "$startup_attempts"); do
   if ! kill -0 "$service_pid" >/dev/null 2>&1; then
     break
   fi
@@ -61,7 +64,7 @@ for _ in {1..30}; do
     startup_ok=true
     break
   fi
-  sleep 0.5
+  sleep "$startup_interval"
 done
 
 if [[ "$startup_ok" != "true" ]]; then

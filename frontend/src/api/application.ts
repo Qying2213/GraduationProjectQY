@@ -5,7 +5,6 @@ export const applicationApi = {
     // 创建申请
     create(data: {
         job_id: number
-        talent_id: number
         resume_id?: number
         cover_letter?: string
     }) {

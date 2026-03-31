@@ -157,6 +157,20 @@ CREATE TABLE IF NOT EXISTS messages (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 公告表
+CREATE TABLE IF NOT EXISTS notices (
+    id BIGSERIAL PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    title VARCHAR(200) NOT NULL,
+    content TEXT,
+    status VARCHAR(20) DEFAULT 'draft',
+    priority VARCHAR(20) NOT NULL DEFAULT 'normal',
+    is_pinned BOOLEAN DEFAULT FALSE,
+    created_by BIGINT DEFAULT 0
+);
+
 -- AI评估结果表
 CREATE TABLE IF NOT EXISTS evaluation_results (
     id SERIAL PRIMARY KEY,
@@ -268,6 +282,10 @@ CREATE INDEX IF NOT EXISTS idx_interviews_deleted_at ON interviews(deleted_at);
 CREATE INDEX IF NOT EXISTS idx_interview_feedbacks_deleted_at ON interview_feedbacks(deleted_at);
 CREATE INDEX IF NOT EXISTS idx_messages_receiver ON messages(receiver_id);
 CREATE INDEX IF NOT EXISTS idx_messages_read ON messages(is_read);
+CREATE INDEX IF NOT EXISTS idx_notices_deleted_at ON notices(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_notices_status ON notices(status);
+CREATE INDEX IF NOT EXISTS idx_notices_priority ON notices(priority);
+CREATE INDEX IF NOT EXISTS idx_notices_is_pinned ON notices(is_pinned);
 CREATE INDEX IF NOT EXISTS idx_evaluation_results_status ON evaluation_results(status);
 CREATE INDEX IF NOT EXISTS idx_evaluation_results_match_level ON evaluation_results(match_level);
 

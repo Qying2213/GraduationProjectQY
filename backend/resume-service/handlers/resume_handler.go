@@ -19,13 +19,24 @@ import (
 )
 
 // 文件存储目录
+// UploadDir 是当前进程实际读写简历文件的目录。
+// 这里使用进程工作目录下的 uploads，所以本地运行和容器运行时路径可能不同。
 var UploadDir string
 
+// ResumeHandler 聚合简历服务的核心依赖。
+// 这个 handler 不只处理“简历 CRUD”，还串起了：
+// 1. 文件上传与下载
+// 2. 职位投递
+// 3. 状态通知
+// 4. 文本解析与岗位匹配
+// 新人建议按 NewResumeHandler -> UploadResumeFile -> CreateApplication -> UpdateApplication 的顺序阅读。
 type ResumeHandler struct {
 	DB     *gorm.DB
 	Parser *parser.ResumeParser
 }
 
+// NewResumeHandler 在服务启动时初始化上传目录和简历解析器。
+// 上传目录放在服务工作目录下，便于本地开发时直接看到生成的文件。
 func NewResumeHandler(db *gorm.DB) *ResumeHandler {
 	// 获取当前工作目录
 	wd, _ := os.Getwd()
@@ -43,7 +54,11 @@ func NewResumeHandler(db *gorm.DB) *ResumeHandler {
 	}
 }
 
-// UploadResumeFile 上传简历文件
+// UploadResumeFile 处理 multipart/form-data 方式的简历上传。
+// 整个流程可以概括为：
+// 1. 校验文件是否存在、类型是否合法、大小是否超限
+// 2. 生成唯一文件名并落盘到 UploadDir
+// 3. 创建 resumes 表记录，保存文件元信息和访问 URL
 func (h *ResumeHandler) UploadResumeFile(c *gin.Context) {
 	log.Println("========== UploadResumeFile START ==========")
 	log.Printf("[上传] 请求方法: %s", c.Request.Method)
@@ -120,7 +135,36 @@ func (h *ResumeHandler) UploadResumeFile(c *gin.Context) {
 	talentID, _ := strconv.Atoi(talentIDStr)
 	jobID, _ := strconv.Atoi(jobIDStr)
 
-	// 生成访问URL
+	// 候选人在门户上传附件简历时，不再依赖前端传 talent_id。
+	// 只要用户已登录且角色是 candidate，就根据 JWT 自动绑定自己的人才档案。
+	if role, exists := c.Get("role"); exists {
+		if roleStr, ok := role.(string); ok && roleStr == "candidate" {
+			jwtUserID, exists := c.Get("user_id")
+			if !exists {
+				c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "未授权，请先登录"})
+				return
+			}
+
+			userID, ok := jwtUserID.(uint)
+			if !ok {
+				c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "invalid user_id type"})
+				return
+			}
+
+			var talent struct {
+				ID uint `json:"id"`
+			}
+			if err := h.DB.Table("talents").Where("user_id = ?", userID).First(&talent).Error; err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "当前用户还未创建人才档案"})
+				return
+			}
+
+			talentID = int(talent.ID)
+		}
+	}
+
+	// 生成访问 URL。
+	// 这里保存的是“接口访问地址”，不是磁盘绝对路径，方便前端直接走 HTTP 访问。
 	fileURL := "/api/v1/resumes/file/" + filename
 	log.Printf("[上传] 文件访问URL: %s", fileURL)
 
@@ -231,7 +275,8 @@ func (h *ResumeHandler) DownloadResume(c *gin.Context) {
 	c.File(resume.FilePath)
 }
 
-// UploadResume 上传简历（JSON方式）
+// UploadResume 上传简历（JSON方式）。
+// 这个接口更像“直接写数据库记录”，通常用于测试、脚本导入或已经有文件地址的场景。
 func (h *ResumeHandler) UploadResume(c *gin.Context) {
 	var resume models.Resume
 	if err := c.ShouldBindJSON(&resume); err != nil {
@@ -268,7 +313,9 @@ func (h *ResumeHandler) GetResume(c *gin.Context) {
 	})
 }
 
-// ListResumes 获取简历列表
+// ListResumes 获取简历列表。
+// 除了返回 resumes 表本身的数据，这里还会额外补充 talent_name / job_title，
+// 让前端列表页不必再分别查询人才和职位名称。
 func (h *ResumeHandler) ListResumes(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
@@ -318,6 +365,7 @@ func (h *ResumeHandler) ListResumes(c *gin.Context) {
 		return
 	}
 
+	// 这里把 resumes 表中的主记录，和 talents / jobs 表中的展示字段拼成前端更易消费的结构。
 	result := make([]ResumeWithDetails, len(resumes))
 	for i, resume := range resumes {
 		result[i].Resume = resume
@@ -351,7 +399,9 @@ func (h *ResumeHandler) ListResumes(c *gin.Context) {
 	})
 }
 
-// DeleteResume 删除简历
+// DeleteResume 删除简历。
+// 删除顺序是：先尝试删磁盘文件，再删除数据库记录。
+// 文件删除时会额外做一次路径校验，避免误删 uploads 目录外的文件。
 func (h *ResumeHandler) DeleteResume(c *gin.Context) {
 	id := c.Param("id")
 	var resume models.Resume
@@ -389,6 +439,11 @@ func (h *ResumeHandler) DeleteResume(c *gin.Context) {
 // - 验证求职者是否有简历
 // - 申请创建后自动发送通知给HR
 // Requirements: 2.2, 2.3, 2.4, 2.6
+//
+// 这段逻辑很适合新人理解“业务接口不只是 CRUD”：
+// 1. 先做业务前置校验
+// 2. 再写 application 记录
+// 3. 最后联动其他模块（这里是消息通知）
 func (h *ResumeHandler) CreateApplication(c *gin.Context) {
 	var app models.Application
 	if err := c.ShouldBindJSON(&app); err != nil {
@@ -401,11 +456,28 @@ func (h *ResumeHandler) CreateApplication(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "job_id is required"})
 		return
 	}
-	if app.TalentID == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "talent_id is required"})
+
+	jwtUserID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "未授权，请先登录"})
 		return
 	}
 
+	userID, ok := jwtUserID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "invalid user_id type"})
+		return
+	}
+	var talent struct {
+		ID uint `json:"id"`
+	}
+	if err := h.DB.Table("talents").Where("user_id = ?", userID).First(&talent).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "当前用户还未创建人才档案"})
+		return
+	}
+
+	// 后端自动设置 TalentID
+	app.TalentID = talent.ID
 	// Requirement 2.6: 验证求职者是否有简历
 	var resumeCount int64
 	h.DB.Table("resumes").Where("talent_id = ?", app.TalentID).Count(&resumeCount)
@@ -438,6 +510,8 @@ func (h *ResumeHandler) CreateApplication(c *gin.Context) {
 		return
 	}
 
+	// 注意：这里虽然代码位于 resume-service，但会直接读 jobs / talents 表并写 messages 表。
+	// 这说明当前项目采用的是“按服务拆代码 + 共享数据库”的协作方式，而不是完全独立的数据库。
 	// Requirement 2.3: 申请创建后自动发送通知给HR
 	// 获取职位信息，找到创建该职位的HR
 	var job struct {
@@ -472,7 +546,10 @@ func (h *ResumeHandler) CreateApplication(c *gin.Context) {
 	})
 }
 
-// ListApplications 获取申请列表
+// ListApplications 获取申请列表。
+// 支持两种常见视角：
+// 1. 按职位查看谁投递了某个岗位
+// 2. 按求职者查看“我投过哪些岗位”
 func (h *ResumeHandler) ListApplications(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
@@ -480,7 +557,8 @@ func (h *ResumeHandler) ListApplications(c *gin.Context) {
 	talentID := c.Query("talent_id")
 	status := c.Query("status")
 
-	// 处理 talent_id=me 的情况，表示查询当前登录用户的申请
+	// 处理 talent_id=me 的情况，表示前端不必提前知道 talent_id，
+	// 只要带上 JWT，后端就会自动把当前用户映射成对应的人才档案。
 	if talentID == "me" {
 		// 从 JWT 中获取当前用户 ID
 		jwtUserID, exists := c.Get("user_id")
@@ -549,6 +627,7 @@ func (h *ResumeHandler) ListApplications(c *gin.Context) {
 		return
 	}
 
+	// 这里把 application 主记录和 talent/job 的展示字段拼装起来，直接满足列表页展示需要。
 	result := make([]ApplicationWithDetails, len(applications))
 	for i, app := range applications {
 		result[i].Application = app
@@ -592,6 +671,11 @@ func (h *ResumeHandler) ListApplications(c *gin.Context) {
 // - 状态更新时发送通知给求职者
 // - 记录状态变更历史
 // Requirements: 3.2, 6.4
+//
+// 这个接口体现了“状态流转”型业务的常见写法：
+// 1. 先读取旧值
+// 2. 比较新旧状态
+// 3. 如果状态变化，则写历史、更新状态、发送通知
 func (h *ResumeHandler) UpdateApplication(c *gin.Context) {
 	id := c.Param("id")
 	var app models.Application
@@ -627,7 +711,8 @@ func (h *ResumeHandler) UpdateApplication(c *gin.Context) {
 		return
 	}
 
-	// 记录状态变更历史
+	// 记录状态变更历史。
+	// 当前项目没有单独的 application_histories 表，因此直接把历史追加在 notes 文本里。
 	statusChanged := req.Status != "" && req.Status != oldStatus
 	if statusChanged {
 		// 构建状态变更历史记录
@@ -671,7 +756,8 @@ func (h *ResumeHandler) UpdateApplication(c *gin.Context) {
 	})
 }
 
-// sendApplicationStatusNotification 发送申请状态变更通知给求职者
+// sendApplicationStatusNotification 发送申请状态变更通知给求职者。
+// 通知最终是直接写入 messages 表，后续由 message-service 提供查询、已读等能力。
 // Requirements: 3.2, 6.4
 func (h *ResumeHandler) sendApplicationStatusNotification(app *models.Application, oldStatus, newStatus string) {
 	// 获取求职者信息（包括关联的用户ID）
@@ -734,7 +820,7 @@ func (h *ResumeHandler) sendApplicationStatusNotification(app *models.Applicatio
 	log.Printf("[通知] ✓ 已发送申请状态变更通知给用户 %d: %s -> %s", *talent.UserID, oldStatus, newStatus)
 }
 
-// getStatusDisplayName 获取状态的中文显示名称
+// getStatusDisplayName 把内部状态码翻译成更适合展示给用户的中文名称。
 func getStatusDisplayName(status string) string {
 	statusNames := map[string]string{
 		"pending":   "待处理",
@@ -749,8 +835,11 @@ func getStatusDisplayName(status string) string {
 	return status
 }
 
-// DeleteApplication 删除/撤回申请
-// 求职者可以撤回自己的申请
+// DeleteApplication 删除/撤回申请。
+// 这里的“删除”在业务语义上更接近“求职者主动撤回申请”。
+// 因此接口会校验：
+// 1. 当前登录用户是不是这条申请对应的人
+// 2. 当前状态是否允许撤回
 func (h *ResumeHandler) DeleteApplication(c *gin.Context) {
 	id := c.Param("id")
 
@@ -805,7 +894,8 @@ func (h *ResumeHandler) DeleteApplication(c *gin.Context) {
 	})
 }
 
-// ParseResume 解析简历文本
+// ParseResume 解析简历文本。
+// 这个接口不依赖数据库文件，只依赖传入的纯文本，因此很适合前端调试解析效果。
 func (h *ResumeHandler) ParseResume(c *gin.Context) {
 	var req struct {
 		Text string `json:"text" binding:"required"`
@@ -829,7 +919,8 @@ func (h *ResumeHandler) ParseResume(c *gin.Context) {
 	})
 }
 
-// MatchResumeToJob 计算简历与职位的匹配度
+// MatchResumeToJob 计算简历与职位的匹配度。
+// 处理流程是：先解析简历文本，再根据岗位要求计算分数。
 func (h *ResumeHandler) MatchResumeToJob(c *gin.Context) {
 	var req struct {
 		ResumeText    string   `json:"resume_text" binding:"required"`
@@ -861,7 +952,8 @@ func (h *ResumeHandler) MatchResumeToJob(c *gin.Context) {
 	})
 }
 
-// ListResumesForEvaluation 获取简历列表（用于自动评估系统）
+// ListResumesForEvaluation 获取简历列表（用于自动评估系统）。
+// 与普通列表接口不同，这里会把文件内容转成 base64，便于评估流程直接消费文件。
 func (h *ResumeHandler) ListResumesForEvaluation(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "100"))
@@ -909,6 +1001,7 @@ func (h *ResumeHandler) ListResumesForEvaluation(c *gin.Context) {
 		}
 
 		if resume.FilePath != "" {
+			// 评估系统需要直接消费文件内容，因此这里额外返回 base64 编码后的文件数据。
 			if fileBytes, err := os.ReadFile(resume.FilePath); err == nil {
 				item.HasFile = true
 				item.FileBase64 = base64.StdEncoding.EncodeToString(fileBytes)
@@ -930,7 +1023,8 @@ func (h *ResumeHandler) ListResumesForEvaluation(c *gin.Context) {
 	})
 }
 
-// UpdateResumeStatus 更新简历状态
+// UpdateResumeStatus 更新简历状态。
+// 这个接口只负责切换状态值，不处理解析、匹配等副作用。
 func (h *ResumeHandler) UpdateResumeStatus(c *gin.Context) {
 	id := c.Param("id")
 	var resume models.Resume
