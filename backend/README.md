@@ -1,254 +1,169 @@
-# 智能人才运营平台 - 后端微服务
+# 智能人才运营平台 - 后端说明
 
-## 项目结构
+## 概述
 
-```
+本目录包含毕业设计项目的后端部分，采用 Go + Gin 微服务架构实现。当前后端由 8 个业务微服务、1 个 API 网关和 1 个 AI 评估服务组成，覆盖用户、职位、简历、人才、推荐、面试、消息、日志等核心业务。
+
+## 服务清单
+
+| 服务 | 端口 | 主要职责 |
+|---|---:|---|
+| gateway | 8080 | API 网关、统一路由、限流、操作日志接入 |
+| user-service | 8081 | 用户认证、JWT、RBAC、用户资料 |
+| job-service | 8082 | 职位发布、职位搜索、职位统计 |
+| interview-service | 8083 | 面试安排、反馈记录、面试状态流转 |
+| resume-service | 8084 | 简历上传、OCR、AI 评估、风控、评估链路追踪 |
+| message-service | 8085 | 站内消息、未读统计、通知能力 |
+| talent-service | 8086 | 人才库管理、人才搜索与筛选 |
+| recommendation-service | 8087 | 推荐统计、人岗匹配、推荐解释 |
+| log-service | 8088 | 操作日志查询、日志统计、审计追踪 |
+| evaluator-service | 8090 | 独立 AI 评估入口、钉钉推送、候选人评估管理 |
+
+## 目录结构
+
+```text
 backend/
-├── gateway/                    # API网关 (:8080)
-├── user-service/              # 用户服务 (:8081)
-├── talent-service/            # 人才服务 (:8082)
-├── job-service/               # 职位服务 (:8083)
-├── resume-service/            # 简历服务 (:8084)
-├── recommendation-service/    # 推荐服务 (:8085)
-├── message-service/           # 消息服务 (:8086)
-└── common/                    # 公共模块
-    ├── database/              # 数据库连接
-    ├── middleware/            # 中间件
-    └── response/              # 响应工具
+├── gateway/
+├── user-service/
+├── job-service/
+├── interview-service/
+├── resume-service/
+├── message-service/
+├── talent-service/
+├── recommendation-service/
+├── log-service/
+├── evaluator-service/
+├── common/
+├── databaseSQL/
+├── cozeWorkflow/
+└── README.md
 ```
 
-## 快速开始
+## 核心 AI 链路
 
-### 前置要求
+当前简历智能评估链路为：
 
-- Go 1.21+
-- PostgreSQL 12+
-- Redis 6+
-
-### 数据库配置
-
-1. 创建数据库：
-```sql
-CREATE DATABASE talent_platform;
+```text
+PDF / DOC / DOCX
+  -> OCR / 文本提取
+  -> Embedding 向量化
+  -> RAG 检索增强
+  -> Coze 工作流评估
+  -> 结构化结果入库
 ```
 
-2. 配置连接（在各服务的main.go中）：
-```go
-dsn := "host=localhost user=postgres password=postgres dbname=talent_platform port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-```
+说明：
 
-### 启动服务
+- `resume-service` 负责在线评估主链路
+- `cozeWorkflow/workflow/` 存放导出的 Coze 工作流定义
+- 当前工作流已支持同时接收 `resume_file` 与 `resume_text`
 
-每个服务独立启动，按以下顺序：
+## 环境变量
+
+推荐直接复制：
 
 ```bash
-# 1. 启动用户服务
-cd user-service
-go mod tidy
-go run main.go
-
-# 2. 启动人才服务
-cd talent-service
-go mod tidy
-go run main.go
-
-# 3. 启动职位服务
-cd job-service
-go mod tidy
-go run main.go
-
-# 4. 启动简历服务
-cd resume-service
-go mod tidy
-go run main.go
-
-# 5. 启动推荐服务
-cd recommendation-service
-go mod tidy
-go run main.go
-
-# 6. 启动消息服务
-cd message-service
-go mod tidy
-go run main.go
-
-# 7. 启动API网关
-cd gateway
-go mod tidy
-go run main.go
+cp backend/.env.example backend/.env
 ```
 
-## API文档
+关键变量说明：
 
-### 统一访问地址
-所有API通过网关访问：`http://localhost:8080/api/v1`
+| 变量 | 说明 |
+|---|---|
+| `DB_HOST` / `DB_PORT` / `DB_USER` / `DB_PASSWORD` / `DB_NAME` | PostgreSQL 连接配置 |
+| `REDIS_HOST` / `REDIS_PORT` | Redis 配置 |
+| `ES_URL` | Elasticsearch 地址 |
+| `JWT_SECRET` | JWT 密钥 |
+| `COZE_BASE_URL` | Coze API 基础地址 |
+| `COZE_TOKEN` | `resume-service` 评估工作流使用的 Coze Token |
+| `COZE_WORKFLOW_ID` | `resume-service` 评估工作流 ID |
+| `COZE_API_TOKEN` | 其他 AI 归因/推荐链路兼容使用的 Coze Token |
+| `COZE_ATTRIBUTION_WORKFLOW_ID` | 推荐归因工作流 ID |
+| `ARK_API_KEY` | 火山引擎 Embedding API Key |
+| `VOLC_ENDPOINT` | Embedding 接口地址 |
+| `VOLC_MODEL_ID` | Embedding 模型 ID |
 
-### 用户服务 API
+## 本地启动
 
-#### 注册
-```
-POST /api/v1/register
-{
-  "username": "testuser",
-  "email": "test@example.com",
-  "password": "password123",
-  "role": "hr",
-  "real_name": "张三",
-  "phone": "13800138000"
-}
-```
+### 方式一：一键启动
 
-#### 登录
-```
-POST /api/v1/login
-{
-  "username": "admin",
-  "password": "admin123"
-}
+项目根目录执行：
+
+```bash
+./start-all.sh
 ```
 
-### 人才服务 API
+停止：
 
-#### 创建人才
-```
-POST /api/v1/talents
-{
-  "name": "李四",
-  "email": "lisi@example.com",
-  "phone": "13900139000",
-  "skills": ["Go", "Vue", "Docker"],
-  "experience": 5,
-  "education": "本科",
-  "location": "北京",
-  "salary": "20-30K"
-}
+```bash
+./stop-all.sh
 ```
 
-#### 获取人才列表
-```
-GET /api/v1/talents?page=1&page_size=10&status=active&search=李四
+### 方式二：逐个服务启动
+
+```bash
+cd backend/gateway && go run main.go
+cd backend/user-service && go run main.go
+cd backend/job-service && go run main.go
+cd backend/interview-service && go run main.go
+cd backend/resume-service && go run main.go
+cd backend/message-service && go run main.go
+cd backend/talent-service && go run main.go
+cd backend/recommendation-service && go run main.go
+cd backend/log-service && go run main.go
+cd backend/evaluator-service && go run ./cmd/server
 ```
 
-#### 高级搜索
-```
-GET /api/v1/talents/search?skills=Go&skills=Vue&min_experience=3&max_experience=8&location=北京
+## 数据库初始化
+
+推荐在项目根目录执行：
+
+```bash
+./init-db.sh
 ```
 
-### 职位服务 API
+手动执行时：
 
-#### 创建职位
-```
-POST /api/v1/jobs
-{
-  "title": "Go开发工程师",
-  "description": "负责后端开发",
-  "requirements": ["3年以上Go经验", "熟悉微服务"],
-  "salary": "20-30K",
-  "location": "北京",
-  "type": "full-time",
-  "skills": ["Go", "Docker", "Kubernetes"],
-  "department": "技术部",
-  "level": "mid"
-}
+```bash
+createdb talent_platform
+psql -d talent_platform -f backend/databaseSQL/schema.sql
+psql -d talent_platform -f backend/databaseSQL/init_data.sql
 ```
 
-#### 获取职位列表
-```
-GET /api/v1/jobs?page=1&page_size=10&status=open&type=full-time&location=北京
+## 常用测试
+
+### 后端单元/服务测试
+
+```bash
+cd backend/resume-service && go test ./...
+cd backend/recommendation-service && go test ./...
+cd backend/interview-service && go test ./...
 ```
 
-#### 职位统计
-```
-GET /api/v1/jobs/stats
+### 全链路接口测试
+
+```bash
+cd ztest
+./run_all_tests.sh
 ```
 
-### 简历服务 API
+### 毕业设计专项验收
 
-#### 上传简历
-```
-POST /api/v1/resumes
-{
-  "talent_id": 1,
-  "file_name": "resume.pdf",
-  "file_url": "/uploads/resume.pdf",
-  "file_size": 102400
-}
+```bash
+python3 ztest/test_graduation_acceptance.py
 ```
 
-#### 创建申请
-```
-POST /api/v1/applications
-{
-  "job_id": 1,
-  "talent_id": 1,
-  "resume_id": 1,
-  "cover_letter": "我对这个职位很感兴趣..."
-}
-```
+## 当前交付状态
 
-### 推荐服务 API
+根据 2026-04-01 的验收材料，当前后端相关结论如下：
 
-#### 为人才推荐职位
-```
-POST /api/v1/recommendations/jobs-for-talent
-{
-  "id": 1,
-  "name": "张三",
-  "skills": ["Go", "Docker"],
-  "experience": 5,
-  "location": "北京"
-}
-```
+- 全链路接口测试 33/33 通过
+- 毕业设计专项验收 34/34 通过
+- 核心读接口压测达到开题性能目标
+- AI 评估链路已完成 OCR、Embedding、RAG 与 Coze 工作流整合
 
-#### 为职位推荐人才
-```
-POST /api/v1/recommendations/talents-for-job
-{
-  "id": 1,
-  "title": "Go开发工程师",
-  "skills": ["Go", "Docker"],
-  "location": "北京"
-}
-```
+可直接参考：
 
-### 消息服务 API
-
-#### 发送消息
-```
-POST /api/v1/messages
-{
-  "from_id": 1,
-  "to_id": 2,
-  "title": "面试邀请",
-  "content": "您好，我们邀请您参加面试...",
-  "type": "notification"
-}
-```
-
-#### 获取消息列表
-```
-GET /api/v1/messages?user_id=1&page=1&page_size=20&is_read=false
-```
-
-#### 未读消息数
-```
-GET /api/v1/messages/unread-count?user_id=1
-```
-
-## 服务端口
-
-- API Gateway: 8080
-- User Service: 8081
-- Talent Service: 8082
-- Job Service: 8083
-- Resume Service: 8084
-- Recommendation Service: 8085
-- Message Service: 8086
-
-## 技术栈
-
-- **框架**: Gin
-- **ORM**: GORM
-- **数据库**: PostgreSQL
-- **缓存**: Redis (推荐服务)
-- **认证**: JWT
+- [专项验收报告](/Users/qinyang/Desktop/GraduationProjectQY/ztest/graduation_acceptance_report_20260401_115415.md)
+- [交付验收报告](/Users/qinyang/Desktop/GraduationProjectQY/docs/毕业设计交付验收报告_20260401.md)
+- [详细测试报告](/Users/qinyang/Desktop/GraduationProjectQY/docs/毕业设计详细测试报告_20260401.md)
