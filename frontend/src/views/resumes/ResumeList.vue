@@ -975,7 +975,7 @@ const parseResume = async (resume: Resume) => {
   ElMessage({
     message: "正在进行AI智能评估，这可能需要1-2分钟，请耐心等待...",
     type: "info",
-    duration: 0,
+    duration: 3000,
     showClose: true,
   });
 
