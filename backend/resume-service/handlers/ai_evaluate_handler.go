@@ -99,6 +99,7 @@ func NewAIEvaluateHandler(db *gorm.DB) *AIEvaluateHandler {
 		RAGEnabled:      ragEnabled,
 	}
 	handler.ensureAIProcessLogTable()
+	handler.ensureEvaluationResultColumns()
 	return handler
 }
 
@@ -132,6 +133,21 @@ func (h *AIEvaluateHandler) ensureAIProcessLogTable() {
 	for _, sql := range sqls {
 		if err := h.DB.Exec(sql).Error; err != nil {
 			fmt.Printf("[AIProcessLog] ensure table failed: %v\n", err)
+			return
+		}
+	}
+}
+
+func (h *AIEvaluateHandler) ensureEvaluationResultColumns() {
+	sqls := []string{
+		`ALTER TABLE evaluation_results ADD COLUMN IF NOT EXISTS parsed_school VARCHAR(100)`,
+		`ALTER TABLE evaluation_results ADD COLUMN IF NOT EXISTS parsed_report TEXT`,
+		`ALTER TABLE evaluation_results ADD COLUMN IF NOT EXISTS raw_result TEXT`,
+	}
+
+	for _, sql := range sqls {
+		if err := h.DB.Exec(sql).Error; err != nil {
+			fmt.Printf("[EvaluationResult] ensure columns failed: %v\n", err)
 			return
 		}
 	}
@@ -518,7 +534,7 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Minute)
 	defer cancel()
 
-	result, err := h.Evaluator.EvaluateResume(ctx, candidateName, enhancedJD, pdfBytes)
+	result, err := h.Evaluator.EvaluateResume(ctx, candidateName, enhancedJD, resumeText, pdfBytes)
 	if err != nil {
 		h.DB.Model(&resume).Update("status", "failed")
 		trace.LLM.Success = false
@@ -575,6 +591,8 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 			"matched_skills":   result.MatchedSkills,
 			"missing_skills":   result.MissingSkills,
 			"summary":          result.Summary,
+			"parsed_report":    result.ParsedReport,
+			"raw_result":       result.RawResult,
 			"ocr_extracted":    resumeText != "",
 			"embedding_used":   len(resumeEmbedding) > 0,
 			"rag_enhanced":     ragContext != "",
@@ -857,7 +875,7 @@ func (h *AIEvaluateHandler) EvaluateUploadedFile(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Minute)
 	defer cancel()
 
-	result, err := h.Evaluator.EvaluateResume(ctx, candidateName, enhancedJD, pdfBytes)
+	result, err := h.Evaluator.EvaluateResume(ctx, candidateName, enhancedJD, resumeText, pdfBytes)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "AI 评估失败: " + err.Error()})
 		return
@@ -929,7 +947,7 @@ func (h *AIEvaluateHandler) BatchEvaluate(c *gin.Context) {
 
 		// 调用 AI 评估
 		ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Minute)
-		result, err := h.Evaluator.EvaluateResume(ctx, resume.FileName, req.JDText, pdfBytes)
+		result, err := h.Evaluator.EvaluateResume(ctx, resume.FileName, req.JDText, resume.ExtractedText, pdfBytes)
 		cancel()
 
 		if err != nil {
@@ -1025,6 +1043,8 @@ func (h *AIEvaluateHandler) saveEvaluationResult(resume *models.Resume, result *
 	// 序列化技能列表
 	matchedSkillsJSON, _ := json.Marshal(result.MatchedSkills)
 	missingSkillsJSON, _ := json.Marshal(result.MissingSkills)
+	parsedReportJSON, _ := json.Marshal(result.ParsedReport)
+	rawResultJSON, _ := json.Marshal(result.RawResult)
 
 	// 构建维度数据 - 分数转换成百分比显示
 	// JD匹配度已经是100分制，其他维度是10分制需要乘以10
@@ -1039,12 +1059,34 @@ func (h *AIEvaluateHandler) saveEvaluationResult(resume *models.Resume, result *
 	}
 	dimensionsJSON, _ := json.Marshal(dimensions)
 
+	basicInfo := extractBasicInfo(result.ParsedReport)
+	school := toStringValue(basicInfo["学校"])
+	phone := toStringValue(basicInfo["手机"])
+	email := toStringValue(basicInfo["邮箱"])
+	education := toStringValue(basicInfo["学历"])
+	experience := toStringValue(basicInfo["工作经验"])
+	location := toStringValue(basicInfo["城市"])
+	if location == "" {
+		location = toStringValue(basicInfo["地点"])
+	}
+	if extractedName := toStringValue(basicInfo["姓名"]); extractedName != "" {
+		candidateName = extractedName
+	}
+
 	evalResult := &models.EvaluationResult{
 		ResumeID:             resume.ID,
-		ResumeName:           resume.FileName,
-		ResumeFile:           resume.FilePath,
-		ParsedName:           candidateName,
+		ResumeName:           truncateForColumn(resume.FileName, 100),
+		ResumeFile:           truncateForColumn(resume.FilePath, 500),
+		ParsedName:           truncateForColumn(candidateName, 50),
+		ParsedPhone:          truncateForColumn(phone, 20),
+		ParsedEmail:          truncateForColumn(email, 100),
+		ParsedEducation:      truncateForColumn(education, 50),
+		ParsedSchool:         truncateForColumn(school, 100),
+		ParsedExperience:     truncateForColumn(experience, 50),
+		ParsedLocation:       truncateForColumn(location, 50),
 		ParsedSkills:         string(matchedSkillsJSON),
+		ParsedReport:         string(parsedReportJSON),
+		RawResult:            string(rawResultJSON),
 		MatchScore:           finalScore,
 		MatchLevel:           matchLevel,
 		MatchDetails:         string(missingSkillsJSON),
@@ -1057,6 +1099,41 @@ func (h *AIEvaluateHandler) saveEvaluationResult(resume *models.Resume, result *
 		ReportDimensions:     string(dimensionsJSON),
 	}
 
-	h.DB.Create(evalResult)
+	if err := h.DB.Create(evalResult).Error; err != nil {
+		fmt.Printf("[EvaluationResult] save failed: %v\n", err)
+		return &models.EvaluationResult{}
+	}
 	return evalResult
+}
+
+func extractBasicInfo(report map[string]interface{}) map[string]interface{} {
+	if report == nil {
+		return map[string]interface{}{}
+	}
+	if basicInfo, ok := report["基本信息"].(map[string]interface{}); ok {
+		return basicInfo
+	}
+	return map[string]interface{}{}
+}
+
+func toStringValue(value interface{}) string {
+	switch v := value.(type) {
+	case string:
+		return strings.TrimSpace(v)
+	case fmt.Stringer:
+		return strings.TrimSpace(v.String())
+	default:
+		return ""
+	}
+}
+
+func truncateForColumn(value string, max int) string {
+	if max <= 0 {
+		return value
+	}
+	runes := []rune(strings.TrimSpace(value))
+	if len(runes) <= max {
+		return string(runes)
+	}
+	return string(runes[:max])
 }

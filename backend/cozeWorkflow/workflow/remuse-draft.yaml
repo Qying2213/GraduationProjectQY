@@ -1,0 +1,1619 @@
+schema_version: 1.0.0
+name: remuse
+id: 7583886563420373019
+description: "remuse"
+mode: workflow
+icon: plugin_icon/workflow.png
+nodes:
+    - id: "100001"
+      type: start
+      title: 开始
+      icon: https://lf3-static.bytednsdoc.com/obj/eden-cn/dvsmryvd_avi_dvsm/ljhwZthlaukjlkulzlp/icon/icon-Start-v2.jpg
+      description: "工作流的起始节点，用于设定启动工作流需要的信息"
+      position:
+        x: -1316.1621836497343
+        y: 348.928931973334
+      parameters:
+        node_outputs:
+            jd_text:
+                type: string
+                value: null
+                description: 职位描述
+            name:
+                type: string
+                required: true
+                value: null
+            resume_file:
+                type: file
+                required: true
+                value: null
+                description: 简历文件
+            resume_text:
+                type: string
+                value: null
+    - id: "900001"
+      type: end
+      title: 结束
+      icon: https://lf3-static.bytednsdoc.com/obj/eden-cn/dvsmryvd_avi_dvsm/ljhwZthlaukjlkulzlp/icon/icon-End-v2.jpg
+      description: "工作流的最终节点，用于返回工作流运行后的结果信息"
+      position:
+        x: 2061.28331013373
+        y: 223.928931973334
+      parameters:
+        node_inputs:
+            - name: result
+              input:
+                type: string
+                value:
+                    path: output
+                    ref_node: "191833"
+        terminatePlan: returnVariables
+    - id: "179320"
+      type: llm
+      title: 年龄分析
+      icon: https://lf3-static.bytednsdoc.com/obj/eden-cn/dvsmryvd_avi_dvsm/ljhwZthlaukjlkulzlp/icon/icon-LLM-v2.jpg
+      description: "调用大语言模型,使用变量和提示词生成回复"
+      version: "3"
+      position:
+        x: 915.0998036413175
+        y: -230.20272506219044
+      parameters:
+        fcParamVar:
+            knowledgeFCParam: {}
+        llmParam:
+            - name: apiMode
+              input:
+                type: integer
+                value: "0"
+            - name: temperature
+              input:
+                type: float
+                value: "0.5"
+            - name: topP
+              input:
+                type: float
+                value: "1"
+            - name: frequencyPenalty
+              input:
+                type: float
+                value: "0"
+            - name: maxTokens
+              input:
+                type: integer
+                value: "4096"
+            - name: spCurrentTime
+              input:
+                type: boolean
+                value: false
+            - name: spAntiLeak
+              input:
+                type: boolean
+                value: false
+            - name: thinkingType
+              input:
+                type: string
+                value: enabled
+            - name: responseFormat
+              input:
+                type: integer
+                value: "2"
+            - name: modelName
+              input:
+                type: string
+                value: 豆包·2.0·pro
+            - name: modelType
+              input:
+                type: integer
+                value: "1772700462"
+            - name: generationDiversity
+              input:
+                type: string
+                value: balance
+            - name: parameters
+              input:
+                type: object
+                properties:
+                    max_completion_tokens:
+                        type: integer
+                        value: "0"
+                    reasoning_effort:
+                        type: string
+                        value: medium
+                value: null
+            - name: prompt
+              input:
+                type: string
+                value: ""
+            - name: enableChatHistory
+              input:
+                type: boolean
+                value: false
+            - name: chatHistoryRound
+              input:
+                type: integer
+                value: "3"
+            - name: systemPrompt
+              input:
+                type: string
+                value: |
+                    你是年龄评估专家。
+
+                    候选人年龄：{{age}}
+                    教育背景：{{education}}
+
+                    评分标准（满分10分）：
+                    - 10分：25-28岁
+                    - 8分：23-24岁
+                    - 6分：22岁以下
+                    - 5分：29-32岁
+                    - 3分：33-35岁
+                    - 0分：36岁及以上（黑名单）
+
+                    如果年龄为空，根据教育背景推算（本科毕业默认23岁，当前2025年）
+
+                    直接输出JSON：{"score": 数字, "max": 10, "reason": "理由"}
+            - name: stableSystemPrompt
+              input:
+                type: string
+                value: ""
+            - name: canContinue
+              input:
+                type: boolean
+                value: false
+            - name: loopPromptVersion
+              input:
+                type: string
+                value: ""
+            - name: loopPromptName
+              input:
+                type: string
+                value: ""
+            - name: loopPromptId
+              input:
+                type: string
+                value: ""
+        node_inputs:
+            - name: age
+              input:
+                type: string
+                value:
+                    path: age
+                    ref_node: "166794"
+        node_outputs:
+            output:
+                type: string
+                value: null
+            reasoning_content:
+                type: string
+                value: null
+        settingOnError:
+            processType: 1
+            retryTimes: 0
+            switch: false
+            timeoutMs: 180000
+    - id: "175064"
+      type: llm
+      title: 经验评分
+      icon: https://lf3-static.bytednsdoc.com/obj/eden-cn/dvsmryvd_avi_dvsm/ljhwZthlaukjlkulzlp/icon/icon-LLM-v2.jpg
+      description: "调用大语言模型,使用变量和提示词生成回复"
+      version: "3"
+      position:
+        x: 915.0998036413175
+        y: -16.004636388294756
+      parameters:
+        fcParamVar:
+            knowledgeFCParam: {}
+        llmParam:
+            - name: apiMode
+              input:
+                type: integer
+                value: "0"
+            - name: temperature
+              input:
+                type: float
+                value: "0.5"
+            - name: topP
+              input:
+                type: float
+                value: "1"
+            - name: frequencyPenalty
+              input:
+                type: float
+                value: "0"
+            - name: maxTokens
+              input:
+                type: integer
+                value: "4096"
+            - name: spCurrentTime
+              input:
+                type: boolean
+                value: false
+            - name: spAntiLeak
+              input:
+                type: boolean
+                value: false
+            - name: thinkingType
+              input:
+                type: string
+                value: enabled
+            - name: responseFormat
+              input:
+                type: integer
+                value: "2"
+            - name: modelName
+              input:
+                type: string
+                value: 豆包·2.0·pro
+            - name: modelType
+              input:
+                type: integer
+                value: "1772700462"
+            - name: generationDiversity
+              input:
+                type: string
+                value: balance
+            - name: parameters
+              input:
+                type: object
+                properties:
+                    max_completion_tokens:
+                        type: integer
+                        value: "0"
+                    reasoning_effort:
+                        type: string
+                        value: medium
+                value: null
+            - name: prompt
+              input:
+                type: string
+                value: ""
+            - name: enableChatHistory
+              input:
+                type: boolean
+                value: false
+            - name: chatHistoryRound
+              input:
+                type: integer
+                value: "3"
+            - name: systemPrompt
+              input:
+                type: string
+                value: |-
+                    你是工作经验评估专家。
+
+                    工作经历：{{work_exp}}
+                    职位要求：{{jd_text}}
+
+                    评分标准（满分10分）：
+                    - 10分：3年以上相关经验，大厂背景
+                    - 8分：2-3年相关经验
+                    - 6分：1-2年相关经验
+                    - 4分：有实习经验或1年以下
+                    - 2分：无工作经验
+                    - 0分：无任何相关经验
+
+                    直接输出JSON：{"score": 数字, "max": 10, "reason": "理由"}
+            - name: stableSystemPrompt
+              input:
+                type: string
+                value: ""
+            - name: canContinue
+              input:
+                type: boolean
+                value: false
+            - name: loopPromptVersion
+              input:
+                type: string
+                value: ""
+            - name: loopPromptName
+              input:
+                type: string
+                value: ""
+            - name: loopPromptId
+              input:
+                type: string
+                value: ""
+        node_inputs:
+            - name: work_exp
+              input:
+                type: string
+                value:
+                    path: work_exp
+                    ref_node: "166794"
+            - name: jd_text
+              input:
+                value:
+                    path: jd_text
+                    ref_node: "100001"
+        node_outputs:
+            output:
+                type: string
+                value: null
+            reasoning_content:
+                type: string
+                value: null
+        settingOnError:
+            processType: 1
+            retryTimes: 0
+            switch: false
+            timeoutMs: 180000
+    - id: "147309"
+      type: llm
+      title: 学历评分
+      icon: https://lf3-static.bytednsdoc.com/obj/eden-cn/dvsmryvd_avi_dvsm/ljhwZthlaukjlkulzlp/icon/icon-LLM-v2.jpg
+      description: "调用大语言模型,使用变量和提示词生成回复"
+      version: "3"
+      position:
+        x: 915.0998036413175
+        y: 197.928931973334
+      parameters:
+        fcParamVar:
+            knowledgeFCParam: {}
+        llmParam:
+            - name: apiMode
+              input:
+                type: integer
+                value: "0"
+            - name: temperature
+              input:
+                type: float
+                value: "0.5"
+            - name: topP
+              input:
+                type: float
+                value: "1"
+            - name: frequencyPenalty
+              input:
+                type: float
+                value: "0"
+            - name: maxTokens
+              input:
+                type: integer
+                value: "4096"
+            - name: spCurrentTime
+              input:
+                type: boolean
+                value: false
+            - name: spAntiLeak
+              input:
+                type: boolean
+                value: false
+            - name: thinkingType
+              input:
+                type: string
+                value: enabled
+            - name: responseFormat
+              input:
+                type: integer
+                value: "2"
+            - name: modelName
+              input:
+                type: string
+                value: 豆包·2.0·pro
+            - name: modelType
+              input:
+                type: integer
+                value: "1772700462"
+            - name: generationDiversity
+              input:
+                type: string
+                value: balance
+            - name: parameters
+              input:
+                type: object
+                properties:
+                    max_completion_tokens:
+                        type: integer
+                        value: "0"
+                    reasoning_effort:
+                        type: string
+                        value: medium
+                value: null
+            - name: prompt
+              input:
+                type: string
+                value: ""
+            - name: enableChatHistory
+              input:
+                type: boolean
+                value: false
+            - name: chatHistoryRound
+              input:
+                type: integer
+                value: "3"
+            - name: systemPrompt
+              input:
+                type: string
+                value: |
+                    你是学历评估专家。
+
+                    学历：{{degree}}
+                    教育背景：{{education}}
+
+                    评分标准（满分10分）：
+                    - 10分：985/211硕士，计算机相关
+                    - 8分：985/211本科或普通硕士
+                    - 7分：普通本科，计算机相关
+                    - 5分：本科非计算机或大专计算机
+                    - 3分：大专非计算机
+                    - 0分：学历不符合
+                    直接输出JSON：{"score": 数字, "max": 10, "reason": "理由"}
+            - name: stableSystemPrompt
+              input:
+                type: string
+                value: ""
+            - name: canContinue
+              input:
+                type: boolean
+                value: false
+            - name: loopPromptVersion
+              input:
+                type: string
+                value: ""
+            - name: loopPromptName
+              input:
+                type: string
+                value: ""
+            - name: loopPromptId
+              input:
+                type: string
+                value: ""
+        node_inputs:
+            - name: degree
+              input:
+                type: string
+                value:
+                    path: degree
+                    ref_node: "166794"
+            - name: education
+              input:
+                type: string
+                value:
+                    path: education
+                    ref_node: "166794"
+        node_outputs:
+            output:
+                type: string
+                value: null
+            reasoning_content:
+                type: string
+                value: null
+        settingOnError:
+            processType: 1
+            retryTimes: 0
+            switch: false
+            timeoutMs: 180000
+    - id: "172419"
+      type: llm
+      title: 技术评分
+      icon: https://lf3-static.bytednsdoc.com/obj/eden-cn/dvsmryvd_avi_dvsm/ljhwZthlaukjlkulzlp/icon/icon-LLM-v2.jpg
+      description: "调用大语言模型,使用变量和提示词生成回复"
+      version: "3"
+      position:
+        x: 915.0998036413175
+        y: 411.86250033496276
+      parameters:
+        fcParamVar:
+            knowledgeFCParam: {}
+        llmParam:
+            - name: apiMode
+              input:
+                type: integer
+                value: "0"
+            - name: temperature
+              input:
+                type: float
+                value: "0.5"
+            - name: topP
+              input:
+                type: float
+                value: "1"
+            - name: frequencyPenalty
+              input:
+                type: float
+                value: "0"
+            - name: maxTokens
+              input:
+                type: integer
+                value: "4096"
+            - name: spCurrentTime
+              input:
+                type: boolean
+                value: false
+            - name: spAntiLeak
+              input:
+                type: boolean
+                value: false
+            - name: thinkingType
+              input:
+                type: string
+                value: enabled
+            - name: responseFormat
+              input:
+                type: integer
+                value: "2"
+            - name: modelName
+              input:
+                type: string
+                value: 豆包·2.0·pro
+            - name: modelType
+              input:
+                type: integer
+                value: "1772700462"
+            - name: generationDiversity
+              input:
+                type: string
+                value: balance
+            - name: parameters
+              input:
+                type: object
+                properties:
+                    max_completion_tokens:
+                        type: integer
+                        value: "0"
+                    reasoning_effort:
+                        type: string
+                        value: medium
+                value: null
+            - name: prompt
+              input:
+                type: string
+                value: ""
+            - name: enableChatHistory
+              input:
+                type: boolean
+                value: false
+            - name: chatHistoryRound
+              input:
+                type: integer
+                value: "3"
+            - name: systemPrompt
+              input:
+                type: string
+                value: |
+                    你是技术能力评估专家。
+
+                    技能：{{skill}}
+                    职位要求：{{jd_text}}
+
+                    评分标准（满分10分）：
+                    - 10分：精通核心技术，有开源贡献
+                    - 8分：熟练掌握，技术面广
+                    - 6分：掌握核心技术，能独立开发
+                    - 4分：了解核心技术，需指导
+                    - 2分：仅了解基础
+                    - 0分：技术栈不匹配
+
+                    如果简历是非技术开发岗位，那就根据简历上的技能和JD的匹配度打分，分数0分-10分打分。
+
+                    直接输出JSON：{"score": 数字, "max": 10, "reason": "理由"}
+            - name: stableSystemPrompt
+              input:
+                type: string
+                value: ""
+            - name: canContinue
+              input:
+                type: boolean
+                value: false
+            - name: loopPromptVersion
+              input:
+                type: string
+                value: ""
+            - name: loopPromptName
+              input:
+                type: string
+                value: ""
+            - name: loopPromptId
+              input:
+                type: string
+                value: ""
+        node_inputs:
+            - name: skill
+              input:
+                type: string
+                value:
+                    path: skill
+                    ref_node: "166794"
+            - name: jd_text
+              input:
+                value:
+                    path: jd_text
+                    ref_node: "100001"
+        node_outputs:
+            output:
+                type: string
+                value: null
+            reasoning_content:
+                type: string
+                value: null
+        settingOnError:
+            processType: 1
+            retryTimes: 0
+            switch: false
+            timeoutMs: 180000
+    - id: "132603"
+      type: llm
+      title: 公司agent
+      icon: https://lf3-static.bytednsdoc.com/obj/eden-cn/dvsmryvd_avi_dvsm/ljhwZthlaukjlkulzlp/icon/icon-LLM-v2.jpg
+      description: "调用大语言模型,使用变量和提示词生成回复"
+      version: "3"
+      position:
+        x: 915.0998036413175
+        y: 625.7960686965915
+      parameters:
+        fcParamVar:
+            knowledgeFCParam: {}
+        llmParam:
+            - name: apiMode
+              input:
+                type: integer
+                value: "0"
+            - name: temperature
+              input:
+                type: float
+                value: "0.5"
+            - name: topP
+              input:
+                type: float
+                value: "1"
+            - name: frequencyPenalty
+              input:
+                type: float
+                value: "0"
+            - name: maxTokens
+              input:
+                type: integer
+                value: "4096"
+            - name: spCurrentTime
+              input:
+                type: boolean
+                value: false
+            - name: spAntiLeak
+              input:
+                type: boolean
+                value: false
+            - name: thinkingType
+              input:
+                type: string
+                value: enabled
+            - name: responseFormat
+              input:
+                type: integer
+                value: "2"
+            - name: modelName
+              input:
+                type: string
+                value: 豆包·2.0·pro
+            - name: modelType
+              input:
+                type: integer
+                value: "1772700462"
+            - name: generationDiversity
+              input:
+                type: string
+                value: balance
+            - name: parameters
+              input:
+                type: object
+                properties:
+                    max_completion_tokens:
+                        type: integer
+                        value: "0"
+                    reasoning_effort:
+                        type: string
+                        value: medium
+                value: null
+            - name: prompt
+              input:
+                type: string
+                value: ""
+            - name: enableChatHistory
+              input:
+                type: boolean
+                value: false
+            - name: chatHistoryRound
+              input:
+                type: integer
+                value: "3"
+            - name: systemPrompt
+              input:
+                type: string
+                value: |
+                    你是公司背景评估专家。
+
+                    工作经历：{{work_exp}}
+                    行业：{{industry}}
+
+                    评分标准（满分10分）：
+                    - 10分：BAT/字节/美团/京东等一线大厂
+                    - 8分：知名互联网公司或独角兽
+                    - 6分：中型互联网公司
+                    - 4分：小型公司或创业公司
+                    - 2分：外包公司或非互联网行业
+                    - 0分：无法评估或有负面背景
+                    直接输出JSON：{"score": 数字, "max": 10, "reason": "理由"}
+
+                    黑名单行业（直接0分）：
+                    - 虚拟货币、区块链投机、币圈
+                    - 传销、资金盘
+                    - 博彩、灰色产业
+            - name: stableSystemPrompt
+              input:
+                type: string
+                value: ""
+            - name: canContinue
+              input:
+                type: boolean
+                value: false
+            - name: loopPromptVersion
+              input:
+                type: string
+                value: ""
+            - name: loopPromptName
+              input:
+                type: string
+                value: ""
+            - name: loopPromptId
+              input:
+                type: string
+                value: ""
+        node_inputs:
+            - name: work_exp
+              input:
+                type: string
+                value:
+                    path: work_exp
+                    ref_node: "166794"
+            - name: industry
+              input:
+                type: string
+                value:
+                    path: industry
+                    ref_node: "166794"
+        node_outputs:
+            output:
+                type: string
+                value: null
+            reasoning_content:
+                type: string
+                value: null
+        settingOnError:
+            processType: 1
+            retryTimes: 0
+            switch: false
+            timeoutMs: 180000
+    - id: "171263"
+      type: llm
+      title: 项目agent
+      icon: https://lf3-static.bytednsdoc.com/obj/eden-cn/dvsmryvd_avi_dvsm/ljhwZthlaukjlkulzlp/icon/icon-LLM-v2.jpg
+      description: "调用大语言模型,使用变量和提示词生成回复"
+      version: "3"
+      position:
+        x: 923.0858632030736
+        y: 839.7296370582203
+      parameters:
+        fcParamVar:
+            knowledgeFCParam: {}
+        llmParam:
+            - name: apiMode
+              input:
+                type: integer
+                value: "0"
+            - name: temperature
+              input:
+                type: float
+                value: "0.5"
+            - name: topP
+              input:
+                type: float
+                value: "1"
+            - name: frequencyPenalty
+              input:
+                type: float
+                value: "0"
+            - name: maxTokens
+              input:
+                type: integer
+                value: "4096"
+            - name: spCurrentTime
+              input:
+                type: boolean
+                value: false
+            - name: spAntiLeak
+              input:
+                type: boolean
+                value: false
+            - name: thinkingType
+              input:
+                type: string
+                value: enabled
+            - name: responseFormat
+              input:
+                type: integer
+                value: "2"
+            - name: modelName
+              input:
+                type: string
+                value: 豆包·2.0·pro
+            - name: modelType
+              input:
+                type: integer
+                value: "1772700462"
+            - name: generationDiversity
+              input:
+                type: string
+                value: balance
+            - name: parameters
+              input:
+                type: object
+                properties:
+                    max_completion_tokens:
+                        type: integer
+                        value: "0"
+                    reasoning_effort:
+                        type: string
+                        value: medium
+                value: null
+            - name: prompt
+              input:
+                type: string
+                value: ""
+            - name: enableChatHistory
+              input:
+                type: boolean
+                value: false
+            - name: chatHistoryRound
+              input:
+                type: integer
+                value: "3"
+            - name: systemPrompt
+              input:
+                type: string
+                value: |+
+                    你是项目评估专家。
+
+                    工作经历（含项目）：{{work_exp}}
+                    技能：{{skill}}
+                    职位要求：{{jd_text}}
+
+                    评分标准（满分10分）：
+                    - 10分：主导过高并发/复杂分布式系统
+                    - 8分：参与核心项目，有技术亮点
+                    - 6分：有完整项目经验，能独立负责模块
+                    - 4分：有项目经验但规模较小
+                    - 2分：仅有学习项目或课程项目
+                    - 0分：无项目经验
+
+                    加分项（可在reason中说明）：
+                    - 有开源项目贡献
+                    - 项目有明确的业务价值和数据支撑
+                    - 从0到1主导过项目
+
+                    直接输出JSON：{"score": 数字, "max": 10, "reason": "理由"}
+
+
+            - name: stableSystemPrompt
+              input:
+                type: string
+                value: ""
+            - name: canContinue
+              input:
+                type: boolean
+                value: false
+            - name: loopPromptVersion
+              input:
+                type: string
+                value: ""
+            - name: loopPromptName
+              input:
+                type: string
+                value: ""
+            - name: loopPromptId
+              input:
+                type: string
+                value: ""
+        node_inputs:
+            - name: work_exp
+              input:
+                type: string
+                value:
+                    path: work_exp
+                    ref_node: "166794"
+            - name: skill
+              input:
+                type: string
+                value:
+                    path: skill
+                    ref_node: "166794"
+        node_outputs:
+            output:
+                type: string
+                value: null
+            reasoning_content:
+                type: string
+                value: null
+        settingOnError:
+            processType: 1
+            retryTimes: 0
+            switch: false
+            timeoutMs: 180000
+    - id: "191833"
+      type: llm
+      title: 汇总agent
+      icon: https://lf3-static.bytednsdoc.com/obj/eden-cn/dvsmryvd_avi_dvsm/ljhwZthlaukjlkulzlp/icon/icon-LLM-v2.jpg
+      description: "调用大语言模型,使用变量和提示词生成回复"
+      version: "3"
+      position:
+        x: 1471.6770907075636
+        y: 197.92893197333402
+      parameters:
+        fcParamVar:
+            knowledgeFCParam: {}
+        llmParam:
+            - name: apiMode
+              input:
+                type: integer
+                value: "0"
+            - name: temperature
+              input:
+                type: float
+                value: "0.5"
+            - name: topP
+              input:
+                type: float
+                value: "1"
+            - name: frequencyPenalty
+              input:
+                type: float
+                value: "0"
+            - name: maxTokens
+              input:
+                type: integer
+                value: "4096"
+            - name: spCurrentTime
+              input:
+                type: boolean
+                value: false
+            - name: spAntiLeak
+              input:
+                type: boolean
+                value: false
+            - name: thinkingType
+              input:
+                type: string
+                value: enabled
+            - name: responseFormat
+              input:
+                type: integer
+                value: "2"
+            - name: modelName
+              input:
+                type: string
+                value: 豆包·2.0·pro
+            - name: modelType
+              input:
+                type: integer
+                value: "1772700462"
+            - name: generationDiversity
+              input:
+                type: string
+                value: balance
+            - name: parameters
+              input:
+                type: object
+                properties:
+                    max_completion_tokens:
+                        type: integer
+                        value: "0"
+                    reasoning_effort:
+                        type: string
+                        value: medium
+                value: null
+            - name: prompt
+              input:
+                type: string
+                value: ""
+            - name: enableChatHistory
+              input:
+                type: boolean
+                value: false
+            - name: chatHistoryRound
+              input:
+                type: integer
+                value: "3"
+            - name: systemPrompt
+              input:
+                type: string
+                value: |
+                    你是简历评估汇总专家。请将各维度的评分结果汇总成完整的候选人评估报告。
+
+                    ## 各维度评分输入
+                    - 年龄评分：{{age_result}}
+                    - 工作经验：{{exp_result}}
+                    - 学历背景：{{edu_result}}
+                    - 公司背景：{{company_result}}
+                    - 技术能力：{{tech_result}}
+                    - 项目经历：{{project_result}}
+
+                    ## JD 岗位要求
+                    {{jd_text}}
+
+                    ## 评分规则
+                    1. 原始总分 = 六个维度 score 之和（满分60分）
+                    2. 折算分数 = 原始总分 × 100 ÷ 60（满分100分，保留1位小数）
+                    3. 评级标准：
+                       - S级: 90-100分（顶尖人才，强烈推荐）
+                       - A级: 80-89分（优秀人才，推荐录用）
+                       - B级: 70-79分（良好人才，建议录用）
+                       - C级: 60-69分（一般水平，谨慎考虑）
+                       - D级: 60分以下（不达标，不建议录用）
+
+                    ## JD匹配度评分规则（满分100分）
+                    根据候选人与JD岗位要求的匹配程度打分：
+                    - 90-100分：完全匹配，技能、经验、学历全部满足且有亮点
+                    - 80-89分：高度匹配，核心要求全部满足，个别加分项缺失
+                    - 70-79分：较好匹配，核心要求基本满足，部分技能需提升
+                    - 60-69分：一般匹配，满足基本要求，但有明显短板
+                    - 50-59分：勉强匹配，仅满足部分要求，需要较多培养
+                    - 50分以下：不匹配，核心要求不满足
+
+                    ## 黑名单判定规则
+                    以下情况需要在"风险提示"中明确标注：
+                    1. 年龄黑名单：36岁及以上（年龄得分为0分）
+                    2. 培训班背景：有明显培训机构经历（如达内、黑马、传智播客等）
+                    3. 频繁跳槽：3年内换3家以上公司，或平均每份工作不足1年
+                    4. 学历造假嫌疑：非全日制学历未标注、野鸡大学
+                    5. 空窗期过长：连续空窗超过6个月未解释
+
+                    ## 输出格式
+                    请严格按以下 JSON 结构输出（不要添加 markdown 代码块）：
+
+                    {
+                      "基本信息": {
+                        "姓名": "{{name}}",
+                        "评级": "S/A/B/C/D",
+                        "最终得分": 0.0,
+                        "学历": "{{degree}}",
+                        "学校": "{{education}}",
+                        "工作经验": "{{work_exp}}"
+                      },
+                      "JD匹配度": {
+                        "匹配分数": 0,
+                        "匹配的技能": ["技能1", "技能2", "技能3"],
+                        "缺失的技能": ["技能1", "技能2"],
+                        "匹配总结": "候选人在XX方面完全满足JD要求，在XX方面有优势，但在XX方面经验不足"
+                      },
+                      "各维度得分": {
+                        "年龄": {
+                          "得分": 0,
+                          "满分": 10,
+                          "说明": "推算年龄XX岁，属于XX-XX岁区间"
+                        },
+                        "工作经验": {
+                          "得分": 0,
+                          "满分": 10,
+                          "说明": "X年相关经验，曾在XX公司担任XX职位"
+                        },
+                        "学历背景": {
+                          "得分": 0,
+                          "满分": 10,
+                          "说明": "XX大学XX专业，属于985/211/普通本科/大专"
+                        },
+                        "公司背景": {
+                          "得分": 0,
+                          "满分": 10,
+                          "说明": "曾就职于XX公司，属于一线大厂/知名互联网/中型公司/小型公司"
+                        },
+                        "技术能力": {
+                          "得分": 0,
+                          "满分": 10,
+                          "说明": "精通/熟练/掌握XX技术，在XX方面有亮点/不足"
+                        },
+                        "项目经历": {
+                          "得分": 0,
+                          "满分": 10,
+                          "说明": "主导/参与过XX项目，有XX量化成果/缺乏量化数据"
+                        }
+                      },
+                      "综合评价": {
+                        "核心优势": [
+                          "具体优势1",
+                          "具体优势2",
+                          "具体优势3"
+                        ],
+                        "待提升项": [
+                          "具体不足1",
+                          "具体不足2"
+                        ],
+                        "风险提示": [
+                          "无明显风险"
+                        ]
+                      },
+                      "录用建议": {
+                        "结论": "推荐录用/建议录用/谨慎考虑/不建议录用",
+                        "结论理由": "综合评分XX分，JD匹配度XX分，评级X级，主要优势是XX，主要风险是XX",
+                        "适合岗位": "根据技术栈和经验匹配的具体岗位",
+                        "面试重点": [
+                          "需要验证XX经历的真实性",
+                          "深入考察XX技术的实际掌握程度"
+                        ],
+                        "薪资建议": "根据市场水平和候选人能力给出参考范围",
+                        "面试题目": [
+                          {
+                            "题目": "面试问题1",
+                            "考察点": "考察的能力",
+                            "参考答案要点": [
+                              "要点1",
+                              "要点2"
+                            ],
+                            "评分标准": {
+                              "优秀": "标准",
+                              "良好": "标准",
+                              "一般": "标准",
+                              "不合格": "标准"
+                            }
+                          },
+                          {
+                            "题目": "面试问题2",
+                            "考察点": "考察的能力",
+                            "参考答案要点": [
+                              "要点1",
+                              "要点2"
+                            ],
+                            "评分标准": {
+                              "优秀": "标准",
+                              "良好": "标准",
+                              "一般": "标准",
+                              "不合格": "标准"
+                            }
+                          },
+                          {
+                            "题目": "面试问题3",
+                            "考察点": "考察的能力",
+                            "参考答案要点": [
+                              "要点1",
+                              "要点2"
+                            ],
+                            "评分标准": {
+                              "优秀": "标准",
+                              "良好": "标准",
+                              "一般": "标准",
+                              "不合格": "标准"
+                            }
+                          },
+                          {
+                            "题目": "面试问题4",
+                            "考察点": "考察的能力",
+                            "参考答案要点": [
+                              "要点1",
+                              "要点2"
+                            ],
+                            "评分标准": {
+                              "优秀": "标准",
+                              "良好": "标准",
+                              "一般": "标准",
+                              "不合格": "标准"
+                            }
+                          },
+                          {
+                            "题目": "面试问题5",
+                            "考察点": "考察的能力",
+                            "参考答案要点": [
+                              "要点1",
+                              "要点2"
+                            ],
+                            "评分标准": {
+                              "优秀": "标准",
+                              "良好": "标准",
+                              "一般": "标准",
+                              "不合格": "标准"
+                            }
+                          }
+                        ]
+                      }
+                    }
+
+                    ## 重要规则
+                    1. 每个维度的"说明"必须引用简历中的具体内容，不能泛泛而谈
+                    2. JD匹配度必须根据实际JD内容评分，列出匹配和缺失的具体技能
+                    3. 风险提示必须明确标注风险类型（用【】标注）
+                    4. 如果没有风险，风险提示只写一条"无明显风险"
+                    5. 结论理由必须同时提及综合评分和JD匹配度
+                    6. 面试题目要针对该候选人的具体情况，生成5个有针对性的技术面试题
+                    7. 所有分数必须是数字，不能为空或null
+                    8. 如果JD为空，JD匹配分数默认给70分，匹配总结写"未提供JD，无法进行详细匹配分析"
+                    9. 每个维度满分10分，六个维度总分60分，换算成100分制作为最终得分
+            - name: stableSystemPrompt
+              input:
+                type: string
+                value: ""
+            - name: canContinue
+              input:
+                type: boolean
+                value: false
+            - name: loopPromptVersion
+              input:
+                type: string
+                value: ""
+            - name: loopPromptName
+              input:
+                type: string
+                value: ""
+            - name: loopPromptId
+              input:
+                type: string
+                value: ""
+        node_inputs:
+            - name: jd_text
+              input:
+                value:
+                    path: jd_text
+                    ref_node: "100001"
+            - name: age_result
+              input:
+                value:
+                    path: output
+                    ref_node: "179320"
+            - name: exp_result
+              input:
+                value:
+                    path: output
+                    ref_node: "175064"
+            - name: edu_result
+              input:
+                value:
+                    path: output
+                    ref_node: "147309"
+            - name: company_result
+              input:
+                value:
+                    path: output
+                    ref_node: "132603"
+            - name: tech_result
+              input:
+                value:
+                    path: output
+                    ref_node: "172419"
+            - name: project_result
+              input:
+                value:
+                    path: output
+                    ref_node: "171263"
+            - name: name
+              input:
+                value:
+                    path: name
+                    ref_node: "100001"
+            - name: age
+              input:
+                type: string
+                value:
+                    path: age
+                    ref_node: "166794"
+            - name: degree
+              input:
+                type: string
+                value:
+                    path: degree
+                    ref_node: "166794"
+            - name: education
+              input:
+                type: string
+                value:
+                    path: education
+                    ref_node: "166794"
+            - name: work_exp
+              input:
+                type: string
+                value:
+                    path: work_exp
+                    ref_node: "166794"
+        node_outputs:
+            output:
+                type: string
+                value: null
+            reasoning_content:
+                type: string
+                value: null
+        settingOnError:
+            processType: 1
+            retryTimes: 0
+            switch: false
+            timeoutMs: 180000
+    - id: "166794"
+      type: llm
+      title: AI解析agent
+      icon: https://lf3-static.bytednsdoc.com/obj/eden-cn/dvsmryvd_avi_dvsm/ljhwZthlaukjlkulzlp/icon/icon-LLM-v2.jpg
+      description: "调用大语言模型,使用变量和提示词生成回复"
+      version: "3"
+      position:
+        x: 137.1449213816484
+        y: 309.928931973334
+      parameters:
+        fcParamVar:
+            knowledgeFCParam: {}
+        llmParam:
+            - name: apiMode
+              input:
+                type: integer
+                value: "0"
+            - name: temperature
+              input:
+                type: float
+                value: "0.5"
+            - name: topP
+              input:
+                type: float
+                value: "1"
+            - name: frequencyPenalty
+              input:
+                type: float
+                value: "0"
+            - name: maxTokens
+              input:
+                type: integer
+                value: "131072"
+            - name: spCurrentTime
+              input:
+                type: boolean
+                value: false
+            - name: spAntiLeak
+              input:
+                type: boolean
+                value: false
+            - name: thinkingType
+              input:
+                type: string
+                value: enabled
+            - name: responseFormat
+              input:
+                type: integer
+                value: "2"
+            - name: modelName
+              input:
+                type: string
+                value: 豆包·2.0·Code
+            - name: modelType
+              input:
+                type: integer
+                value: "1774430194"
+            - name: generationDiversity
+              input:
+                type: string
+                value: balance
+            - name: parameters
+              input:
+                type: object
+                properties:
+                    max_completion_tokens:
+                        type: integer
+                        value: "0"
+                    reasoning_effort:
+                        type: string
+                        value: medium
+                value: null
+            - name: prompt
+              input:
+                type: string
+                value: ""
+            - name: enableChatHistory
+              input:
+                type: boolean
+                value: false
+            - name: chatHistoryRound
+              input:
+                type: integer
+                value: "3"
+            - name: systemPrompt
+              input:
+                type: string
+                value: |
+                    Role
+
+                    你是一位拥有10年经验的资深猎头顾问，擅长从 OCR 识别后的简历文本中精准提取关键信息，并进行清洗和标准化。
+
+                    Task
+
+                    读取下方文本，选择唯一有效文本源，提取出用于下游分析的具体字段。请严格按照 JSON 格式输出。
+
+                    Input Data
+
+                    【后端OCR文本】：{{resume_text_backend}}
+                    【文件读取文本】：{{resume_image}}
+
+                    使用规则：
+                    1. 如果【后端OCR文本】非空，优先且只使用【后端OCR文本】。
+                    2. 只有当【后端OCR文本】为空时，才使用【文件读取文本】。
+                    3. 不要把两份文本拼接，不要交叉混用两份文本。
+                    4. 如果文本中出现水印、乱码、无意义长串字符（如 f7a2...），请自动忽略。
+
+                    Extraction Rules
+
+                    基本信息：
+                    - name: 提取候选人姓名；如果无法可靠提取，则使用 {{name1}}
+                    - age: 如果有出生年份（如 1994年），按 2026 年计算年龄；如果没有出生年份，再尝试提取“xx岁”
+
+                    学历信息：
+                    - degree: 只输出最高学历，标准化为：大专、本科、硕士、博士
+                    - education: 输出“学校名称 - 专业名称”
+
+                    工作经历：
+                    - work_exp: 提取“工作经历”或“项目经历”中的详细内容
+                    - 不要摘要，要保留职责、成果、技术栈关键词
+
+                    技能栈：
+                    - skill: 提取编程语言、工具、框架，输出为逗号分隔字符串
+
+                    行业推断：
+                    - industry: 根据公司和项目经历推断行业，如跨境电商、智能制造、SaaS、互联网金融等
+
+                    Output Format (JSON Only)
+
+                    {
+                      "name": "提取到的姓名",
+                      "age": "计算后的年龄数字",
+                      "degree": "最高学历",
+                      "education": "学校 - 专业",
+                      "work_exp": "清洗后的完整工作经历文本",
+                      "skill": "Java, Go, MES, Redis",
+                      "industry": "推断的行业"
+                    }
+            - name: stableSystemPrompt
+              input:
+                type: string
+                value: ""
+            - name: canContinue
+              input:
+                type: boolean
+                value: false
+            - name: loopPromptVersion
+              input:
+                type: string
+                value: ""
+            - name: loopPromptName
+              input:
+                type: string
+                value: ""
+            - name: loopPromptId
+              input:
+                type: string
+                value: ""
+        node_inputs:
+            - name: resume_image
+              input:
+                type: string
+                value:
+                    path: data
+                    ref_node: "136231"
+            - name: name1
+              input:
+                value:
+                    path: name
+                    ref_node: "100001"
+            - name: resume_text_backend
+              input:
+                value:
+                    path: resume_text
+                    ref_node: "100001"
+        node_outputs:
+            age:
+                type: string
+                value: null
+            degree:
+                type: string
+                value: null
+            education:
+                type: string
+                value: null
+            industry:
+                type: string
+                value: null
+            name:
+                type: string
+                value: null
+            reasoning_content:
+                type: string
+                value: null
+            skill:
+                type: string
+                value: null
+            work_exp:
+                type: string
+                value: null
+        settingOnError:
+            processType: 1
+            retryTimes: 0
+            switch: false
+            timeoutMs: 180000
+    - id: "136231"
+      type: plugin
+      title: read
+      icon: https://lf3-static.bytednsdoc.com/obj/eden-cn/dvsmryvd_avi_dvsm/ljhwZthlaukjlkulzlp/icon/icon-Plugin-v2.jpg
+      description: "读取文档内容，目前支持html、xml、doc、docx、txt、pdf、csv、xlsx格式"
+      position:
+        x: -540.70747781199
+        y: 335.928931973334
+      parameters:
+        apiParam:
+            - name: apiID
+              input:
+                type: string
+                value: "7405805158996934683"
+            - name: apiName
+              input:
+                type: string
+                value: "read"
+            - name: pluginID
+              input:
+                type: string
+                value: "7405805158996918299"
+            - name: pluginName
+              input:
+                type: string
+                value: "文件读取"
+            - name: pluginVersion
+              input:
+                type: string
+                value: ""
+            - name: tips
+              input:
+                type: string
+                value: ""
+            - name: outDocLink
+              input:
+                type: string
+                value: ""
+        node_inputs:
+            - name: url
+              input:
+                value:
+                    path: resume_file
+                    ref_node: "100001"
+        node_outputs:
+            code:
+                type: float
+                value: null
+            data:
+                type: string
+                value: null
+            log_id:
+                type: string
+                value: null
+            msg:
+                type: string
+                value: null
+        settingOnError:
+            processType: 1
+            retryTimes: 0
+            timeoutMs: 180000
+edges:
+    - source_node: "100001"
+      target_node: "136231"
+    - source_node: "191833"
+      target_node: "900001"
+    - source_node: "166794"
+      target_node: "179320"
+    - source_node: "179320"
+      target_node: "191833"
+    - source_node: "166794"
+      target_node: "175064"
+    - source_node: "175064"
+      target_node: "191833"
+    - source_node: "166794"
+      target_node: "147309"
+    - source_node: "147309"
+      target_node: "191833"
+    - source_node: "166794"
+      target_node: "172419"
+    - source_node: "172419"
+      target_node: "191833"
+    - source_node: "166794"
+      target_node: "132603"
+    - source_node: "132603"
+      target_node: "191833"
+    - source_node: "166794"
+      target_node: "171263"
+    - source_node: "171263"
+      target_node: "191833"
+    - source_node: "136231"
+      target_node: "166794"

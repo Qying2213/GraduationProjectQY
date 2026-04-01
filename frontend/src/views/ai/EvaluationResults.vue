@@ -208,8 +208,10 @@
           <el-descriptions-item label="手机">{{ currentEval.parsed_phone || '-' }}</el-descriptions-item>
           <el-descriptions-item label="邮箱">{{ currentEval.parsed_email || '-' }}</el-descriptions-item>
           <el-descriptions-item label="学历">{{ currentEval.parsed_education || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="学校">{{ currentEval.parsed_school || '-' }}</el-descriptions-item>
           <el-descriptions-item label="经验">{{ currentEval.parsed_experience || '-' }}</el-descriptions-item>
           <el-descriptions-item label="城市">{{ currentEval.parsed_location || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="评级">{{ currentEval.grade || '-' }}</el-descriptions-item>
         </el-descriptions>
 
         <!-- 技能标签 -->
@@ -225,6 +227,29 @@
             </el-tag>
             <span v-if="!currentEval.parsed_skills?.length">暂无</span>
           </div>
+        </div>
+
+        <div v-if="currentEval.jd_summary || currentEval.jd_matched_skills?.length || currentEval.jd_missing_skills?.length" class="detail-section">
+          <h4>JD 匹配详细分析</h4>
+          <p v-if="currentEval.jd_summary" class="report-summary">{{ currentEval.jd_summary }}</p>
+          <el-row :gutter="16">
+            <el-col :span="12">
+              <div class="report-box strengths">
+                <h5><el-icon><CircleCheck /></el-icon> 匹配到的能力</h5>
+                <ul>
+                  <li v-for="(item, i) in currentEval.jd_matched_skills || []" :key="`jd-matched-${i}`">{{ item }}</li>
+                </ul>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="report-box gaps">
+                <h5><el-icon><Warning /></el-icon> 缺失或待确认</h5>
+                <ul>
+                  <li v-for="(item, i) in currentEval.jd_missing_skills || []" :key="`jd-missing-${i}`">{{ item }}</li>
+                </ul>
+              </div>
+            </el-col>
+          </el-row>
         </div>
 
         <!-- 匹配结果 -->
@@ -261,6 +286,19 @@
           </el-row>
         </div>
 
+        <div v-if="currentEval.dimension_details?.length" class="detail-section">
+          <h4>各维度详细说明</h4>
+          <div class="dimension-detail-list">
+            <div v-for="item in currentEval.dimension_details" :key="item.name" class="dimension-detail-item">
+              <div class="dimension-detail-head">
+                <span class="dimension-title">{{ item.name }}</span>
+                <span class="dimension-score">{{ item.raw_score }}/{{ item.max_score }}</span>
+              </div>
+              <p class="dimension-description">{{ item.description || '暂无说明' }}</p>
+            </div>
+          </div>
+        </div>
+
         <!-- 归因报告 -->
         <div v-if="currentEval.report_summary" class="detail-section">
           <h4>AI评估报告</h4>
@@ -289,6 +327,78 @@
             <h5><el-icon><ChatLineSquare /></el-icon> AI建议</h5>
             <p>{{ currentEval.report_recommendation }}</p>
           </div>
+        </div>
+
+        <div v-if="currentEval.recommendation_conclusion || currentEval.recommendation_reason || currentEval.salary_suggestion || currentEval.suitable_roles?.length || currentEval.interview_focus?.length" class="detail-section">
+          <h4>录用建议</h4>
+          <el-descriptions :column="1" border size="small">
+            <el-descriptions-item label="结论">{{ currentEval.recommendation_conclusion || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="结论理由">{{ currentEval.recommendation_reason || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="薪资建议">{{ currentEval.salary_suggestion || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="适合岗位">
+              <span v-if="currentEval.suitable_roles?.length">{{ currentEval.suitable_roles.join('、') }}</span>
+              <span v-else>-</span>
+            </el-descriptions-item>
+          </el-descriptions>
+          <div v-if="currentEval.interview_focus?.length" class="interview-focus">
+            <h5>面试重点</h5>
+            <ul>
+              <li v-for="(item, i) in currentEval.interview_focus || []" :key="`focus-${i}`">{{ item }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <div v-if="currentEval.core_strengths?.length || currentEval.improvement_items?.length || currentEval.risk_tips?.length" class="detail-section">
+          <h4>综合评价</h4>
+          <el-row :gutter="16">
+            <el-col :span="8">
+              <div class="report-box strengths">
+                <h5><el-icon><CircleCheck /></el-icon> 核心优势</h5>
+                <ul>
+                  <li v-for="(item, i) in currentEval.core_strengths || []" :key="`strength-${i}`">{{ item }}</li>
+                </ul>
+              </div>
+            </el-col>
+            <el-col :span="8">
+              <div class="report-box gaps">
+                <h5><el-icon><Warning /></el-icon> 待提升项</h5>
+                <ul>
+                  <li v-for="(item, i) in currentEval.improvement_items || []" :key="`improve-${i}`">{{ item }}</li>
+                </ul>
+              </div>
+            </el-col>
+            <el-col :span="8">
+              <div class="report-box risks">
+                <h5><el-icon><Warning /></el-icon> 风险提示</h5>
+                <ul>
+                  <li v-for="(item, i) in currentEval.risk_tips || []" :key="`risk-tip-${i}`">{{ item }}</li>
+                </ul>
+              </div>
+            </el-col>
+          </el-row>
+        </div>
+
+        <div v-if="currentEval.interview_questions?.length" class="detail-section">
+          <h4>建议面试题</h4>
+          <el-collapse>
+            <el-collapse-item
+              v-for="(question, i) in currentEval.interview_questions"
+              :key="`question-${i}`"
+              :title="question.title || `问题 ${i + 1}`"
+              :name="String(i)"
+            >
+              <p><strong>考察点：</strong>{{ question.focus || '-' }}</p>
+              <p><strong>参考答案要点：</strong></p>
+              <ul>
+                <li v-for="(point, idx) in question.answer_points || []" :key="`point-${i}-${idx}`">{{ point }}</li>
+              </ul>
+            </el-collapse-item>
+          </el-collapse>
+        </div>
+
+        <div v-if="currentEval.parsed_report" class="detail-section">
+          <h4>原始 Coze 结构化结果</h4>
+          <pre class="raw-report">{{ formatReport(currentEval.parsed_report) }}</pre>
         </div>
 
         <!-- 风控提示 -->
@@ -362,13 +472,7 @@ const loadData = async () => {
     })
 
     if (res.data?.code === 0) {
-      evaluations.value = (res.data.data?.evaluations || []).map((e: any) => ({
-        ...e,
-        parsed_skills: parseSkills(e.parsed_skills),
-        report_dimensions: parseDimensions(e.report_dimensions),
-        report_strengths: parseSkills(e.report_strengths),
-        report_gaps: parseSkills(e.report_gaps)
-      }))
+      evaluations.value = (res.data.data?.evaluations || []).map(normalizeEvaluation)
       pagination.total = res.data.data?.total || 0
     }
   } catch (e) {
@@ -430,7 +534,7 @@ const handleSortChange = ({ prop, order }: any) => {
 
 // 查看详情
 const viewDetail = (row: any) => {
-  currentEval.value = row
+  currentEval.value = normalizeEvaluation(row)
   detailVisible.value = true
 }
 
@@ -506,6 +610,121 @@ const getStatusText = (status: string) => {
 const formatDate = (date: string) => {
   if (!date) return '-'
   return new Date(date).toLocaleString('zh-CN')
+}
+
+const asRecord = (value: any): Record<string, any> => {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value
+  }
+  return {}
+}
+
+const getString = (value: any) => {
+  return typeof value === 'string' ? value : ''
+}
+
+const getNumber = (value: any) => {
+  if (typeof value === 'number') return value
+  if (typeof value === 'string') {
+    const n = Number(value)
+    return Number.isFinite(n) ? n : 0
+  }
+  return 0
+}
+
+const normalizeList = (value: any): string[] => {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item)).filter(Boolean)
+  }
+  if (typeof value === 'string' && value.trim()) {
+    return value.split(/[、,，\n]/).map((item) => item.trim()).filter(Boolean)
+  }
+  return []
+}
+
+const normalizeInterviewQuestions = (value: any) => {
+  if (!Array.isArray(value)) return []
+  return value.map((item) => {
+    const obj = asRecord(item)
+    return {
+      title: getString(obj['题目']),
+      focus: getString(obj['考察点']),
+      answer_points: normalizeList(obj['参考答案要点'])
+    }
+  }).filter((item) => item.title || item.focus || item.answer_points.length)
+}
+
+const buildDimensionDetails = (dimensionMap: Record<string, any>) => {
+  return Object.entries(dimensionMap).map(([name, raw]) => {
+    const detail = asRecord(raw)
+    return {
+      name,
+      raw_score: getNumber(detail['得分']),
+      max_score: getNumber(detail['满分']) || 10,
+      description: getString(detail['说明'])
+    }
+  })
+}
+
+const buildDimensionProgress = (dimensionMap: Record<string, any>, fallback: any[]) => {
+  const mapped = Object.entries(dimensionMap).map(([name, raw]) => {
+    const detail = asRecord(raw)
+    const score = getNumber(detail['得分'])
+    const maxScore = getNumber(detail['满分']) || 10
+    return {
+      name,
+      score: maxScore > 0 ? Math.round((score / maxScore) * 100) : 0
+    }
+  })
+  return mapped.length ? mapped : fallback
+}
+
+const normalizeEvaluation = (e: any) => {
+  const parsedReport = asRecord(e.parsed_report)
+  const basicInfo = asRecord(parsedReport['基本信息'])
+  const jdMatch = asRecord(parsedReport['JD匹配度'])
+  const dimensionMap = asRecord(parsedReport['各维度得分'])
+  const recommendation = asRecord(parsedReport['录用建议'])
+  const summary = asRecord(parsedReport['综合评价'])
+
+  const fallbackDimensions = parseDimensions(e.report_dimensions)
+
+  return {
+    ...e,
+    parsed_name: e.parsed_name || getString(basicInfo['姓名']),
+    parsed_phone: e.parsed_phone || getString(basicInfo['手机']),
+    parsed_email: e.parsed_email || getString(basicInfo['邮箱']),
+    parsed_education: e.parsed_education || getString(basicInfo['学历']),
+    parsed_school: e.parsed_school || getString(basicInfo['学校']),
+    parsed_experience: e.parsed_experience || getString(basicInfo['工作经验']),
+    parsed_location: e.parsed_location || getString(basicInfo['城市']) || getString(basicInfo['地点']),
+    grade: getString(basicInfo['评级']),
+    parsed_skills: parseSkills(e.parsed_skills),
+    report_dimensions: buildDimensionProgress(dimensionMap, fallbackDimensions),
+    dimension_details: buildDimensionDetails(dimensionMap),
+    report_strengths: parseSkills(e.report_strengths),
+    report_gaps: parseSkills(e.report_gaps),
+    jd_summary: getString(jdMatch['匹配总结']) || e.report_summary,
+    jd_matched_skills: normalizeList(jdMatch['匹配的技能']),
+    jd_missing_skills: normalizeList(jdMatch['缺失的技能']) || parseSkills(e.match_details),
+    recommendation_conclusion: getString(recommendation['结论']) || e.report_recommendation,
+    recommendation_reason: getString(recommendation['结论理由']),
+    salary_suggestion: getString(recommendation['薪资建议']),
+    suitable_roles: normalizeList(recommendation['适合岗位']),
+    interview_focus: normalizeList(recommendation['面试重点']),
+    interview_questions: normalizeInterviewQuestions(recommendation['面试题目']),
+    core_strengths: normalizeList(summary['核心优势']) || parseSkills(e.report_strengths),
+    improvement_items: normalizeList(summary['待提升项']) || parseSkills(e.report_gaps),
+    risk_tips: normalizeList(summary['风险提示']),
+  }
+}
+
+const formatReport = (report: any) => {
+  try {
+    return JSON.stringify(report, null, 2)
+  } catch {
+    return String(report || '')
+  }
 }
 
 onMounted(() => {
@@ -681,6 +900,40 @@ onMounted(() => {
       line-height: 1.6;
     }
 
+    .dimension-detail-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .dimension-detail-item {
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: var(--bg-secondary);
+
+      .dimension-detail-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .dimension-title {
+        font-weight: 600;
+      }
+
+      .dimension-score {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      .dimension-description {
+        margin: 0;
+        white-space: pre-wrap;
+        line-height: 1.7;
+        color: var(--text-secondary);
+      }
+    }
+
     .report-box {
       background: var(--bg-secondary);
       border-radius: 8px;
@@ -688,6 +941,7 @@ onMounted(() => {
 
       &.strengths h5 { color: #67c23a; }
       &.gaps h5 { color: #e6a23c; }
+      &.risks h5 { color: #ea580c; }
 
       ul {
         margin: 0;
@@ -713,6 +967,28 @@ onMounted(() => {
         color: var(--text-primary);
         line-height: 1.6;
       }
+    }
+
+    .interview-focus {
+      margin-top: 16px;
+
+      h5 {
+        margin: 0 0 8px;
+      }
+    }
+
+    .raw-report {
+      margin: 0;
+      padding: 16px;
+      border-radius: 10px;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 420px;
+      overflow: auto;
     }
 
     .risk-alert {

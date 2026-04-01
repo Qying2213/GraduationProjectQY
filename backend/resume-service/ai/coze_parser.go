@@ -168,9 +168,10 @@ func (c *CozeClient) runWorkflow(ctx context.Context, name, jdText, fileID strin
 		"workflow_id":   c.workflowID,
 		"response_mode": "blocking",
 		"parameters": map[string]interface{}{
-			"name":        name,
-			"jd_text":     jdText,
-			"resume_file": map[string]interface{}{"file_id": fileID},
+			"name":    name,
+			"jd_text": jdText,
+			// Coze 工作流 file 类型参数需要传 JSON 字符串格式的 file_id。
+			"resume_file": fmt.Sprintf("{\"file_id\":\"%s\"}", fileID),
 		},
 	}
 

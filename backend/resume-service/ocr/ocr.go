@@ -4,12 +4,20 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
+	"sort"
+	"strconv"
 	"strings"
+	"sync"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/ledongthuc/pdf"
+	"golang.org/x/text/unicode/norm"
 )
 
 // OCRResult OCR识别结果
@@ -19,48 +27,63 @@ type OCRResult struct {
 	Pages      int     `json:"pages"`
 }
 
+type textCandidate struct {
+	Method     string
+	Text       string
+	Score      float64
+	Confidence float64
+}
+
+var (
+	suspiciousASCIIBlockPattern = regexp.MustCompile(`[A-Za-z0-9_./+=:-]{16,}`)
+	pageCountPattern            = regexp.MustCompile(`Pages:\s+(\d+)`)
+
+	tesseractLangOnce sync.Once
+	tesseractLang     string
+)
+
 // ExtractTextFromPDF 从PDF文件提取文本
 func ExtractTextFromPDF(filePath string) (*OCRResult, error) {
-	f, r, err := pdf.Open(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("打开PDF文件失败: %w", err)
-	}
-	defer f.Close()
+	numPages := countPDFPages(filePath)
+	candidates := make([]textCandidate, 0, 3)
 
-	var buf bytes.Buffer
-	numPages := r.NumPage()
-
-	for i := 1; i <= numPages; i++ {
-		page := r.Page(i)
-		if page.V.IsNull() {
-			continue
+	if text, err := extractTextWithPDFToText(filePath); err == nil {
+		if candidate := buildTextCandidate("pdftotext", text, 0.94); candidate.Text != "" {
+			candidates = append(candidates, candidate)
 		}
-
-		text, err := page.GetPlainText(nil)
-		if err != nil {
-			continue
-		}
-		buf.WriteString(text)
-		buf.WriteString("\n")
 	}
 
-	result := &OCRResult{
-		Text:       buf.String(),
-		Confidence: 0.95, // PDF直接提取文本置信度高
+	if text, pages, err := extractTextWithGoPDF(filePath); err == nil {
+		if numPages == 0 {
+			numPages = pages
+		}
+		if candidate := buildTextCandidate("go-pdf", text, 0.90); candidate.Text != "" {
+			candidates = append(candidates, candidate)
+		}
+	}
+
+	best := pickBestTextCandidate(candidates)
+
+	// 文本很短或噪声比例高时，再尝试图片 OCR。
+	if shouldFallbackToOCR(best) {
+		if text, err := ocrPDFWithTesseract(filePath); err == nil {
+			if candidate := buildTextCandidate("tesseract", text, 0.82); candidate.Text != "" {
+				if candidate.Score >= best.Score+0.03 || len([]rune(candidate.Text)) > len([]rune(best.Text))+80 {
+					best = candidate
+				}
+			}
+		}
+	}
+
+	if best.Text == "" {
+		return nil, fmt.Errorf("无法从PDF提取可用文本")
+	}
+
+	return &OCRResult{
+		Text:       best.Text,
+		Confidence: best.Confidence,
 		Pages:      numPages,
-	}
-
-	// 如果提取的文本太少，可能是扫描版PDF，需要OCR
-	if len(strings.TrimSpace(result.Text)) < 100 && numPages > 0 {
-		// 尝试使用tesseract进行OCR
-		ocrText, err := ocrPDFWithTesseract(filePath)
-		if err == nil && len(ocrText) > len(result.Text) {
-			result.Text = ocrText
-			result.Confidence = 0.85 // OCR识别置信度较低
-		}
-	}
-
-	return result, nil
+	}, nil
 }
 
 // ExtractTextFromImage 从图片文件提取文本（使用tesseract）
@@ -70,16 +93,29 @@ func ExtractTextFromImage(imagePath string) (*OCRResult, error) {
 		return nil, fmt.Errorf("tesseract未安装，请先安装: brew install tesseract tesseract-lang")
 	}
 
+	absPath, err := filepath.Abs(imagePath)
+	if err == nil {
+		imagePath = absPath
+	}
+
 	// 调用tesseract进行OCR
-	cmd := exec.Command("tesseract", imagePath, "stdout", "-l", "chi_sim+eng")
+	args := []string{imagePath, "stdout"}
+	if lang := preferredTesseractLanguage(); lang != "" {
+		args = append(args, "-l", lang)
+	}
+	args = append(args, "--psm", "6", "-c", "preserve_interword_spaces=1")
+	cmd := exec.Command("tesseract", args...)
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("OCR识别失败: %w", err)
 	}
 
+	text := cleanExtractedText(string(output))
+	score := textQualityScore(text)
+
 	return &OCRResult{
-		Text:       string(output),
-		Confidence: 0.85,
+		Text:       text,
+		Confidence: clamp(0.70+score*0.22, 0.70, 0.92),
 		Pages:      1,
 	}, nil
 }
@@ -97,28 +133,36 @@ func ocrPDFWithTesseract(pdfPath string) (string, error) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	// 使用pdftoppm将PDF转换为图片（如果可用）
-	if isPdftoppmAvailable() {
-		imgPrefix := filepath.Join(tempDir, "page")
-		cmd := exec.Command("pdftoppm", "-png", pdfPath, imgPrefix)
-		if err := cmd.Run(); err != nil {
-			return "", fmt.Errorf("PDF转图片失败: %w", err)
-		}
-
-		// 对每个图片进行OCR
-		var allText strings.Builder
-		files, _ := filepath.Glob(imgPrefix + "*.png")
-		for _, imgFile := range files {
-			result, err := ExtractTextFromImage(imgFile)
-			if err == nil {
-				allText.WriteString(result.Text)
-				allText.WriteString("\n")
-			}
-		}
-		return allText.String(), nil
+	if !isPdftoppmAvailable() {
+		return "", fmt.Errorf("pdftoppm未安装，无法处理扫描版PDF")
 	}
 
-	return "", fmt.Errorf("pdftoppm未安装，无法处理扫描版PDF")
+	// 提高渲染分辨率并转为灰度图，能显著改善带水印和小字号 PDF 的识别效果。
+	imgPrefix := filepath.Join(tempDir, "page")
+	cmd := exec.Command("pdftoppm", "-r", "300", "-gray", "-png", pdfPath, imgPrefix)
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("PDF转图片失败: %w", err)
+	}
+
+	files, _ := filepath.Glob(imgPrefix + "*.png")
+	sort.Strings(files)
+
+	var parts []string
+	for _, imgFile := range files {
+		result, err := ExtractTextFromImage(imgFile)
+		if err != nil {
+			continue
+		}
+		if strings.TrimSpace(result.Text) != "" {
+			parts = append(parts, result.Text)
+		}
+	}
+
+	if len(parts) == 0 {
+		return "", fmt.Errorf("OCR未提取到可用文本")
+	}
+
+	return strings.Join(parts, "\n\n"), nil
 }
 
 // isTesseractAvailable 检查tesseract是否可用
@@ -130,6 +174,16 @@ func isTesseractAvailable() bool {
 // isPdftoppmAvailable 检查pdftoppm是否可用
 func isPdftoppmAvailable() bool {
 	cmd := exec.Command("pdftoppm", "-v")
+	return cmd.Run() == nil
+}
+
+func isPdftotextAvailable() bool {
+	cmd := exec.Command("pdftotext", "-v")
+	return cmd.Run() == nil
+}
+
+func isPDFInfoAvailable() bool {
+	cmd := exec.Command("pdfinfo", "-v")
 	return cmd.Run() == nil
 }
 
@@ -165,7 +219,7 @@ func extractTextFromWord(filePath string) (*OCRResult, error) {
 			return nil, fmt.Errorf("读取DOC文件失败: %w", err)
 		}
 		return &OCRResult{
-			Text:       string(output),
+			Text:       cleanExtractedText(string(output)),
 			Confidence: 0.95,
 			Pages:      1,
 		}, nil
@@ -199,7 +253,7 @@ func extractTextFromDocx(filePath string) (*OCRResult, error) {
 	text := extractTextFromXML(string(content))
 
 	return &OCRResult{
-		Text:       text,
+		Text:       cleanExtractedText(text),
 		Confidence: 0.95,
 		Pages:      1,
 	}, nil
@@ -249,4 +303,348 @@ func ReadFileContent(filePath string) ([]byte, error) {
 	defer f.Close()
 
 	return io.ReadAll(f)
+}
+
+func extractTextWithGoPDF(filePath string) (string, int, error) {
+	f, r, err := pdf.Open(filePath)
+	if err != nil {
+		return "", 0, fmt.Errorf("打开PDF文件失败: %w", err)
+	}
+	defer f.Close()
+
+	var buf bytes.Buffer
+	numPages := r.NumPage()
+
+	for i := 1; i <= numPages; i++ {
+		page := r.Page(i)
+		if page.V.IsNull() {
+			continue
+		}
+
+		text, err := page.GetPlainText(nil)
+		if err != nil {
+			continue
+		}
+		buf.WriteString(text)
+		buf.WriteString("\n")
+	}
+
+	return buf.String(), numPages, nil
+}
+
+func extractTextWithPDFToText(filePath string) (string, error) {
+	if !isPdftotextAvailable() {
+		return "", fmt.Errorf("pdftotext未安装")
+	}
+
+	cmd := exec.Command("pdftotext", "-enc", "UTF-8", "-raw", "-nopgbrk", filePath, "-")
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("pdftotext提取失败: %w", err)
+	}
+
+	return string(output), nil
+}
+
+func buildTextCandidate(method string, text string, baseConfidence float64) textCandidate {
+	cleaned := cleanExtractedText(text)
+	if cleaned == "" {
+		return textCandidate{}
+	}
+
+	score := textQualityScore(cleaned)
+	return textCandidate{
+		Method:     method,
+		Text:       cleaned,
+		Score:      score,
+		Confidence: clamp(baseConfidence*0.75+score*0.20, 0.70, 0.98),
+	}
+}
+
+func pickBestTextCandidate(candidates []textCandidate) textCandidate {
+	var best textCandidate
+	for i, candidate := range candidates {
+		if i == 0 {
+			best = candidate
+			continue
+		}
+
+		if candidate.Score > best.Score+0.03 {
+			best = candidate
+			continue
+		}
+
+		if math.Abs(candidate.Score-best.Score) <= 0.03 && len([]rune(candidate.Text)) > len([]rune(best.Text))+60 {
+			best = candidate
+		}
+	}
+
+	return best
+}
+
+func shouldFallbackToOCR(candidate textCandidate) bool {
+	runeCount := len([]rune(candidate.Text))
+	if runeCount == 0 {
+		return true
+	}
+	if runeCount < 120 {
+		return true
+	}
+	return candidate.Score < 0.58
+}
+
+func cleanExtractedText(text string) string {
+	if strings.TrimSpace(text) == "" {
+		return ""
+	}
+
+	text = strings.ReplaceAll(text, "\x00", "")
+	text = strings.ReplaceAll(text, "\r\n", "\n")
+	text = strings.ReplaceAll(text, "\r", "\n")
+	text = strings.ReplaceAll(text, "\f", "\n")
+	text = strings.ReplaceAll(text, "\u00a0", " ")
+	text = norm.NFKC.String(text)
+
+	lines := strings.Split(text, "\n")
+	normalizedLines := make([]string, 0, len(lines))
+	lineCounts := make(map[string]int, len(lines))
+	for _, line := range lines {
+		normalized := normalizeWhitespace(line)
+		normalizedLines = append(normalizedLines, normalized)
+		if normalized != "" {
+			lineCounts[normalized]++
+		}
+	}
+
+	cleaned := make([]string, 0, len(normalizedLines))
+	lastWasBlank := true
+	for _, line := range normalizedLines {
+		if line == "" {
+			if !lastWasBlank {
+				cleaned = append(cleaned, "")
+				lastWasBlank = true
+			}
+			continue
+		}
+
+		if isNoiseLine(line, lineCounts[line]) {
+			continue
+		}
+
+		cleaned = append(cleaned, line)
+		lastWasBlank = false
+	}
+
+	return strings.TrimSpace(strings.Join(cleaned, "\n"))
+}
+
+func normalizeWhitespace(line string) string {
+	return strings.Join(strings.Fields(line), " ")
+}
+
+func isNoiseLine(line string, count int) bool {
+	if line == "" {
+		return true
+	}
+
+	runeCount := utf8.RuneCountInString(line)
+	if count >= 2 {
+		if runeCount <= 3 {
+			return true
+		}
+		if suspiciousASCIIBlockPattern.MatchString(line) && !looksLikeContactLine(line) {
+			return true
+		}
+	}
+
+	if runeCount >= 24 && suspiciousASCIIBlockPattern.MatchString(line) && !looksLikeContactLine(line) {
+		return true
+	}
+
+	return false
+}
+
+func looksLikeContactLine(line string) bool {
+	return strings.Contains(line, "@") || strings.Contains(line, "http://") || strings.Contains(line, "https://")
+}
+
+func textQualityScore(text string) float64 {
+	if strings.TrimSpace(text) == "" {
+		return 0
+	}
+
+	lines := strings.Split(text, "\n")
+	nonEmptyLines := 0
+	informativeLines := 0
+	shortASCIIOnlyLines := 0
+	totalRunes := 0
+	contentRunes := 0
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue
+		}
+
+		nonEmptyLines++
+		runeCount := utf8.RuneCountInString(trimmed)
+		if runeCount >= 8 || containsCJK(trimmed) || strings.Contains(trimmed, "@") || strings.Contains(trimmed, "：") || strings.Contains(trimmed, ":") {
+			informativeLines++
+		}
+		if runeCount <= 2 && isASCIIWord(trimmed) {
+			shortASCIIOnlyLines++
+		}
+
+		for _, r := range trimmed {
+			totalRunes++
+			if unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsSpace(r) || unicode.In(r, unicode.Han) || isCommonPunctuation(r) {
+				contentRunes++
+			}
+		}
+	}
+
+	if nonEmptyLines == 0 || totalRunes == 0 {
+		return 0
+	}
+
+	signalRatio := float64(informativeLines) / float64(nonEmptyLines)
+	contentRatio := float64(contentRunes) / float64(totalRunes)
+	lengthScore := math.Min(float64(utf8.RuneCountInString(text))/1200.0, 1.0)
+	noisePenalty := math.Min(float64(shortASCIIOnlyLines)/float64(nonEmptyLines), 1.0)
+	suspiciousPenalty := math.Min(float64(len(suspiciousASCIIBlockPattern.FindAllString(text, -1)))*0.08, 0.40)
+
+	score := 0.38*signalRatio + 0.34*contentRatio + 0.20*lengthScore - 0.20*noisePenalty - suspiciousPenalty
+	score += resumeSignalBonus(text)
+
+	return clamp(score, 0, 1)
+}
+
+func containsCJK(text string) bool {
+	for _, r := range text {
+		if unicode.In(r, unicode.Han) {
+			return true
+		}
+	}
+	return false
+}
+
+func isASCIIWord(text string) bool {
+	for _, r := range text {
+		if r > unicode.MaxASCII || !(unicode.IsLetter(r) || unicode.IsDigit(r)) {
+			return false
+		}
+	}
+	return text != ""
+}
+
+func isCommonPunctuation(r rune) bool {
+	switch r {
+	case '，', '。', '；', '：', '（', '）', '、', '【', '】', '《', '》', ',', '.', ';', ':', '(', ')', '/', '-', '+', '&', '%', '_':
+		return true
+	default:
+		return false
+	}
+}
+
+func resumeSignalBonus(text string) float64 {
+	signals := []string{
+		"工作经历",
+		"项目经历",
+		"教育经历",
+		"手机号",
+		"毕业学校",
+		"求职意愿",
+		"技能",
+		"GitHub",
+		"E-Mail",
+		"邮箱",
+	}
+
+	hits := 0
+	for _, signal := range signals {
+		if strings.Contains(text, signal) {
+			hits++
+		}
+	}
+
+	return math.Min(float64(hits)*0.03, 0.15)
+}
+
+func countPDFPages(filePath string) int {
+	if isPDFInfoAvailable() {
+		cmd := exec.Command("pdfinfo", filePath)
+		output, err := cmd.Output()
+		if err == nil {
+			matches := pageCountPattern.FindStringSubmatch(string(output))
+			if len(matches) == 2 {
+				if pages, err := strconv.Atoi(matches[1]); err == nil {
+					return pages
+				}
+			}
+		}
+	}
+
+	f, r, err := pdf.Open(filePath)
+	if err != nil {
+		return 0
+	}
+	defer f.Close()
+
+	return r.NumPage()
+}
+
+func preferredTesseractLanguage() string {
+	tesseractLangOnce.Do(func() {
+		langs := availableTesseractLanguages()
+
+		switch {
+		case langs["chi_sim"] && langs["eng"]:
+			tesseractLang = "chi_sim+eng"
+		case langs["chi_sim"]:
+			tesseractLang = "chi_sim"
+		case langs["chi_tra"] && langs["eng"]:
+			tesseractLang = "chi_tra+eng"
+		case langs["chi_tra"]:
+			tesseractLang = "chi_tra"
+		case langs["eng"]:
+			tesseractLang = "eng"
+		default:
+			tesseractLang = ""
+		}
+	})
+
+	return tesseractLang
+}
+
+func availableTesseractLanguages() map[string]bool {
+	if !isTesseractAvailable() {
+		return map[string]bool{}
+	}
+
+	cmd := exec.Command("tesseract", "--list-langs")
+	output, err := cmd.Output()
+	if err != nil {
+		return map[string]bool{}
+	}
+
+	langs := make(map[string]bool)
+	for _, line := range strings.Split(string(output), "\n") {
+		lang := strings.TrimSpace(line)
+		if lang == "" || strings.HasPrefix(lang, "List of available languages") {
+			continue
+		}
+		langs[lang] = true
+	}
+
+	return langs
+}
+
+func clamp(value float64, min float64, max float64) float64 {
+	if value < min {
+		return min
+	}
+	if value > max {
+		return max
+	}
+	return value
 }

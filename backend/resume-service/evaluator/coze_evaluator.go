@@ -44,6 +44,7 @@ type EvaluationResult struct {
 	MatchedSkills   []string               `json:"matched_skills"`
 	MissingSkills   []string               `json:"missing_skills"`
 	Summary         string                 `json:"summary"`
+	ParsedReport    map[string]interface{} `json:"parsed_report,omitempty"`
 	RawResult       map[string]interface{} `json:"raw_result"`
 }
 
@@ -133,7 +134,7 @@ func (e *CozeEvaluator) uploadFile(ctx context.Context, filename string, data []
 }
 
 // EvaluateResume 评估简历
-func (e *CozeEvaluator) EvaluateResume(ctx context.Context, name string, jdText string, resumePDF []byte) (*EvaluationResult, error) {
+func (e *CozeEvaluator) EvaluateResume(ctx context.Context, name string, jdText string, resumeText string, resumePDF []byte) (*EvaluationResult, error) {
 	if !e.IsConfigured() {
 		return nil, fmt.Errorf("Coze 未配置，请设置 COZE_TOKEN 和 COZE_WORKFLOW_ID 环境变量")
 	}
@@ -160,7 +161,9 @@ func (e *CozeEvaluator) EvaluateResume(ctx context.Context, name string, jdText 
 		"parameters": map[string]interface{}{
 			"name":        name,
 			"jd_text":     jdText,
-			"resume_file": map[string]interface{}{"file_id": fileID},
+			"resume_text": truncateString(strings.TrimSpace(resumeText), 12000),
+			// Coze 工作流的 file 类型入参要求传序列化后的 JSON 字符串，而不是对象本身。
+			"resume_file": fmt.Sprintf("{\"file_id\":\"%s\"}", fileID),
 		},
 	}
 
@@ -294,6 +297,7 @@ func (e *CozeEvaluator) parseResult(envelope map[string]interface{}, name string
 	}
 
 	fmt.Printf("[Coze Debug] JSON parsed successfully! Keys: %v\n", getMapKeys(resultData))
+	result.ParsedReport = resultData
 
 	// 打印解析后的各个部分
 	if basicInfo, ok := resultData["基本信息"].(map[string]interface{}); ok {

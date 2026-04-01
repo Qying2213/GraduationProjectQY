@@ -160,13 +160,13 @@ func (h *EvaluationHandler) GetEvaluationProcess(c *gin.Context) {
 		"code":    0,
 		"message": "success",
 		"data": gin.H{
-			"id":            processLog.ID,
-			"evaluation_id": processLog.EvaluationID,
-			"resume_id":     processLog.ResumeID,
-			"status":        processLog.Status,
-			"error_msg":     processLog.ErrorMsg,
-			"trace":         trace,
-			"created_at":    processLog.CreatedAt,
+			"id":              processLog.ID,
+			"evaluation_id":   processLog.EvaluationID,
+			"resume_id":       processLog.ResumeID,
+			"status":          processLog.Status,
+			"error_msg":       processLog.ErrorMsg,
+			"trace":           trace,
+			"created_at":      processLog.CreatedAt,
 			"trace_available": true,
 		},
 	})
@@ -231,6 +231,14 @@ func (h *EvaluationHandler) SaveEvaluation(eval *models.EvaluationResult) error 
 
 // formatEvaluation 格式化评估结果
 func (h *EvaluationHandler) formatEvaluation(eval *models.EvaluationResult) map[string]interface{} {
+	var fallbackEvalData map[string]interface{}
+	if (eval.ParsedReport == "" || eval.RawResult == "") && eval.ResumeID > 0 {
+		var resume models.Resume
+		if err := h.DB.Select("parsed_data").First(&resume, eval.ResumeID).Error; err == nil && resume.ParsedData != "" {
+			_ = json.Unmarshal([]byte(resume.ParsedData), &fallbackEvalData)
+		}
+	}
+
 	result := map[string]interface{}{
 		"id":                    eval.ID,
 		"created_at":            eval.CreatedAt,
@@ -243,6 +251,7 @@ func (h *EvaluationHandler) formatEvaluation(eval *models.EvaluationResult) map[
 		"parsed_phone":          eval.ParsedPhone,
 		"parsed_email":          eval.ParsedEmail,
 		"parsed_education":      eval.ParsedEducation,
+		"parsed_school":         eval.ParsedSchool,
 		"parsed_experience":     eval.ParsedExperience,
 		"parsed_location":       eval.ParsedLocation,
 		"match_score":           eval.MatchScore,
@@ -289,6 +298,24 @@ func (h *EvaluationHandler) formatEvaluation(eval *models.EvaluationResult) map[
 		var risks []map[string]interface{}
 		json.Unmarshal([]byte(eval.RiskItems), &risks)
 		result["risk_items"] = risks
+	}
+
+	if eval.ParsedReport != "" {
+		var parsedReport map[string]interface{}
+		if err := json.Unmarshal([]byte(eval.ParsedReport), &parsedReport); err == nil {
+			result["parsed_report"] = parsedReport
+		}
+	} else if fallbackParsedReport, ok := fallbackEvalData["parsed_report"].(map[string]interface{}); ok {
+		result["parsed_report"] = fallbackParsedReport
+	}
+
+	if eval.RawResult != "" {
+		var rawResult map[string]interface{}
+		if err := json.Unmarshal([]byte(eval.RawResult), &rawResult); err == nil {
+			result["raw_result"] = rawResult
+		}
+	} else if fallbackRawResult, ok := fallbackEvalData["raw_result"].(map[string]interface{}); ok {
+		result["raw_result"] = fallbackRawResult
 	}
 
 	return result

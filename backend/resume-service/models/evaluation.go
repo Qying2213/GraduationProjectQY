@@ -27,9 +27,12 @@ type EvaluationResult struct {
 	ParsedPhone      string `json:"parsed_phone" gorm:"size:20"`
 	ParsedEmail      string `json:"parsed_email" gorm:"size:100"`
 	ParsedEducation  string `json:"parsed_education" gorm:"size:50"`
+	ParsedSchool     string `json:"parsed_school" gorm:"size:100"`
 	ParsedExperience string `json:"parsed_experience" gorm:"size:50"`
 	ParsedLocation   string `json:"parsed_location" gorm:"size:50"`
 	ParsedSkills     string `json:"parsed_skills" gorm:"type:text"` // JSON数组
+	ParsedReport     string `json:"parsed_report" gorm:"type:text"` // 完整结构化报告 JSON
+	RawResult        string `json:"raw_result" gorm:"type:text"`    // Coze 原始返回 JSON
 
 	// 匹配结果
 	MatchScore   float64 `json:"match_score"`
