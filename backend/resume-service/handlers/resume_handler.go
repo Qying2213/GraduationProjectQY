@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -440,7 +441,6 @@ func (h *ResumeHandler) DeleteResume(c *gin.Context) {
 // - 申请创建后自动发送通知给HR
 // Requirements: 2.2, 2.3, 2.4, 2.6
 //
-// 这段逻辑很适合新人理解“业务接口不只是 CRUD”：
 // 1. 先做业务前置校验
 // 2. 再写 application 记录
 // 3. 最后联动其他模块（这里是消息通知）
@@ -1019,6 +1019,59 @@ func (h *ResumeHandler) ListResumesForEvaluation(c *gin.Context) {
 			"total":     total,
 			"page":      page,
 			"page_size": pageSize,
+		},
+	})
+}
+
+// UpdateResumeJob 为已上传的简历补充或更新关联职位。
+// 这个接口主要用于后台运营场景：简历先入库，之后再由 HR 指定要用于哪个岗位的 AI 评估。
+func (h *ResumeHandler) UpdateResumeJob(c *gin.Context) {
+	id := c.Param("id")
+	var resume models.Resume
+
+	if err := h.DB.First(&resume, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "Resume not found"})
+		return
+	}
+
+	var req struct {
+		JobID uint `json:"job_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": err.Error()})
+		return
+	}
+	if req.JobID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "job_id is required"})
+		return
+	}
+
+	var job struct {
+		ID    uint   `json:"id"`
+		Title string `json:"title"`
+	}
+	if err := h.DB.Table("jobs").Select("id, title").Where("id = ?", req.JobID).First(&job).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "Job not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "Failed to query job"})
+		return
+	}
+
+	resume.JobID = &req.JobID
+	if err := h.DB.Save(&resume).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "Failed to update resume job"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "Resume job updated successfully",
+		"data": gin.H{
+			"resume":    resume,
+			"job_title": job.Title,
 		},
 	})
 }

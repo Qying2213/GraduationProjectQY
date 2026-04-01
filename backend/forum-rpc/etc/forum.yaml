@@ -1,0 +1,18 @@
+Name: forum.rpc
+ListenOn: 0.0.0.0:8092
+Etcd:
+  Hosts:
+  - 127.0.0.1:2379
+  Key: forum.rpc
+Database:
+  Host: localhost
+  Port: "5432"
+  User: qinyang
+  Password: ""
+  Name: talent_platform
+  SSLMode: disable
+Redis:
+  Host: localhost
+  Port: "6379"
+  Password: ""
+  DB: 0

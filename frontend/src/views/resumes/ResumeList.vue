@@ -119,20 +119,42 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="job_title" label="求职职位" width="180">
+        <el-table-column prop="job_title" label="求职职位" width="220">
           <template #default="{ row }">
             <div class="job-cell" v-if="row.job_id && row.job_title">
               <span class="job-title">{{ row.job_title }}</span>
+              <div class="job-actions">
+                <el-button
+                  link
+                  type="primary"
+                  size="small"
+                  @click="showJobJD(row)"
+                >
+                  <el-icon><Tickets /></el-icon> 查看JD
+                </el-button>
+                <el-button
+                  link
+                  type="primary"
+                  size="small"
+                  @click="openAssignJobDialog(row)"
+                  v-if="canEdit"
+                >
+                  更换职位
+                </el-button>
+              </div>
+            </div>
+            <div v-else class="no-job">
+              <span>未关联职位</span>
               <el-button
                 link
                 type="primary"
                 size="small"
-                @click="showJobJD(row)"
+                @click="openAssignJobDialog(row)"
+                v-if="canEdit"
               >
-                <el-icon><Tickets /></el-icon> 查看JD
+                选择职位
               </el-button>
             </div>
-            <span v-else class="no-job">未关联职位</span>
           </template>
         </el-table-column>
         <el-table-column
@@ -261,6 +283,52 @@
           @click="handleUpload"
         >
           开始上传 ({{ fileList.length }})
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="showAssignJobDialog"
+      :title="selectedResumeForJob?.job_id ? '更换求职职位' : '选择求职职位'"
+      width="520px"
+      destroy-on-close
+    >
+      <div v-if="selectedResumeForJob" class="assign-job-form">
+        <p class="assign-job-hint">
+          为简历 <strong>{{ selectedResumeForJob.file_name }}</strong>
+          选择求职职位，保存后就可以继续 AI 评估。
+        </p>
+        <el-form label-position="top">
+          <el-form-item label="求职职位" required>
+            <el-select
+              v-model="selectedJobId"
+              filterable
+              placeholder="请选择求职职位"
+              style="width: 100%"
+            >
+              <el-option
+                v-for="job in jobList"
+                :key="job.id"
+                :label="getJobOptionLabel(job)"
+                :value="job.id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <template #footer>
+        <el-button @click="closeAssignJobDialog">取消</el-button>
+        <el-button type="primary" :loading="savingJob" @click="submitAssignJob()">
+          保存职位
+        </el-button>
+        <el-button
+          v-if="canEdit"
+          type="success"
+          :loading="savingJob"
+          @click="submitAssignJob(true)"
+        >
+          保存并AI评估
         </el-button>
       </template>
     </el-dialog>
@@ -549,6 +617,10 @@ const currentJobJD = ref<any>(null);
 const jobList = ref<any[]>([]);
 const parsing = ref(false);
 const uploadJobId = ref<number | null>(null);
+const showAssignJobDialog = ref(false);
+const selectedResumeForJob = ref<Resume | null>(null);
+const selectedJobId = ref<number | null>(null);
+const savingJob = ref(false);
 
 // 统计数据 - 青蓝色系
 const resumeStats = ref([
@@ -687,6 +759,86 @@ const updateStats = (resumeList: Resume[]) => {
   ];
 };
 
+const getJobOptionLabel = (job: any) =>
+  `${job.title}${job.department ? ` - ${job.department}` : ""}`;
+
+const findJobById = (jobId?: number | null) =>
+  jobList.value.find((job) => Number(job.id) === Number(jobId));
+
+const applyResumeJobSelection = (resume: Resume, jobId: number) => {
+  const selectedJob = findJobById(jobId);
+  resume.job_id = jobId;
+  resume.job_title = selectedJob?.title || resume.job_title;
+
+  if (currentResume.value?.id === resume.id) {
+    currentResume.value.job_id = jobId;
+    currentResume.value.job_title = selectedJob?.title || currentResume.value.job_title;
+  }
+};
+
+const closeAssignJobDialog = () => {
+  showAssignJobDialog.value = false;
+  selectedResumeForJob.value = null;
+  selectedJobId.value = null;
+};
+
+const openAssignJobDialog = async (resume: Resume) => {
+  if (!jobList.value.length) {
+    await loadJobs();
+  }
+
+  if (!jobList.value.length) {
+    ElMessage.warning("当前没有可选职位，请先在职位管理中创建开放中的职位");
+    return;
+  }
+
+  selectedResumeForJob.value = resume;
+  selectedJobId.value = resume.job_id ?? null;
+  showAssignJobDialog.value = true;
+};
+
+const submitAssignJob = async (continueToEvaluate = false) => {
+  if (!selectedResumeForJob.value) {
+    return;
+  }
+  if (!selectedJobId.value) {
+    ElMessage.warning("请选择求职职位");
+    return;
+  }
+
+  savingJob.value = true;
+  const resume = selectedResumeForJob.value;
+  const jobId = selectedJobId.value;
+
+  try {
+    const res = await request.put(`/resumes/${resume.id}/job`, {
+      job_id: jobId,
+    });
+
+    if (res.data?.code !== 0) {
+      ElMessage.error(res.data?.message || "更新求职职位失败");
+      return;
+    }
+
+    applyResumeJobSelection(resume, jobId);
+    closeAssignJobDialog();
+
+    if (continueToEvaluate) {
+      ElMessage.success("职位已关联，开始进行 AI 评估");
+      await parseResume(resume);
+      return;
+    }
+
+    ElMessage.success("求职职位已更新");
+    fetchResumes();
+  } catch (error) {
+    console.error("更新求职职位失败:", error);
+    ElMessage.error("更新求职职位失败");
+  } finally {
+    savingJob.value = false;
+  }
+};
+
 // 重置搜索
 const resetSearch = () => {
   searchParams.search = "";
@@ -812,7 +964,7 @@ const parseResume = async (resume: Resume) => {
 
   // 检查是否有关联职位
   if (!resume.job_id) {
-    ElMessage.warning("请先为简历关联求职职位");
+    await openAssignJobDialog(resume);
     return;
   }
 
@@ -1163,6 +1315,24 @@ onMounted(() => {
     align-items: center;
     gap: 8px;
   }
+
+  .job-cell,
+  .no-job {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .job-actions {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .no-job {
+    color: var(--text-muted);
+  }
 }
 
 .pagination {
@@ -1174,6 +1344,14 @@ onMounted(() => {
 // 上传区域
 .upload-form {
   margin-bottom: 16px;
+}
+
+.assign-job-form {
+  .assign-job-hint {
+    margin: 0 0 16px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
 }
 
 .upload-area {

@@ -92,6 +92,7 @@ func main() {
 			resumes.GET("/:id", resumeHandler.GetResume)
 			resumes.GET("/:id/download", resumeHandler.DownloadResume)
 			resumes.DELETE("/:id", resumeHandler.DeleteResume)
+			resumes.PUT("/:id/job", resumeHandler.UpdateResumeJob)       // 为已有简历补关联职位
 			resumes.PUT("/:id/status", resumeHandler.UpdateResumeStatus) // 更新简历状态
 			resumes.POST("/parse", resumeHandler.ParseResume)
 			resumes.POST("/match", resumeHandler.MatchResumeToJob)

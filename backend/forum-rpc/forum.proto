@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package forum;
+
+option go_package = "./pb";
+
+message PostItem {
+  int64 id = 1;
+  int64 board_id = 2;
+  int64 user_id = 3;
+  string title = 4;
+  string content = 5;
+  string status = 6;
+  bool is_pinned = 7;
+  bool is_locked = 8;
+  int64 view_count = 9;
+  int64 like_count = 10;
+  int64 comment_count = 11;
+  string created_at = 12;
+}
+
+message CreatePostReq {
+  int64 board_id = 1;
+  int64 user_id = 2;
+  string title = 3;
+  string content = 4;
+}
+
+message CreatePostResp {
+  PostItem post = 1;
+}
+
+message ListPostsReq {
+  int64 board_id = 1;
+  int64 page = 2;
+  int64 page_size = 3;
+}
+
+message ListPostsResp {
+  repeated PostItem list = 1;
+  int64 total = 2;
+}
+
+message GetPostReq {
+  int64 id = 1;
+}
+
+message GetPostResp {
+  PostItem post = 1;
+}
+
+service Forum {
+  rpc CreatePost(CreatePostReq) returns (CreatePostResp);
+  rpc ListPosts(ListPostsReq) returns (ListPostsResp);
+  rpc GetPost(GetPostReq) returns (GetPostResp);
+}
