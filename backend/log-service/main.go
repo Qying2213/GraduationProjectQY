@@ -1,6 +1,7 @@
 package main
 
 import (
+	"common/middleware"
 	"log"
 	"os"
 
@@ -52,6 +53,7 @@ func main() {
 
 	// 日志API
 	api := r.Group("/api/v1/logs")
+	api.Use(middleware.JWTAuth(), middleware.RoleAuth("admin", "hr", "hr_manager", "recruiter"))
 	{
 		api.GET("", logHandler.QueryLogs)            // 查询日志
 		api.GET("/stats", logHandler.GetStats)       // 获取统计

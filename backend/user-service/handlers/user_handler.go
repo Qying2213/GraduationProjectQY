@@ -113,7 +113,34 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	if err := h.DB.Create(&user).Error; err != nil {
+	if err := h.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&user).Error; err != nil {
+			return err
+		}
+
+		// 候选人注册后自动创建人才档案，保证后续上传简历/投递职位链路可用。
+		if user.Role == "candidate" {
+			name := req.RealName
+			if name == "" {
+				name = req.Username
+			}
+
+			if err := tx.Table("talents").Create(map[string]interface{}{
+				"name":       name,
+				"email":      req.Email,
+				"phone":      req.Phone,
+				"status":     "active",
+				"source":     "用户注册",
+				"user_id":    user.ID,
+				"created_at": time.Now(),
+				"updated_at": time.Now(),
+			}).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}

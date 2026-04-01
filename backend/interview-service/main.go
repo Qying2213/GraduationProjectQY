@@ -56,6 +56,7 @@ func main() {
 	api := r.Group("/api/v1")
 	{
 		interviews := api.Group("/interviews")
+		interviews.Use(middleware.JWTAuth(), middleware.RoleAuth("admin", "hr", "hr_manager", "recruiter"))
 		{
 			interviews.POST("", interviewHandler.CreateInterview)
 			interviews.GET("", interviewHandler.ListInterviews)

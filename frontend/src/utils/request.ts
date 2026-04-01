@@ -101,6 +101,9 @@ instance.interceptors.response.use(
                 case 500:
                     ElMessage.error('服务器错误')
                     break
+                case 400:
+                    // 业务校验类错误通常由页面自己决定如何提示，避免重复弹窗。
+                    break
                 default:
                     ElMessage.error(data?.message || '请求失败')
             }

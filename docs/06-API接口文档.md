@@ -35,6 +35,10 @@ POST /resumes/upload
 Content-Type: multipart/form-data
 ```
 
+说明：
+- 需要携带 JWT Bearer Token
+- 求职者门户上传时，后端会根据当前登录用户自动绑定 `talent_id`
+
 参数：
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
@@ -66,7 +70,7 @@ Content-Type: application/json
 请求体：
 ```json
 {
-    "resume_id": 1
+    "text": "简历文本内容"
 }
 ```
 
@@ -91,15 +95,15 @@ Content-Type: application/json
 ### AI智能解析
 
 ```
-POST /resumes/ai-parse
-Content-Type: application/json
+POST /ai/parse
+Content-Type: multipart/form-data
 ```
 
-请求体：
+参数：
 ```json
 {
-    "resume_id": 1,
-    "jd_text": "职位描述..."
+    "file": "简历文件",
+    "jd_text": "职位描述（可选）"
 }
 ```
 

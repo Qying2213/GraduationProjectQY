@@ -201,7 +201,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Download, Delete } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/user'
-import axios from 'axios'
+import request from '@/utils/request'
 import { exportToCsv, type ExportColumn } from '@/utils/export'
 
 interface OperationLog {
@@ -263,7 +263,7 @@ const fetchLogs = async () => {
       params.end_time = filterParams.dateRange[1]
     }
 
-    const res = await axios.get('/api/v1/logs', { params })
+    const res = await request.get('/logs', { params })
     if (res.data.code === 0) {
       logs.value = res.data.data.logs || []
       total.value = res.data.data.total || 0
@@ -274,6 +274,12 @@ const fetchLogs = async () => {
     }
   } catch (error) {
     console.error('获取日志失败:', error)
+    const status = (error as any)?.response?.status
+    if (status === 401 || status === 403) {
+      logs.value = []
+      total.value = 0
+      return
+    }
     // 使用模拟数据
     logs.value = generateMockLogs()
     total.value = 100
@@ -360,7 +366,7 @@ const cleanupLogs = async () => {
       type: 'warning'
     })
     
-    await axios.delete('/api/v1/logs/cleanup', { params: { days: 30 } })
+    await request.delete('/logs/cleanup', { params: { days: 30 } })
     ElMessage.success('清理成功')
     fetchLogs()
   } catch {

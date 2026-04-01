@@ -653,7 +653,7 @@ func (h *AIEvaluateHandler) queryRAG(text string, embedding []float64) (string, 
 	_ = embedding
 
 	// 调用 recommendation-service 的 RAG 接口
-	ragURL := "http://localhost:8087/api/v1/recommendations/rag/query"
+	ragURL := "http://localhost:8087/internal/recommendations/rag/query"
 
 	reqBody := map[string]interface{}{
 		"query": text,
@@ -671,6 +671,9 @@ func (h *AIEvaluateHandler) queryRAG(text string, embedding []float64) (string, 
 		return "", nil, fmt.Errorf("请求创建失败: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+	if internalAPIKey := os.Getenv("INTERNAL_API_KEY"); internalAPIKey != "" {
+		req.Header.Set("X-Internal-Token", internalAPIKey)
+	}
 
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
@@ -728,7 +731,7 @@ func (h *AIEvaluateHandler) saveResumeEmbedding(resume *models.Resume, embedding
 	}
 
 	// recommendation-service 当前支持 index-talent/index-job 接口
-	indexURL := "http://localhost:8087/api/v1/recommendations/rag/index-talent"
+	indexURL := "http://localhost:8087/internal/recommendations/rag/index-talent"
 
 	reqBody := map[string]interface{}{
 		"talent_id": *resume.TalentID,
@@ -737,6 +740,9 @@ func (h *AIEvaluateHandler) saveResumeEmbedding(resume *models.Resume, embedding
 	jsonBody, _ := json.Marshal(reqBody)
 	req, _ := http.NewRequest("POST", indexURL, bytes.NewBuffer(jsonBody))
 	req.Header.Set("Content-Type", "application/json")
+	if internalAPIKey := os.Getenv("INTERNAL_API_KEY"); internalAPIKey != "" {
+		req.Header.Set("X-Internal-Token", internalAPIKey)
+	}
 
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)

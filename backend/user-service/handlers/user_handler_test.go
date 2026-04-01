@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 	"user-service/models"
 
 	"github.com/gin-gonic/gin"
@@ -15,10 +16,26 @@ import (
 	"gorm.io/gorm"
 )
 
+type TalentRecord struct {
+	ID        uint `gorm:"primarykey"`
+	Name      string
+	Email     string
+	Phone     string
+	Status    string
+	Source    string
+	UserID    uint
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (TalentRecord) TableName() string {
+	return "talents"
+}
+
 // 创建测试数据库
 func setupTestDB() *gorm.DB {
 	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.User{}, &TalentRecord{})
 	return db
 }
 

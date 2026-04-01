@@ -73,7 +73,7 @@ http_delete() {
 parse_response() {
     local response="$1"
     # macOS 的 BSD head 不支持 `-n -1`，使用 sed 删除最后一行更兼容
-    local body=$(printf '%s\n' "$response" | sed '$d')
+    local body=$(printf '%s\n' "$response" | sed '$d' | tr '|' '¦')
     local status=$(printf '%s\n' "$response" | tail -n 1 | tr -d '\r')
     echo "$body|$status"
 }

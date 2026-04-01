@@ -1,6 +1,7 @@
 package main
 
 import (
+	"common/middleware"
 	"fmt"
 	"log"
 	"net/http"
@@ -106,6 +107,7 @@ func main() {
 	recommendHandler := handlers.NewRecommendationHandler(db)
 
 	api := r.Group("/api/v1/recommendations")
+	api.Use(middleware.JWTAuth(), middleware.RoleAuth("admin", "hr", "hr_manager", "recruiter"))
 	{
 		api.POST("/jobs-for-talent", recommendHandler.RecommendJobsForTalent)
 		api.POST("/talents-for-job", recommendHandler.RecommendTalentsForJob)
@@ -120,6 +122,24 @@ func main() {
 		api.POST("/rag/index-job", recommendHandler.IndexJob)
 		api.POST("/rag/index-all", recommendHandler.IndexAll)
 		api.POST("/rag/match", recommendHandler.RAGMatch)
+	}
+
+	internal := r.Group("/internal/recommendations")
+	internal.Use(func(c *gin.Context) {
+		internalAPIKey := getEnv("INTERNAL_API_KEY", "")
+		if internalAPIKey != "" && c.GetHeader("X-Internal-Token") != internalAPIKey {
+			c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "error": "invalid internal token"})
+			c.Abort()
+			return
+		}
+		c.Next()
+	})
+	{
+		internal.POST("/rag/query", recommendHandler.RAGQuery)
+		internal.POST("/rag/index-talent", recommendHandler.IndexTalent)
+		internal.POST("/rag/index-job", recommendHandler.IndexJob)
+		internal.POST("/rag/index-all", recommendHandler.IndexAll)
+		internal.POST("/rag/match", recommendHandler.RAGMatch)
 	}
 
 	log.Println("Recommendation service is running on :8087")

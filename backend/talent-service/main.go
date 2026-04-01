@@ -4,11 +4,11 @@ import (
 	"log"
 	"os"
 	"talent-service/handlers"
-	"talent-service/models"
 
 	"common/middleware"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -21,6 +21,11 @@ func getEnv(key, defaultValue string) string {
 }
 
 func main() {
+	// 加载 .env 文件，确保单独启动服务时也能拿到与其他服务一致的 JWT/DB 配置。
+	godotenv.Load("../.env")
+	godotenv.Load(".env")
+	godotenv.Load("../../.env")
+
 	// 数据库连接（支持环境变量配置）
 	dbHost := getEnv("DB_HOST", "localhost")
 	dbUser := getEnv("DB_USER", "qinyang")
@@ -39,9 +44,8 @@ func main() {
 		log.Fatal("Failed to connect database:", err)
 	}
 
-	if err := db.AutoMigrate(&models.Talent{}); err != nil {
-		log.Fatal("Failed to migrate database:", err)
-	}
+	// talents 表由 databaseSQL/schema.sql 管理，避免运行时 AutoMigrate
+	// 在当前 GORM/Postgres 驱动组合下触发数组字段迁移兼容问题。
 
 	r := gin.Default()
 
@@ -56,6 +60,7 @@ func main() {
 	})
 
 	api := r.Group("/api/v1/talents")
+	api.Use(middleware.JWTAuth(), middleware.RoleAuth("admin", "hr", "hr_manager", "recruiter"))
 	{
 		api.POST("", talentHandler.CreateTalent)
 		api.GET("", talentHandler.ListTalents)
