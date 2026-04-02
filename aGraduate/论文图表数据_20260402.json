@@ -1,0 +1,127 @@
+{
+  "generated_at": "2026-04-02 11:20:00",
+  "project": "基于 Golang 微服务架构的智能人才运营平台设计与实现",
+  "sources": {
+    "acceptance_report": "ztest/graduation_acceptance_report_20260402_111437.md",
+    "e2e_report": "test_report_20260402_111732.md",
+    "benchmark_validated_report": "docs/毕业设计交付验收报告_20260401.md",
+    "benchmark_fresh_raw": "benchmark_results/benchmark_20260402_111505.txt",
+    "evaluation_results_table": "talent_platform.evaluation_results"
+  },
+  "acceptance_summary": {
+    "total": 34,
+    "passed": 34,
+    "failed": 0,
+    "warned": 0,
+    "skipped": 0
+  },
+  "acceptance_area_counts": [
+    { "name": "健康检查", "value": 8 },
+    { "name": "认证", "value": 4 },
+    { "name": "RBAC", "value": 3 },
+    { "name": "目标一", "value": 3 },
+    { "name": "目标二", "value": 3 },
+    { "name": "业务链路", "value": 9 },
+    { "name": "目标三", "value": 4 }
+  ],
+  "e2e_summary": {
+    "total": 33,
+    "passed": 33,
+    "failed": 0,
+    "skipped": 0
+  },
+  "e2e_category_counts": [
+    { "name": "服务健康检查", "value": 9 },
+    { "name": "用户服务", "value": 4 },
+    { "name": "职位服务", "value": 2 },
+    { "name": "简历服务", "value": 2 },
+    { "name": "人才服务", "value": 1 },
+    { "name": "消息服务", "value": 2 },
+    { "name": "推荐服务", "value": 1 },
+    { "name": "日志服务", "value": 4 },
+    { "name": "面试服务", "value": 1 },
+    { "name": "统计服务", "value": 7 }
+  ],
+  "performance_validated_20260401": [
+    {
+      "endpoint": "/api/v1/jobs",
+      "qps": 1379.8,
+      "avg_ms": 72.474,
+      "p99_ms": 321,
+      "qualified": true
+    },
+    {
+      "endpoint": "/api/v1/talents",
+      "qps": 2941.49,
+      "avg_ms": 33.996,
+      "p99_ms": 177,
+      "qualified": true
+    },
+    {
+      "endpoint": "/api/v1/recommendations/stats",
+      "qps": 4073.02,
+      "avg_ms": 24.552,
+      "p99_ms": 170,
+      "qualified": true
+    }
+  ],
+  "performance_fresh_20260402_diagnostic": [
+    {
+      "endpoint": "/health",
+      "qps": 60968.92,
+      "avg_ms": 1.64,
+      "p99_ms": 8,
+      "non_2xx": 4900,
+      "qualified_for_thesis": false
+    },
+    {
+      "endpoint": "/api/v1/jobs",
+      "qps": 1912.71,
+      "avg_ms": 52.282,
+      "p99_ms": 212,
+      "non_2xx": 0,
+      "qualified_for_thesis": true
+    },
+    {
+      "endpoint": "/api/v1/talents",
+      "qps": 24520.38,
+      "avg_ms": 4.078,
+      "p99_ms": 34,
+      "non_2xx": 5000,
+      "qualified_for_thesis": false
+    },
+    {
+      "endpoint": "/api/v1/recommendations/stats",
+      "qps": 99239.82,
+      "avg_ms": 1.008,
+      "p99_ms": 4,
+      "non_2xx": 5000,
+      "qualified_for_thesis": false
+    }
+  ],
+  "ai_latest_result": {
+    "evaluation_id": 34,
+    "resume_id": 25,
+    "match_score": 73.3,
+    "summary": "候选人在后端开发经验、高并发系统建设、微服务架构经验方面完全满足JD要求，在项目落地能力上有突出优势，但未明确提及MySQL、Kafka、Docker使用经验，也未证明Go语言开发年限达到3年要求"
+  },
+  "ai_latest_dimensions": [
+    { "name": "JD匹配度", "score": 75, "max": 100 },
+    { "name": "年龄适配", "score": 50, "max": 100 },
+    { "name": "工作经验", "score": 80, "max": 100 },
+    { "name": "学历背景", "score": 70, "max": 100 },
+    { "name": "公司背景", "score": 80, "max": 100 },
+    { "name": "技术能力", "score": 60, "max": 100 },
+    { "name": "项目经验", "score": 100, "max": 100 }
+  ],
+  "ai_score_history_resume_25": [
+    { "evaluation_id": 26, "score": 76.7, "time": "2026-03-31 18:35:14" },
+    { "evaluation_id": 27, "score": 63.3, "time": "2026-03-31 18:43:35" },
+    { "evaluation_id": 28, "score": 63.3, "time": "2026-04-01 12:04:05" },
+    { "evaluation_id": 30, "score": 0.0, "time": "2026-04-01 14:40:26" },
+    { "evaluation_id": 31, "score": 0.0, "time": "2026-04-01 15:08:21" },
+    { "evaluation_id": 32, "score": 61.7, "time": "2026-04-01 15:21:58" },
+    { "evaluation_id": 33, "score": 60.0, "time": "2026-04-01 16:47:33" },
+    { "evaluation_id": 34, "score": 73.3, "time": "2026-04-01 17:02:26" }
+  ]
+}

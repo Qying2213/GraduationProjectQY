@@ -1,0 +1,60 @@
+<svg width="1600" height="520" viewBox="0 0 1600 520" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowBiz" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    </marker>
+    <style>
+      .title { font: 700 28px "Microsoft YaHei", "PingFang SC", sans-serif; fill:#0f172a; }
+      .box { rx:16; ry:16; stroke-width:2.5; }
+      .boxTitle { font: 700 18px "Microsoft YaHei", "PingFang SC", sans-serif; fill:#111827; }
+      .boxText { font: 14px "Microsoft YaHei", "PingFang SC", sans-serif; fill:#374151; }
+      .line { stroke:#475569; stroke-width:2.5; fill:none; marker-end:url(#arrowBiz); }
+      .note { font: 14px "Microsoft YaHei", "PingFang SC", sans-serif; fill:#6b7280; }
+    </style>
+  </defs>
+
+  <text x="800" y="42" text-anchor="middle" class="title">智能人才运营平台招聘业务流程图</text>
+  <text x="800" y="72" text-anchor="middle" class="note">从职位发布到面试通知的完整业务闭环</text>
+
+  <rect x="70" y="180" width="180" height="100" class="box" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="160" y="215" text-anchor="middle" class="boxTitle">1. HR 发布职位</text>
+  <text x="160" y="242" text-anchor="middle" class="boxText">填写岗位职责</text>
+  <text x="160" y="264" text-anchor="middle" class="boxText">技能要求与薪资</text>
+
+  <rect x="300" y="180" width="180" height="100" class="box" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="390" y="215" text-anchor="middle" class="boxTitle">2. 候选人浏览职位</text>
+  <text x="390" y="242" text-anchor="middle" class="boxText">查看职位详情</text>
+  <text x="390" y="264" text-anchor="middle" class="boxText">选择目标岗位</text>
+
+  <rect x="530" y="180" width="190" height="100" class="box" fill="#fef3c7" stroke="#d97706"/>
+  <text x="625" y="215" text-anchor="middle" class="boxTitle">3. 简历维护与上传</text>
+  <text x="625" y="242" text-anchor="middle" class="boxText">在线简历维护</text>
+  <text x="625" y="264" text-anchor="middle" class="boxText">附件简历上传</text>
+
+  <rect x="770" y="180" width="190" height="100" class="box" fill="#fee2e2" stroke="#ef4444"/>
+  <text x="865" y="215" text-anchor="middle" class="boxTitle">4. AI 智能评估</text>
+  <text x="865" y="242" text-anchor="middle" class="boxText">OCR / Embedding</text>
+  <text x="865" y="264" text-anchor="middle" class="boxText">RAG / Coze 评估</text>
+
+  <rect x="1010" y="180" width="190" height="100" class="box" fill="#ede9fe" stroke="#7c3aed"/>
+  <text x="1105" y="215" text-anchor="middle" class="boxTitle">5. 推荐与筛选</text>
+  <text x="1105" y="242" text-anchor="middle" class="boxText">查看匹配结果</text>
+  <text x="1105" y="264" text-anchor="middle" class="boxText">分析推荐理由</text>
+
+  <rect x="1250" y="180" width="190" height="100" class="box" fill="#ecfeff" stroke="#0891b2"/>
+  <text x="1345" y="215" text-anchor="middle" class="boxTitle">6. 面试与通知</text>
+  <text x="1345" y="242" text-anchor="middle" class="boxText">HR 安排面试</text>
+  <text x="1345" y="264" text-anchor="middle" class="boxText">系统发送消息</text>
+
+  <path d="M250 230 L300 230" class="line"/>
+  <path d="M480 230 L530 230" class="line"/>
+  <path d="M720 230 L770 230" class="line"/>
+  <path d="M960 230 L1010 230" class="line"/>
+  <path d="M1200 230 L1250 230" class="line"/>
+
+  <rect x="620" y="360" width="360" height="90" class="box" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="800" y="395" text-anchor="middle" class="boxTitle">业务结果沉淀</text>
+  <text x="800" y="422" text-anchor="middle" class="boxText">职位、简历、评估结果、推荐结果、面试记录、消息通知</text>
+
+  <path d="M1345 280 L1345 330 L980 330 L980 360" class="line"/>
+</svg>

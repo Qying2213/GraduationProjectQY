@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>毕业论文图表模板</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        background: #f5f7fb;
+        color: #1f2937;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+      p.note {
+        margin: 0 0 24px;
+        color: #4b5563;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(420px, 1fr));
+        gap: 24px;
+      }
+      .card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+        padding: 18px 18px 8px;
+      }
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 18px;
+      }
+      .card .sub {
+        margin: 0 0 12px;
+        color: #6b7280;
+        font-size: 13px;
+      }
+      .chart {
+        width: 100%;
+        height: 420px;
+      }
+      .full {
+        grid-column: 1 / -1;
+      }
+      .warning {
+        margin-top: 10px;
+        font-size: 12px;
+        color: #92400e;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>毕业论文图表模板</h1>
+    <p class="note">
+      数据源：2026-04-02 重新执行的专项验收、全链路接口测试，以及最近一次稳定达标的性能报告。
+      可直接在浏览器打开本文件并截图插入论文。
+    </p>
+
+    <div class="grid">
+      <section class="card">
+        <h2>图 1 毕业设计专项验收结果概览</h2>
+        <p class="sub">来源：graduation_acceptance_report_20260402_111437.md</p>
+        <div id="acceptanceSummary" class="chart"></div>
+      </section>
+
+      <section class="card">
+        <h2>图 2 毕业设计专项验收分类分布</h2>
+        <p class="sub">按健康检查、认证、RBAC、目标验证、业务链路分类统计</p>
+        <div id="acceptanceAreas" class="chart"></div>
+      </section>
+
+      <section class="card">
+        <h2>图 3 全链路接口测试分类统计</h2>
+        <p class="sub">来源：test_report_20260402_111732.md，共 33 项</p>
+        <div id="e2eCategories" class="chart"></div>
+      </section>
+
+      <section class="card">
+        <h2>图 4 AI 评估维度得分雷达图</h2>
+        <p class="sub">来源：evaluation_results 表中最新样本结果（evaluation_id=34）</p>
+        <div id="aiRadar" class="chart"></div>
+      </section>
+
+      <section class="card full">
+        <h2>图 5 核心读接口性能对比图</h2>
+        <p class="sub">来源：2026-04-01 最近一次稳定达标性能报告</p>
+        <div id="performanceValidated" class="chart"></div>
+      </section>
+
+      <section class="card full">
+        <h2>图 6 同一简历多次评估得分变化</h2>
+        <p class="sub">来源：resume_id=25 的 evaluation_results 历史记录</p>
+        <div id="aiHistory" class="chart"></div>
+      </section>
+
+      <section class="card full">
+        <h2>图 7 最新压测诊断图</h2>
+        <p class="sub">来源：benchmark_20260402_111505.txt</p>
+        <div id="performanceDiagnostic" class="chart"></div>
+        <div class="warning">
+          注：该图用于展示“当次压测观察结果”，其中 talents 与 recommendations 接口存在非 2xx 响应，不建议直接作为论文最终性能结论图。论文正式性能图建议优先采用“图 5”。
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const data = {
+        acceptanceSummary: { total: 34, passed: 34, failed: 0, warned: 0, skipped: 0 },
+        acceptanceAreas: [
+          { name: "健康检查", value: 8 },
+          { name: "认证", value: 4 },
+          { name: "RBAC", value: 3 },
+          { name: "目标一", value: 3 },
+          { name: "目标二", value: 3 },
+          { name: "业务链路", value: 9 },
+          { name: "目标三", value: 4 }
+        ],
+        e2eCategories: [
+          { name: "服务健康", value: 9 },
+          { name: "用户服务", value: 4 },
+          { name: "职位服务", value: 2 },
+          { name: "简历服务", value: 2 },
+          { name: "人才服务", value: 1 },
+          { name: "消息服务", value: 2 },
+          { name: "推荐服务", value: 1 },
+          { name: "日志服务", value: 4 },
+          { name: "面试服务", value: 1 },
+          { name: "统计服务", value: 7 }
+        ],
+        aiRadar: [
+          { name: "JD匹配度", score: 75 },
+          { name: "年龄适配", score: 50 },
+          { name: "工作经验", score: 80 },
+          { name: "学历背景", score: 70 },
+          { name: "公司背景", score: 80 },
+          { name: "技术能力", score: 60 },
+          { name: "项目经验", score: 100 }
+        ],
+        performanceValidated: [
+          { endpoint: "/api/v1/jobs", qps: 1379.8, avg: 72.474, p99: 321 },
+          { endpoint: "/api/v1/talents", qps: 2941.49, avg: 33.996, p99: 177 },
+          { endpoint: "/api/v1/recommendations/stats", qps: 4073.02, avg: 24.552, p99: 170 }
+        ],
+        aiHistory: [
+          { label: "26", score: 76.7 },
+          { label: "27", score: 63.3 },
+          { label: "28", score: 63.3 },
+          { label: "30", score: 0.0 },
+          { label: "31", score: 0.0 },
+          { label: "32", score: 61.7 },
+          { label: "33", score: 60.0 },
+          { label: "34", score: 73.3 }
+        ],
+        performanceDiagnostic: [
+          { endpoint: "/health", qps: 60968.92, avg: 1.64, non2xx: 4900 },
+          { endpoint: "/api/v1/jobs", qps: 1912.71, avg: 52.282, non2xx: 0 },
+          { endpoint: "/api/v1/talents", qps: 24520.38, avg: 4.078, non2xx: 5000 },
+          { endpoint: "/api/v1/recommendations/stats", qps: 99239.82, avg: 1.008, non2xx: 5000 }
+        ]
+      };
+
+      const palette = ["#2563eb", "#16a34a", "#f59e0b", "#ef4444", "#8b5cf6", "#14b8a6", "#f97316"];
+
+      function chart(id) {
+        return echarts.init(document.getElementById(id));
+      }
+
+      chart("acceptanceSummary").setOption({
+        tooltip: { trigger: "item" },
+        legend: { bottom: 0 },
+        series: [{
+          type: "pie",
+          radius: ["45%", "70%"],
+          label: { formatter: "{b}\n{c}" },
+          data: [
+            { name: "通过", value: data.acceptanceSummary.passed, itemStyle: { color: "#16a34a" } },
+            { name: "失败", value: data.acceptanceSummary.failed, itemStyle: { color: "#ef4444" } },
+            { name: "警告", value: data.acceptanceSummary.warned, itemStyle: { color: "#f59e0b" } },
+            { name: "跳过", value: data.acceptanceSummary.skipped, itemStyle: { color: "#94a3b8" } }
+          ]
+        }]
+      });
+
+      chart("acceptanceAreas").setOption({
+        tooltip: { trigger: "axis" },
+        xAxis: {
+          type: "category",
+          data: data.acceptanceAreas.map(i => i.name),
+          axisLabel: { interval: 0, rotate: 20 }
+        },
+        yAxis: { type: "value", name: "数量" },
+        series: [{
+          type: "bar",
+          barWidth: 36,
+          data: data.acceptanceAreas.map((i, idx) => ({
+            value: i.value,
+            itemStyle: { color: palette[idx % palette.length] }
+          })),
+          label: { show: true, position: "top" }
+        }]
+      });
+
+      chart("e2eCategories").setOption({
+        tooltip: { trigger: "axis" },
+        xAxis: {
+          type: "category",
+          data: data.e2eCategories.map(i => i.name),
+          axisLabel: { interval: 0, rotate: 25 }
+        },
+        yAxis: { type: "value", name: "测试项数" },
+        series: [{
+          type: "bar",
+          barWidth: 32,
+          data: data.e2eCategories.map((i, idx) => ({
+            value: i.value,
+            itemStyle: { color: palette[idx % palette.length] }
+          })),
+          label: { show: true, position: "top" }
+        }]
+      });
+
+      chart("aiRadar").setOption({
+        tooltip: {},
+        radar: {
+          indicator: data.aiRadar.map(i => ({ name: i.name, max: 100 })),
+          radius: "65%"
+        },
+        series: [{
+          type: "radar",
+          data: [{
+            value: data.aiRadar.map(i => i.score),
+            name: "最新样本评估结果",
+            areaStyle: { color: "rgba(37, 99, 235, 0.18)" },
+            lineStyle: { color: "#2563eb", width: 2 },
+            itemStyle: { color: "#2563eb" }
+          }]
+        }]
+      });
+
+      chart("performanceValidated").setOption({
+        tooltip: { trigger: "axis" },
+        legend: { top: 0 },
+        xAxis: {
+          type: "category",
+          data: data.performanceValidated.map(i => i.endpoint)
+        },
+        yAxis: [
+          { type: "value", name: "QPS" },
+          { type: "value", name: "延迟(ms)" }
+        ],
+        series: [
+          {
+            name: "QPS",
+            type: "bar",
+            data: data.performanceValidated.map(i => i.qps),
+            itemStyle: { color: "#2563eb" },
+            label: { show: true, position: "top", formatter: ({ value }) => value.toFixed(0) }
+          },
+          {
+            name: "平均延迟",
+            type: "line",
+            yAxisIndex: 1,
+            data: data.performanceValidated.map(i => i.avg),
+            itemStyle: { color: "#f59e0b" },
+            smooth: true
+          },
+          {
+            name: "P99",
+            type: "line",
+            yAxisIndex: 1,
+            data: data.performanceValidated.map(i => i.p99),
+            itemStyle: { color: "#ef4444" },
+            smooth: true
+          }
+        ]
+      });
+
+      chart("aiHistory").setOption({
+        tooltip: { trigger: "axis" },
+        xAxis: {
+          type: "category",
+          data: data.aiHistory.map(i => "评估" + i.label)
+        },
+        yAxis: { type: "value", name: "得分", max: 100 },
+        series: [{
+          name: "匹配得分",
+          type: "line",
+          smooth: true,
+          data: data.aiHistory.map(i => i.score),
+          itemStyle: { color: "#16a34a" },
+          areaStyle: { color: "rgba(22, 163, 74, 0.15)" },
+          label: { show: true, position: "top" }
+        }]
+      });
+
+      chart("performanceDiagnostic").setOption({
+        tooltip: { trigger: "axis" },
+        legend: { top: 0 },
+        xAxis: {
+          type: "category",
+          data: data.performanceDiagnostic.map(i => i.endpoint),
+          axisLabel: { interval: 0, rotate: 15 }
+        },
+        yAxis: [
+          { type: "value", name: "QPS / non-2xx" },
+          { type: "value", name: "平均延迟(ms)" }
+        ],
+        series: [
+          {
+            name: "QPS",
+            type: "bar",
+            data: data.performanceDiagnostic.map(i => i.qps),
+            itemStyle: { color: "#2563eb" }
+          },
+          {
+            name: "non-2xx",
+            type: "bar",
+            data: data.performanceDiagnostic.map(i => i.non2xx),
+            itemStyle: { color: "#ef4444" }
+          },
+          {
+            name: "平均延迟",
+            type: "line",
+            yAxisIndex: 1,
+            data: data.performanceDiagnostic.map(i => i.avg),
+            itemStyle: { color: "#f59e0b" },
+            smooth: true
+          }
+        ]
+      });
+
+      window.addEventListener("resize", () => {
+        [
+          "acceptanceSummary",
+          "acceptanceAreas",
+          "e2eCategories",
+          "aiRadar",
+          "performanceValidated",
+          "aiHistory",
+          "performanceDiagnostic"
+        ].forEach(id => chart(id).resize());
+      });
+    </script>
+  </body>
+</html>

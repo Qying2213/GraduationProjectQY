@@ -1,0 +1,100 @@
+<svg width="1400" height="980" viewBox="0 0 1400 980" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    </marker>
+    <style>
+      .title { font: 700 28px "Microsoft YaHei", "PingFang SC", sans-serif; fill:#0f172a; }
+      .layer { stroke-width:2; rx:18; ry:18; }
+      .layer-title { font: 700 20px "Microsoft YaHei", "PingFang SC", sans-serif; fill:#0f172a; }
+      .box { fill:#ffffff; stroke-width:2; rx:12; ry:12; }
+      .box-title { font: 700 16px "Microsoft YaHei", "PingFang SC", sans-serif; fill:#111827; }
+      .box-text { font: 14px "Microsoft YaHei", "PingFang SC", sans-serif; fill:#374151; }
+      .small-title { font: 700 17px "Microsoft YaHei", "PingFang SC", sans-serif; fill:#111827; }
+      .small-text { font: 14px "Microsoft YaHei", "PingFang SC", sans-serif; fill:#374151; }
+      .line { stroke:#475569; stroke-width:2.5; fill:none; marker-end:url(#arrow); }
+    </style>
+  </defs>
+
+  <text x="700" y="45" text-anchor="middle" class="title">智能人才运营平台总体架构图</text>
+
+  <rect x="80" y="85" width="1240" height="125" class="layer" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="700" y="118" text-anchor="middle" class="layer-title">表现层</text>
+
+  <rect x="145" y="135" width="285" height="50" class="box" stroke="#2563eb"/>
+  <text x="287.5" y="156" text-anchor="middle" class="box-title">企业管理后台</text>
+  <text x="287.5" y="174" text-anchor="middle" class="box-text">Vue3 + Element Plus</text>
+
+  <rect x="557" y="135" width="285" height="50" class="box" stroke="#2563eb"/>
+  <text x="699.5" y="156" text-anchor="middle" class="box-title">求职者门户</text>
+  <text x="699.5" y="174" text-anchor="middle" class="box-text">Vue3 + TypeScript</text>
+
+  <rect x="970" y="135" width="285" height="50" class="box" stroke="#2563eb"/>
+  <text x="1112.5" y="156" text-anchor="middle" class="box-title">数据大屏</text>
+  <text x="1112.5" y="174" text-anchor="middle" class="box-text">ECharts 可视化</text>
+
+  <rect x="510" y="255" width="380" height="90" class="box" stroke="#16a34a" fill="#dcfce7"/>
+  <text x="700" y="288" text-anchor="middle" class="small-title">API Gateway</text>
+  <text x="700" y="311" text-anchor="middle" class="small-text">:8080</text>
+  <text x="700" y="333" text-anchor="middle" class="small-text">统一入口 / 路由转发 / 基础鉴权</text>
+
+  <rect x="60" y="395" width="1280" height="320" class="layer" fill="#fef3c7" stroke="#d97706"/>
+  <text x="700" y="428" text-anchor="middle" class="layer-title">微服务层</text>
+
+  <rect x="110" y="455" width="370" height="200" class="box" stroke="#ea580c" fill="#fff7ed"/>
+  <text x="295" y="485" text-anchor="middle" class="small-title">基础业务服务</text>
+  <text x="150" y="525" class="small-text">user-service      :8081  用户认证 / RBAC</text>
+  <text x="150" y="555" class="small-text">job-service       :8082  职位管理</text>
+  <text x="150" y="585" class="small-text">interview-service :8083  面试安排</text>
+  <text x="150" y="615" class="small-text">message-service   :8085  消息通知</text>
+  <text x="150" y="645" class="small-text">talent-service    :8086  人才管理</text>
+
+  <rect x="515" y="455" width="370" height="200" class="box" stroke="#4f46e5" fill="#eef2ff"/>
+  <text x="700" y="485" text-anchor="middle" class="small-title">智能处理服务</text>
+  <text x="555" y="525" class="small-text">resume-service         :8084  OCR / AI评估 / 风控</text>
+  <text x="555" y="565" class="small-text">recommendation-service :8087  人岗推荐 / 推荐解释</text>
+  <text x="555" y="605" class="small-text">evaluator-service      :8090  独立 AI 评估入口</text>
+
+  <rect x="920" y="455" width="310" height="200" class="box" stroke="#0891b2" fill="#ecfeff"/>
+  <text x="1075" y="485" text-anchor="middle" class="small-title">支撑服务</text>
+  <text x="960" y="555" class="small-text">log-service :8088</text>
+  <text x="960" y="585" class="small-text">操作日志 / 审计查询 / 统计分析</text>
+
+  <rect x="80" y="775" width="1240" height="135" class="layer" fill="#ede9fe" stroke="#7c3aed"/>
+  <text x="700" y="808" text-anchor="middle" class="layer-title">数据与 AI 能力层</text>
+
+  <rect x="140" y="835" width="190" height="50" class="box" stroke="#7c3aed"/>
+  <text x="235" y="856" text-anchor="middle" class="box-title">PostgreSQL</text>
+  <text x="235" y="874" text-anchor="middle" class="box-text">业务数据</text>
+
+  <rect x="405" y="835" width="190" height="50" class="box" stroke="#7c3aed"/>
+  <text x="500" y="856" text-anchor="middle" class="box-title">Redis</text>
+  <text x="500" y="874" text-anchor="middle" class="box-text">缓存 / 性能优化</text>
+
+  <rect x="670" y="835" width="190" height="50" class="box" stroke="#7c3aed"/>
+  <text x="765" y="856" text-anchor="middle" class="box-title">Elasticsearch</text>
+  <text x="765" y="874" text-anchor="middle" class="box-text">日志检索</text>
+
+  <rect x="935" y="835" width="190" height="50" class="box" stroke="#7c3aed"/>
+  <text x="1030" y="856" text-anchor="middle" class="box-title">Coze Workflow</text>
+  <text x="1030" y="874" text-anchor="middle" class="box-text">结构化评估 / 录用建议</text>
+
+  <rect x="1180" y="835" width="140" height="50" class="box" stroke="#7c3aed"/>
+  <text x="1250" y="856" text-anchor="middle" class="box-title">Embedding API</text>
+  <text x="1250" y="874" text-anchor="middle" class="box-text">文本向量化</text>
+
+  <path d="M700 185 L700 255" class="line"/>
+  <path d="M700 345 L700 395" class="line"/>
+
+  <path d="M700 345 L295 345 L295 455" class="line"/>
+  <path d="M700 345 L700 455" class="line"/>
+  <path d="M700 345 L1075 345 L1075 455" class="line"/>
+
+  <path d="M295 655 L295 775" class="line"/>
+  <path d="M700 655 L700 775" class="line"/>
+  <path d="M1075 655 L1075 775" class="line"/>
+  <path d="M760 655 L760 835" class="line"/>
+  <path d="M820 655 L1030 655 L1030 835" class="line"/>
+  <path d="M860 655 L1250 655 L1250 835" class="line"/>
+  <path d="M500 655 L500 835" class="line"/>
+</svg>
