@@ -1,8 +1,8 @@
 type: Workflow
 version: 1.0.0
 main:
-    id: 7583886563420373019
-    name: remuse
+    id: 7624470702692155407
+    name: remuse_1
     desc: remuse
     icon: plugin_icon/workflow.png
     version: ""

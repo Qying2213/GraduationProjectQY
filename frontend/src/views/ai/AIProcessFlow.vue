@@ -212,7 +212,12 @@
             <div v-if="processTrace?.rag?.hits?.length" class="rag-hits">
               <div v-for="(hit, idx) in processTrace.rag.hits" :key="idx" class="rag-hit-item">
                 <div class="rag-hit-head">
-                  <span>Top {{ idx + 1 }}</span>
+                  <span>
+                    Top {{ idx + 1 }}
+                    <template v-if="hit.source_type === 'resume'"> · 简历 #{{ hit.source_id }}</template>
+                    <template v-else-if="hit.source_type === 'talent'"> · 人才 #{{ hit.source_id }}</template>
+                    <template v-else-if="hit.source_type === 'job'"> · 职位 #{{ hit.source_id }}</template>
+                  </span>
                   <el-tag size="small" type="info">相似度 {{ (Number(hit.similarity) * 100).toFixed(1) }}%</el-tag>
                 </div>
                 <p>{{ hit.content }}</p>
@@ -285,6 +290,7 @@ const loadingDetail = ref(false)
 
 // 轮询定时器
 let pollTimer: any = null
+let lastActiveTaskCount = 0
 
 // 获取处理历史
 const fetchHistory = async () => {
@@ -292,6 +298,7 @@ const fetchHistory = async () => {
   try {
     const res = await request.get('/evaluations', {
       params: {
+        latest_only: true,
         page: currentPage.value,
         page_size: pageSize.value
       }
@@ -394,22 +401,29 @@ const formatDate = (dateStr: string) => {
 // 检查当前任务状态
 const checkCurrentTask = async () => {
   try {
+    const previousCount = currentTasks.value.length
     const res = await request.get('/ai/current-task')
+    let nextTasks: any[] = []
     if (res.data?.code === 0 && res.data.data) {
       // 支持多任务
       if (res.data.data.tasks) {
-        currentTasks.value = res.data.data.tasks
+        nextTasks = res.data.data.tasks
       } else if (res.data.data.resumeId) {
         // 兼容单任务格式
-        currentTasks.value = [res.data.data]
-      } else {
-        currentTasks.value = []
+        nextTasks = [res.data.data]
       }
-    } else {
-      currentTasks.value = []
     }
+    currentTasks.value = nextTasks
+    if (previousCount > 0 && nextTasks.length === 0) {
+      refreshHistory()
+    }
+    lastActiveTaskCount = nextTasks.length
   } catch {
     currentTasks.value = []
+    if (lastActiveTaskCount > 0) {
+      refreshHistory()
+    }
+    lastActiveTaskCount = 0
   }
 }
 

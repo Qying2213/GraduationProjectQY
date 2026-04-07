@@ -1,6 +1,6 @@
 schema_version: 1.0.0
-name: remuse
-id: 7583886563420373019
+name: remuse_1
+id: 7624470702692155407
 description: "remuse"
 mode: workflow
 icon: plugin_icon/workflow.png
@@ -37,8 +37,8 @@ nodes:
       icon: https://lf3-static.bytednsdoc.com/obj/eden-cn/dvsmryvd_avi_dvsm/ljhwZthlaukjlkulzlp/icon/icon-End-v2.jpg
       description: "工作流的最终节点，用于返回工作流运行后的结果信息"
       position:
-        x: 2061.28331013373
-        y: 223.928931973334
+        x: 2077.185669926105
+        y: 361.928931973334
       parameters:
         node_inputs:
             - name: result
@@ -67,11 +67,11 @@ nodes:
                 value: "0"
             - name: temperature
               input:
-                type: float
+                type: string
                 value: "0.5"
             - name: topP
               input:
-                type: float
+                type: string
                 value: "1"
             - name: frequencyPenalty
               input:
@@ -179,12 +179,6 @@ nodes:
                 value:
                     path: age
                     ref_node: "166794"
-            - name: education
-              input:
-                type: string
-                value:
-                    path: education
-                    ref_node: "166794"
         node_outputs:
             output:
                 type: string
@@ -194,7 +188,6 @@ nodes:
                 value: null
         settingOnError:
             processType: 1
-            retryTimes: 0
             switch: false
             timeoutMs: 180000
     - id: "175064"
@@ -216,11 +209,11 @@ nodes:
                 value: "0"
             - name: temperature
               input:
-                type: float
+                type: string
                 value: "0.5"
             - name: topP
               input:
-                type: float
+                type: string
                 value: "1"
             - name: frequencyPenalty
               input:
@@ -284,7 +277,7 @@ nodes:
             - name: systemPrompt
               input:
                 type: string
-                value: |-
+                value: |
                     你是工作经验评估专家。
 
                     工作经历：{{work_exp}}
@@ -356,7 +349,6 @@ nodes:
                 value: null
         settingOnError:
             processType: 1
-            retryTimes: 0
             switch: false
             timeoutMs: 180000
     - id: "147309"
@@ -378,11 +370,11 @@ nodes:
                 value: "0"
             - name: temperature
               input:
-                type: float
+                type: string
                 value: "0.5"
             - name: topP
               input:
-                type: float
+                type: string
                 value: "1"
             - name: frequencyPenalty
               input:
@@ -502,7 +494,6 @@ nodes:
                 value: null
         settingOnError:
             processType: 1
-            retryTimes: 0
             switch: false
             timeoutMs: 180000
     - id: "172419"
@@ -524,11 +515,11 @@ nodes:
                 value: "0"
             - name: temperature
               input:
-                type: float
+                type: string
                 value: "0.5"
             - name: topP
               input:
-                type: float
+                type: string
                 value: "1"
             - name: frequencyPenalty
               input:
@@ -654,17 +645,17 @@ nodes:
                 value:
                     path: skill
                     ref_node: "166794"
+            - name: jd_text
+              input:
+                value:
+                    path: jd_text
+                    ref_node: "100001"
             - name: work_exp
               input:
                 type: string
                 value:
                     path: work_exp
                     ref_node: "166794"
-            - name: jd_text
-              input:
-                value:
-                    path: jd_text
-                    ref_node: "100001"
         node_outputs:
             output:
                 type: string
@@ -674,7 +665,6 @@ nodes:
                 value: null
         settingOnError:
             processType: 1
-            retryTimes: 0
             switch: false
             timeoutMs: 180000
     - id: "132603"
@@ -696,11 +686,11 @@ nodes:
                 value: "0"
             - name: temperature
               input:
-                type: float
+                type: string
                 value: "0.5"
             - name: topP
               input:
-                type: float
+                type: string
                 value: "1"
             - name: frequencyPenalty
               input:
@@ -833,7 +823,6 @@ nodes:
                     ref_node: "166794"
             - name: jd_text
               input:
-                type: string
                 value:
                     path: jd_text
                     ref_node: "100001"
@@ -846,7 +835,6 @@ nodes:
                 value: null
         settingOnError:
             processType: 1
-            retryTimes: 0
             switch: false
             timeoutMs: 180000
     - id: "171263"
@@ -868,185 +856,11 @@ nodes:
                 value: "0"
             - name: temperature
               input:
-                type: float
+                type: string
                 value: "0.5"
             - name: topP
               input:
-                type: float
-                value: "1"
-            - name: frequencyPenalty
-              input:
-                type: float
-                value: "0"
-            - name: maxTokens
-              input:
-                type: integer
-                value: "4096"
-            - name: spCurrentTime
-              input:
-                type: boolean
-                value: false
-            - name: spAntiLeak
-              input:
-                type: boolean
-                value: false
-            - name: thinkingType
-              input:
                 type: string
-                value: enabled
-            - name: responseFormat
-              input:
-                type: integer
-                value: "2"
-            - name: modelName
-              input:
-                type: string
-                value: 豆包·2.0·pro
-            - name: modelType
-              input:
-                type: integer
-                value: "1772700462"
-            - name: generationDiversity
-              input:
-                type: string
-                value: balance
-            - name: parameters
-              input:
-                type: object
-                properties:
-                    max_completion_tokens:
-                        type: integer
-                        value: "0"
-                    reasoning_effort:
-                        type: string
-                        value: medium
-                value: null
-            - name: prompt
-              input:
-                type: string
-                value: ""
-            - name: enableChatHistory
-              input:
-                type: boolean
-                value: false
-            - name: chatHistoryRound
-              input:
-                type: integer
-                value: "3"
-            - name: systemPrompt
-              input:
-                type: string
-                value: |+
-                    你是项目评估专家。
-
-                    工作经历（含项目）：{{work_exp}}
-                    技能：{{skill}}
-                    职位要求：{{jd_text}}
-
-                    任务：
-                    根据候选人的项目经历、承担角色、技术复杂度和量化成果，对“项目经历”维度进行评分。
-
-                    评分原则（非常重要）：
-                    1. 不能只看是否单独写了“项目经历”标题，也要从工作经历中提取项目证据。
-                    2. 如果工作经历中已经明确写到主导过系统建设、核心模块开发、架构设计、性能优化、业务指标提升等内容，不允许直接打0分。
-                    3. “信息不足”不等于“没有项目经验”。
-                    4. 如果候选人有从0到1项目、复杂企业级系统、高并发系统、核心业务系统或明确量化成果，应给高分。
-                    5. 只有在简历中完全找不到项目或模块经历证据时，才给0-2分。
-
-                    评分参考（满分10分）：
-                    - 9-10分：主导过复杂系统、核心业务系统或高并发/分布式项目，且有明确量化成果
-                    - 7-8分：参与核心项目，有明显技术亮点或业务价值
-                    - 5-6分：有完整项目经验，能够独立负责模块
-                    - 3-4分：有一定项目经验，但规模或复杂度一般
-                    - 1-2分：仅有弱相关项目或描述极少
-                    - 0分：明确无项目经验
-
-                    加分项（可在reason中说明）：
-                    - 有明确业务价值和量化指标
-                    - 从0到1主导过项目
-                    - 涉及高可用、高并发、微服务、复杂流程或自动化建设
-
-                    输出要求：
-                    1. reason 中必须引用项目或工作经历中的具体证据。
-                    2. 若是从工作经历中提取到项目证据，要明确写出“项目证据来自工作经历描述”。
-                    3. 直接输出JSON：{"score": 数字, "max": 10, "reason": "理由"}
-
-
-            - name: stableSystemPrompt
-              input:
-                type: string
-                value: ""
-            - name: canContinue
-              input:
-                type: boolean
-                value: false
-            - name: loopPromptVersion
-              input:
-                type: string
-                value: ""
-            - name: loopPromptName
-              input:
-                type: string
-                value: ""
-            - name: loopPromptId
-              input:
-                type: string
-                value: ""
-        node_inputs:
-            - name: work_exp
-              input:
-                type: string
-                value:
-                    path: work_exp
-                    ref_node: "166794"
-            - name: skill
-              input:
-                type: string
-                value:
-                    path: skill
-                    ref_node: "166794"
-            - name: jd_text
-              input:
-                type: string
-                value:
-                    path: jd_text
-                    ref_node: "100001"
-        node_outputs:
-            output:
-                type: string
-                value: null
-            reasoning_content:
-                type: string
-                value: null
-        settingOnError:
-            processType: 1
-            retryTimes: 0
-            switch: false
-            timeoutMs: 180000
-    - id: "191833"
-      type: llm
-      title: 汇总agent
-      icon: https://lf3-static.bytednsdoc.com/obj/eden-cn/dvsmryvd_avi_dvsm/ljhwZthlaukjlkulzlp/icon/icon-LLM-v2.jpg
-      description: "调用大语言模型,使用变量和提示词生成回复"
-      version: "3"
-      position:
-        x: 1471.6770907075636
-        y: 197.92893197333402
-      parameters:
-        fcParamVar:
-            knowledgeFCParam: {}
-        llmParam:
-            - name: apiMode
-              input:
-                type: integer
-                value: "0"
-            - name: temperature
-              input:
-                type: float
-                value: "0.5"
-            - name: topP
-              input:
-                type: float
                 value: "1"
             - name: frequencyPenalty
               input:
@@ -1111,6 +925,176 @@ nodes:
               input:
                 type: string
                 value: |
+                    你是项目评估专家。
+
+                    工作经历（含项目）：{{work_exp}}
+                    技能：{{skill}}
+                    职位要求：{{jd_text}}
+
+                    任务：
+                    根据候选人的项目经历、承担角色、技术复杂度和量化成果，对“项目经历”维度进行评分。
+
+                    评分原则（非常重要）：
+                    1. 不能只看是否单独写了“项目经历”标题，也要从工作经历中提取项目证据。
+                    2. 如果工作经历中已经明确写到主导过系统建设、核心模块开发、架构设计、性能优化、业务指标提升等内容，不允许直接打0分。
+                    3. “信息不足”不等于“没有项目经验”。
+                    4. 如果候选人有从0到1项目、复杂企业级系统、高并发系统、核心业务系统或明确量化成果，应给高分。
+                    5. 只有在简历中完全找不到项目或模块经历证据时，才给0-2分。
+
+                    评分参考（满分10分）：
+                    - 9-10分：主导过复杂系统、核心业务系统或高并发/分布式项目，且有明确量化成果
+                    - 7-8分：参与核心项目，有明显技术亮点或业务价值
+                    - 5-6分：有完整项目经验，能够独立负责模块
+                    - 3-4分：有一定项目经验，但规模或复杂度一般
+                    - 1-2分：仅有弱相关项目或描述极少
+                    - 0分：明确无项目经验
+
+                    加分项（可在reason中说明）：
+                    - 有明确业务价值和量化指标
+                    - 从0到1主导过项目
+                    - 涉及高可用、高并发、微服务、复杂流程或自动化建设
+
+                    输出要求：
+                    1. reason 中必须引用项目或工作经历中的具体证据。
+                    2. 若是从工作经历中提取到项目证据，要明确写出“项目证据来自工作经历描述”。
+                    3. 直接输出JSON：{"score": 数字, "max": 10, "reason": "理由"}
+            - name: stableSystemPrompt
+              input:
+                type: string
+                value: ""
+            - name: canContinue
+              input:
+                type: boolean
+                value: false
+            - name: loopPromptVersion
+              input:
+                type: string
+                value: ""
+            - name: loopPromptName
+              input:
+                type: string
+                value: ""
+            - name: loopPromptId
+              input:
+                type: string
+                value: ""
+        node_inputs:
+            - name: work_exp
+              input:
+                type: string
+                value:
+                    path: work_exp
+                    ref_node: "166794"
+            - name: skill
+              input:
+                type: string
+                value:
+                    path: skill
+                    ref_node: "166794"
+            - name: jd_text
+              input:
+                value:
+                    path: jd_text
+                    ref_node: "100001"
+        node_outputs:
+            output:
+                type: string
+                value: null
+            reasoning_content:
+                type: string
+                value: null
+        settingOnError:
+            processType: 1
+            switch: false
+            timeoutMs: 180000
+    - id: "191833"
+      type: llm
+      title: 汇总agent
+      icon: https://lf3-static.bytednsdoc.com/obj/eden-cn/dvsmryvd_avi_dvsm/ljhwZthlaukjlkulzlp/icon/icon-LLM-v2.jpg
+      description: "调用大语言模型,使用变量和提示词生成回复"
+      version: "3"
+      position:
+        x: 1496.1427367837114
+        y: 335.928931973334
+      parameters:
+        fcParamVar:
+            knowledgeFCParam: {}
+        llmParam:
+            - name: apiMode
+              input:
+                type: integer
+                value: "0"
+            - name: temperature
+              input:
+                type: string
+                value: "0.5"
+            - name: topP
+              input:
+                type: string
+                value: "1"
+            - name: frequencyPenalty
+              input:
+                type: float
+                value: "0"
+            - name: maxTokens
+              input:
+                type: integer
+                value: "4096"
+            - name: spCurrentTime
+              input:
+                type: boolean
+                value: false
+            - name: spAntiLeak
+              input:
+                type: boolean
+                value: false
+            - name: thinkingType
+              input:
+                type: string
+                value: enabled
+            - name: responseFormat
+              input:
+                type: integer
+                value: "2"
+            - name: modelName
+              input:
+                type: string
+                value: 豆包·2.0·pro
+            - name: modelType
+              input:
+                type: integer
+                value: "1772700462"
+            - name: generationDiversity
+              input:
+                type: string
+                value: balance
+            - name: parameters
+              input:
+                type: object
+                properties:
+                    max_completion_tokens:
+                        type: integer
+                        value: "0"
+                    reasoning_effort:
+                        type: string
+                        value: medium
+                value: null
+            - name: prompt
+              input:
+                type: string
+                value: ""
+            - name: enableChatHistory
+              input:
+                type: boolean
+                value: false
+            - name: chatHistoryRound
+              input:
+                type: integer
+                value: "3"
+            - name: systemPrompt
+              input:
+                type: string
+                value: |+
                     你是简历评估汇总专家。请将各维度的评分结果汇总成完整的候选人评估报告。
 
                     ## 各维度评分输入
@@ -1157,8 +1141,6 @@ nodes:
                     {
                       "基本信息": {
                         "姓名": "{{name}}",
-                        "手机": "提取到的手机号，没有则留空",
-                        "邮箱": "提取到的邮箱，没有则留空",
                         "评级": "S/A/B/C/D",
                         "最终得分": 0.0,
                         "学历": "{{degree}}",
@@ -1312,6 +1294,7 @@ nodes:
                     8. 如果JD为空，JD匹配分数默认给70分，匹配总结写"未提供JD，无法进行详细匹配分析"
                     9. 每个维度满分10分，六个维度总分60分，换算成100分制作为最终得分
                     10. 如果工作经历或项目经历中已明确体现核心技术证据，不要在技术能力或匹配总结中写“技术栈不匹配”或“完全未提供技能”
+
             - name: stableSystemPrompt
               input:
                 type: string
@@ -1406,7 +1389,6 @@ nodes:
                 value: null
         settingOnError:
             processType: 1
-            retryTimes: 0
             switch: false
             timeoutMs: 180000
     - id: "166794"
@@ -1520,8 +1502,6 @@ nodes:
 
                     基本信息：
                     - name: 提取候选人姓名；如果无法可靠提取，则使用 {{name1}}
-                    - phone: 提取手机号；优先提取 11 位中国大陆手机号，没有则留空
-                    - email: 提取邮箱地址；没有则留空
                     - age: 如果有出生年份（如 1994年），按 2026 年计算年龄；如果没有出生年份，再尝试提取“xx岁”
 
                     学历信息：
@@ -1538,6 +1518,7 @@ nodes:
                     - 不要因为简历没有单独“技能”标题就漏掉技术栈。
                     - 输出为逗号分隔字符串
 
+
                     行业推断：
                     - industry: 根据公司和项目经历推断行业，如跨境电商、智能制造、SaaS、互联网金融等
 
@@ -1545,8 +1526,6 @@ nodes:
 
                     {
                       "name": "提取到的姓名",
-                      "phone": "提取到的手机号",
-                      "email": "提取到的邮箱",
                       "age": "计算后的年龄数字",
                       "degree": "最高学历",
                       "education": "学校 - 专业",
@@ -1618,7 +1597,6 @@ nodes:
                 value: null
         settingOnError:
             processType: 1
-            retryTimes: 0
             switch: false
             timeoutMs: 180000
     - id: "136231"

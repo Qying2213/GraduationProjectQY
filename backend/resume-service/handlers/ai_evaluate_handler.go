@@ -65,6 +65,8 @@ type EmbeddingStepTrace struct {
 }
 
 type RAGHit struct {
+	SourceID   uint    `json:"source_id"`
+	SourceType string  `json:"source_type"`
 	Content    string  `json:"content"`
 	Similarity float64 `json:"similarity"`
 }
@@ -616,6 +618,7 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 
 	// 保存评估结果到 EvaluationResult 表
 	evalResult := h.saveEvaluationResult(&resume, result, candidateName, "ai_evaluate")
+	h.saveResumeRAGIndex(resume.ID)
 	h.saveProcessLog(&evalResult.ID, resume.ID, "completed", trace, "")
 
 	fmt.Println("\n========== [AI评估] 完成! ==========")
@@ -729,11 +732,12 @@ func (h *AIEvaluateHandler) queryRAG(text string, embedding []float64) (string, 
 
 	// 调用 recommendation-service 的 RAG 接口
 	ragURL := "http://localhost:8087/internal/recommendations/rag/query"
+	queryType := "resume"
 
 	reqBody := map[string]interface{}{
 		"query": text,
 		"top_k": 3,
-		"type":  "talent",
+		"type":  queryType,
 	}
 
 	jsonBody, err := json.Marshal(reqBody)
@@ -763,37 +767,77 @@ func (h *AIEvaluateHandler) queryRAG(text string, embedding []float64) (string, 
 		return "", nil, fmt.Errorf("响应错误: %d - %s", resp.StatusCode, string(body))
 	}
 
-	// 解析响应
-	var result struct {
-		Code int `json:"code"`
-		Data struct {
-			Results []struct {
-				Content    string  `json:"content"`
-				Similarity float64 `json:"similarity"`
-			} `json:"results"`
-		} `json:"data"`
+	for attempt := 0; attempt < 2; attempt++ {
+		// 解析响应
+		var result struct {
+			Code int `json:"code"`
+			Data struct {
+				Results []struct {
+					ID         uint    `json:"id"`
+					SourceType string  `json:"source_type"`
+					Content    string  `json:"content"`
+					Similarity float64 `json:"similarity"`
+				} `json:"results"`
+			} `json:"data"`
+		}
+
+		if err := json.Unmarshal(body, &result); err != nil {
+			return "", nil, fmt.Errorf("响应解析失败: %w", err)
+		}
+
+		if result.Code == 0 && len(result.Data.Results) > 0 {
+			var context string
+			hits := make([]RAGHit, 0, len(result.Data.Results))
+			for i, r := range result.Data.Results {
+				label := "相似人才"
+				switch r.SourceType {
+				case "resume":
+					label = "相似简历"
+				case "job":
+					label = "相似职位"
+				}
+				context += fmt.Sprintf("【%s%d】(相似度: %.1f%%)\n%s\n\n", label, i+1, r.Similarity*100, r.Content)
+				hits = append(hits, RAGHit{
+					SourceID:   r.ID,
+					SourceType: r.SourceType,
+					Content:    tracePreview(r.Content, 600),
+					Similarity: r.Similarity,
+				})
+			}
+			return context, hits, nil
+		}
+
+		if queryType == "talent" {
+			return "", []RAGHit{}, nil
+		}
+
+		// resume 检索为空时，回退到历史人才画像索引
+		queryType = "talent"
+		reqBody["type"] = queryType
+		jsonBody, err = json.Marshal(reqBody)
+		if err != nil {
+			return "", nil, fmt.Errorf("回退请求构建失败: %w", err)
+		}
+		req, err = http.NewRequest("POST", ragURL, bytes.NewBuffer(jsonBody))
+		if err != nil {
+			return "", nil, fmt.Errorf("回退请求创建失败: %w", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		if internalAPIKey := os.Getenv("INTERNAL_API_KEY"); internalAPIKey != "" {
+			req.Header.Set("X-Internal-Token", internalAPIKey)
+		}
+		resp, err = client.Do(req)
+		if err != nil {
+			return "", nil, fmt.Errorf("回退请求失败: %w", err)
+		}
+		body, _ = io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if resp.StatusCode != 200 {
+			return "", nil, fmt.Errorf("回退响应错误: %d - %s", resp.StatusCode, string(body))
+		}
 	}
 
-	if err := json.Unmarshal(body, &result); err != nil {
-		return "", nil, fmt.Errorf("响应解析失败: %w", err)
-	}
-
-	if result.Code != 0 || len(result.Data.Results) == 0 {
-		return "", []RAGHit{}, nil
-	}
-
-	// 组合相似人才信息
-	var context string
-	hits := make([]RAGHit, 0, len(result.Data.Results))
-	for i, r := range result.Data.Results {
-		context += fmt.Sprintf("【相似人才%d】(相似度: %.1f%%)\n%s\n\n", i+1, r.Similarity*100, r.Content)
-		hits = append(hits, RAGHit{
-			Content:    tracePreview(r.Content, 200),
-			Similarity: r.Similarity,
-		})
-	}
-
-	return context, hits, nil
+	return "", []RAGHit{}, nil
 }
 
 // saveResumeEmbedding 将简历对应人才写入向量索引
@@ -834,6 +878,40 @@ func (h *AIEvaluateHandler) saveResumeEmbedding(resume *models.Resume, embedding
 
 	body, _ := io.ReadAll(resp.Body)
 	fmt.Printf("[Embedding] 索引失败: status=%d, body=%s\n", resp.StatusCode, string(body))
+}
+
+func (h *AIEvaluateHandler) saveResumeRAGIndex(resumeID uint) {
+	if resumeID == 0 {
+		return
+	}
+
+	indexURL := "http://localhost:8087/internal/recommendations/rag/index-resume"
+	reqBody := map[string]interface{}{
+		"resume_id": resumeID,
+	}
+
+	jsonBody, _ := json.Marshal(reqBody)
+	req, _ := http.NewRequest("POST", indexURL, bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	if internalAPIKey := os.Getenv("INTERNAL_API_KEY"); internalAPIKey != "" {
+		req.Header.Set("X-Internal-Token", internalAPIKey)
+	}
+
+	client := &http.Client{Timeout: 20 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("[ResumeRAG] 索引失败: resume_id=%d err=%v\n", resumeID, err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 200 {
+		fmt.Printf("[ResumeRAG] 简历向量索引完成: resume_id=%d\n", resumeID)
+		return
+	}
+
+	body, _ := io.ReadAll(resp.Body)
+	fmt.Printf("[ResumeRAG] 索引失败: resume_id=%d status=%d body=%s\n", resumeID, resp.StatusCode, string(body))
 }
 
 // EvaluateUploadedFile 上传文件并进行AI评估
@@ -1144,6 +1222,7 @@ func (h *AIEvaluateHandler) BatchEvaluate(c *gin.Context) {
 		}
 
 		evalResult := h.saveEvaluationResult(&resume, result, candidateName, "ai_batch_evaluate")
+		h.saveResumeRAGIndex(resume.ID)
 		h.saveProcessLog(&evalResult.ID, resume.ID, "completed", trace, "")
 
 		results = append(results, AIEvaluateResponse{

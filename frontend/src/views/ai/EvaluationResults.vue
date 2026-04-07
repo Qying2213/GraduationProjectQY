@@ -129,13 +129,6 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="风险分" width="90" sortable="custom" prop="risk_score">
-          <template #default="{ row }">
-            <el-tag :type="getRiskType(row.risk_score)" size="small">
-              {{ row.risk_score || 0 }}
-            </el-tag>
-          </template>
-        </el-table-column>
         <el-table-column prop="parsed_education" label="学历" width="80" />
         <el-table-column prop="parsed_experience" label="经验" width="80" />
         <el-table-column label="技能" min-width="150">
@@ -167,8 +160,12 @@
             {{ formatDate(row.created_at) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
+            <el-button type="primary" link size="small" @click="openResume(row)">
+              <el-icon><Document /></el-icon>
+              简历
+            </el-button>
             <el-button type="primary" link size="small" @click="viewDetail(row)">
               <el-icon><View /></el-icon>
               详情
@@ -544,6 +541,14 @@ const viewDetail = (row: any) => {
   detailVisible.value = true
 }
 
+const openResume = (row: any) => {
+  if (!row?.resume_id) {
+    ElMessage.warning('该记录未关联简历')
+    return
+  }
+  window.open(`/api/v1/resumes/${row.resume_id}/download`, '_blank')
+}
+
 // 删除
 const handleDelete = async (row: any) => {
   try {
@@ -587,12 +592,6 @@ const getMatchLevelText = (level: string) => {
     low: '低匹配'
   }
   return map[level] || '-'
-}
-
-const getRiskType = (score: number) => {
-  if (score >= 50) return 'danger'
-  if (score >= 20) return 'warning'
-  return 'success'
 }
 
 const getStatusType = (status: string) => {

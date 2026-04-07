@@ -58,7 +58,7 @@ func main() {
 	}
 	log.Println("Database connected")
 
-	if err := db.AutoMigrate(&rag.TalentEmbedding{}, &rag.JobEmbedding{}); err != nil {
+	if err := db.AutoMigrate(&rag.TalentEmbedding{}, &rag.JobEmbedding{}, &rag.ResumeEmbedding{}); err != nil {
 		log.Printf("Warning: Failed to ensure RAG tables: %v", err)
 	}
 
@@ -120,6 +120,7 @@ func main() {
 		api.POST("/rag/query", recommendHandler.RAGQuery)
 		api.POST("/rag/index-talent", recommendHandler.IndexTalent)
 		api.POST("/rag/index-job", recommendHandler.IndexJob)
+		api.POST("/rag/index-resume", recommendHandler.IndexResume)
 		api.POST("/rag/index-all", recommendHandler.IndexAll)
 		api.POST("/rag/match", recommendHandler.RAGMatch)
 	}
@@ -138,6 +139,7 @@ func main() {
 		internal.POST("/rag/query", recommendHandler.RAGQuery)
 		internal.POST("/rag/index-talent", recommendHandler.IndexTalent)
 		internal.POST("/rag/index-job", recommendHandler.IndexJob)
+		internal.POST("/rag/index-resume", recommendHandler.IndexResume)
 		internal.POST("/rag/index-all", recommendHandler.IndexAll)
 		internal.POST("/rag/match", recommendHandler.RAGMatch)
 	}

@@ -45,6 +45,16 @@ type JobEmbedding struct {
 
 func (JobEmbedding) TableName() string { return "job_embeddings" }
 
+// ResumeEmbedding 简历向量记录
+type ResumeEmbedding struct {
+	ID        uint   `gorm:"primaryKey"`
+	ResumeID  uint   `gorm:"uniqueIndex"`
+	Content   string `gorm:"type:text"`
+	Embedding string `gorm:"type:jsonb"`
+}
+
+func (ResumeEmbedding) TableName() string { return "resume_embeddings" }
+
 // IndexTalent 索引人才信息
 func (vs *VectorStore) IndexTalent(ctx context.Context, talentID uint, content string) error {
 	// 获取向量
@@ -80,9 +90,26 @@ func (vs *VectorStore) IndexJob(ctx context.Context, jobID uint, content string)
 	return vs.db.WithContext(ctx).Exec(sql, jobID, content, embStr).Error
 }
 
+// IndexResume 索引简历信息
+func (vs *VectorStore) IndexResume(ctx context.Context, resumeID uint, content string) error {
+	emb, err := vs.embeddingClient.GetEmbedding(ctx, content)
+	if err != nil {
+		return fmt.Errorf("获取向量失败: %w", err)
+	}
+
+	embStr := vectorToString(emb)
+
+	sql := `INSERT INTO resume_embeddings (resume_id, content, embedding)
+			VALUES (?, ?, ?)
+			ON CONFLICT (resume_id) DO UPDATE
+			SET content = EXCLUDED.content, embedding = EXCLUDED.embedding, updated_at = CURRENT_TIMESTAMP`
+	return vs.db.WithContext(ctx).Exec(sql, resumeID, content, embStr).Error
+}
+
 // SearchResult 搜索结果
 type SearchResult struct {
 	ID         uint    `json:"id"`
+	SourceType string  `json:"source_type"`
 	Content    string  `json:"content"`
 	Similarity float64 `json:"similarity"`
 }
@@ -108,6 +135,7 @@ func (vs *VectorStore) SearchSimilarTalents(ctx context.Context, query string, l
 
 		results = append(results, SearchResult{
 			ID:         row.TalentID,
+			SourceType: "talent",
 			Content:    row.Content,
 			Similarity: embedding.CosineSimilarity(queryEmbedding, rowEmbedding),
 		})
@@ -145,6 +173,45 @@ func (vs *VectorStore) SearchSimilarJobs(ctx context.Context, query string, limi
 
 		results = append(results, SearchResult{
 			ID:         row.JobID,
+			SourceType: "job",
+			Content:    row.Content,
+			Similarity: embedding.CosineSimilarity(queryEmbedding, rowEmbedding),
+		})
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Similarity > results[j].Similarity
+	})
+
+	if limit > 0 && len(results) > limit {
+		results = results[:limit]
+	}
+
+	return results, nil
+}
+
+// SearchSimilarResumes 搜索相似简历
+func (vs *VectorStore) SearchSimilarResumes(ctx context.Context, query string, limit int) ([]SearchResult, error) {
+	queryEmbedding, err := vs.embeddingClient.GetEmbedding(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	var rows []ResumeEmbedding
+	if err := vs.db.WithContext(ctx).Find(&rows).Error; err != nil {
+		return nil, err
+	}
+
+	results := make([]SearchResult, 0, len(rows))
+	for _, row := range rows {
+		rowEmbedding, err := parseStoredEmbedding(row.Embedding)
+		if err != nil {
+			continue
+		}
+
+		results = append(results, SearchResult{
+			ID:         row.ResumeID,
+			SourceType: "resume",
 			Content:    row.Content,
 			Similarity: embedding.CosineSimilarity(queryEmbedding, rowEmbedding),
 		})

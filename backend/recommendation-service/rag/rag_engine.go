@@ -56,6 +56,8 @@ func (r *RAGEngine) Query(ctx context.Context, req *RAGRequest) (*RAGResponse, e
 
 	if req.QueryType == "job" {
 		results, err = r.vectorStore.SearchSimilarJobs(ctx, req.Query, req.TopK)
+	} else if req.QueryType == "resume" {
+		results, err = r.vectorStore.SearchSimilarResumes(ctx, req.Query, req.TopK)
 	} else {
 		results, err = r.vectorStore.SearchSimilarTalents(ctx, req.Query, req.TopK)
 	}

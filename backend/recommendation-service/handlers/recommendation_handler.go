@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"net/http"
@@ -748,6 +749,8 @@ func (h *RecommendationHandler) RAGQuery(c *gin.Context) {
 
 	if queryType == "job" {
 		results, err = h.RAGEngine.GetVectorStore().SearchSimilarJobs(ctx, req.Query, topK)
+	} else if queryType == "resume" {
+		results, err = h.RAGEngine.GetVectorStore().SearchSimilarResumes(ctx, req.Query, topK)
 	} else {
 		results, err = h.RAGEngine.GetVectorStore().SearchSimilarTalents(ctx, req.Query, topK)
 	}
@@ -766,6 +769,103 @@ func (h *RecommendationHandler) RAGQuery(c *gin.Context) {
 			"type":    queryType,
 		},
 	})
+}
+
+func buildResumeRAGContent(resumeRow map[string]any, evaluationRow map[string]any) string {
+	parts := []string{}
+
+	if resumeID, ok := resumeRow["resume_id"].(uint); ok && resumeID > 0 {
+		parts = append(parts, fmt.Sprintf("简历ID: %d", resumeID))
+	}
+	if name, _ := evaluationRow["parsed_name"].(string); strings.TrimSpace(name) != "" {
+		parts = append(parts, "姓名: "+strings.TrimSpace(name))
+	}
+	if education, _ := evaluationRow["parsed_education"].(string); strings.TrimSpace(education) != "" {
+		parts = append(parts, "学历: "+strings.TrimSpace(education))
+	}
+	if school, _ := evaluationRow["parsed_school"].(string); strings.TrimSpace(school) != "" {
+		parts = append(parts, "学校: "+strings.TrimSpace(school))
+	}
+	if experience, _ := evaluationRow["parsed_experience"].(string); strings.TrimSpace(experience) != "" {
+		parts = append(parts, "经历摘要: "+strings.TrimSpace(experience))
+	}
+	if recommendation, _ := evaluationRow["report_recommendation"].(string); strings.TrimSpace(recommendation) != "" {
+		parts = append(parts, "录用建议: "+strings.TrimSpace(recommendation))
+	}
+	if summary, _ := evaluationRow["report_summary"].(string); strings.TrimSpace(summary) != "" {
+		parts = append(parts, "评估摘要: "+strings.TrimSpace(summary))
+	}
+	if skillsRaw, _ := evaluationRow["parsed_skills"].(string); strings.TrimSpace(skillsRaw) != "" {
+		var skills []string
+		if err := json.Unmarshal([]byte(skillsRaw), &skills); err == nil && len(skills) > 0 {
+			parts = append(parts, "技能: "+strings.Join(skills, "、"))
+		}
+	}
+
+	return strings.ToValidUTF8(strings.Join(parts, "\n"), "")
+}
+
+func trimLongText(value string, maxLen int) string {
+	if maxLen <= 0 || len(value) <= maxLen {
+		return value
+	}
+	return value[:maxLen] + "..."
+}
+
+// IndexResume 索引简历到向量数据库
+func (h *RecommendationHandler) IndexResume(c *gin.Context) {
+	var req struct {
+		ResumeID uint   `json:"resume_id" binding:"required"`
+		Content  string `json:"content"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": err.Error()})
+		return
+	}
+
+	content := strings.TrimSpace(req.Content)
+	if content == "" {
+		var resumeRow map[string]any
+		if err := h.DB.Table("resumes").
+			Select("id as resume_id, file_name, extracted_text").
+			Where("id = ?", req.ResumeID).
+			Take(&resumeRow).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"code": 1, "message": "简历不存在"})
+			return
+		}
+
+		var evaluationRow map[string]any
+		if err := h.DB.Table("evaluation_results").
+			Select("parsed_name, parsed_education, parsed_school, parsed_experience, parsed_skills, report_summary, report_recommendation").
+			Where("resume_id = ?", req.ResumeID).
+			Order("created_at DESC, id DESC").
+			Take(&evaluationRow).Error; err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "该简历暂无可索引的评估结果"})
+			return
+		}
+
+		content = buildResumeRAGContent(resumeRow, evaluationRow)
+		if extractedText, _ := resumeRow["extracted_text"].(string); strings.TrimSpace(extractedText) != "" {
+			content += "\nOCR文本片段: " + trimLongText(strings.ToValidUTF8(extractedText, ""), 300)
+		}
+	}
+
+	content = strings.ToValidUTF8(content, "")
+	if content == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "索引内容为空"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
+	defer cancel()
+
+	if err := h.RAGEngine.GetVectorStore().IndexResume(ctx, req.ResumeID, content); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "索引失败: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 0, "message": "索引成功", "data": gin.H{"resume_id": req.ResumeID}})
 }
 
 // IndexTalent 索引人才到向量数据库
