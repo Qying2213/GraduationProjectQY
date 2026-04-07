@@ -68,5 +68,12 @@ coverage/
 tmp/
 temp/
 
-# Local nested repos / generated datasets
-makeREsume/FairCV/
+# FairCV generated artifacts / heavy data
+makeREsume/FairCV/.DS_Store
+makeREsume/FairCV/__pycache__/
+makeREsume/FairCV/data/resumes.json
+makeREsume/FairCV/eval_results/
+makeREsume/FairCV/output_backend_100/
+makeREsume/FairCV/output_backend_test/
+makeREsume/FairCV/output_pdfs_test/
+makeREsume/FairCV/batch_eval_summary_job53.json
