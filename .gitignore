@@ -67,3 +67,6 @@ coverage/
 .cache/
 tmp/
 temp/
+
+# Local nested repos / generated datasets
+makeREsume/FairCV/
