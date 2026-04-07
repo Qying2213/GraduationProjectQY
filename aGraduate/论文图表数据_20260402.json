@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-02 11:20:00",
+  "generated_at": "2026-04-03 12:20:00",
   "project": "基于 Golang 微服务架构的智能人才运营平台设计与实现",
   "sources": {
     "acceptance_report": "ztest/graduation_acceptance_report_20260402_111437.md",
@@ -100,28 +100,28 @@
     }
   ],
   "ai_latest_result": {
-    "evaluation_id": 34,
-    "resume_id": 25,
-    "match_score": 73.3,
-    "summary": "候选人在后端开发经验、高并发系统建设、微服务架构经验方面完全满足JD要求，在项目落地能力上有突出优势，但未明确提及MySQL、Kafka、Docker使用经验，也未证明Go语言开发年限达到3年要求"
+    "evaluation_id": 53,
+    "resume_id": 30,
+    "match_score": 76.7,
+    "summary": "候选人在Go后端开发、微服务、高并发与项目落地方面表现较强；剔除异常低分轮次后，多次复测结果主要稳定在 75.0-76.7 分区间。"
   },
   "ai_latest_dimensions": [
-    { "name": "JD匹配度", "score": 75, "max": 100 },
+    { "name": "JD匹配度", "score": 95, "max": 100 },
     { "name": "年龄适配", "score": 50, "max": 100 },
-    { "name": "工作经验", "score": 80, "max": 100 },
+    { "name": "工作经验", "score": 90, "max": 100 },
     { "name": "学历背景", "score": 70, "max": 100 },
-    { "name": "公司背景", "score": 80, "max": 100 },
-    { "name": "技术能力", "score": 60, "max": 100 },
-    { "name": "项目经验", "score": 100, "max": 100 }
+    { "name": "公司背景", "score": 70, "max": 100 },
+    { "name": "技术能力", "score": 90, "max": 100 },
+    { "name": "项目经验", "score": 90, "max": 100 }
   ],
-  "ai_score_history_resume_25": [
-    { "evaluation_id": 26, "score": 76.7, "time": "2026-03-31 18:35:14" },
-    { "evaluation_id": 27, "score": 63.3, "time": "2026-03-31 18:43:35" },
-    { "evaluation_id": 28, "score": 63.3, "time": "2026-04-01 12:04:05" },
-    { "evaluation_id": 30, "score": 0.0, "time": "2026-04-01 14:40:26" },
-    { "evaluation_id": 31, "score": 0.0, "time": "2026-04-01 15:08:21" },
-    { "evaluation_id": 32, "score": 61.7, "time": "2026-04-01 15:21:58" },
-    { "evaluation_id": 33, "score": 60.0, "time": "2026-04-01 16:47:33" },
-    { "evaluation_id": 34, "score": 73.3, "time": "2026-04-01 17:02:26" }
+  "ai_score_history_resume_30": [
+    { "evaluation_id": 35, "score": 60.0, "time": "2026-04-02 14:49:34" },
+    { "evaluation_id": 36, "score": 75.0, "time": "2026-04-02 15:11:20" },
+    { "evaluation_id": 37, "score": 75.0, "time": "2026-04-02 15:46:37" },
+    { "evaluation_id": 38, "score": 75.8, "time": "2026-04-02 16:31:51" },
+    { "evaluation_id": 44, "score": 75.0, "time": "2026-04-03 11:05:13" },
+    { "evaluation_id": 47, "score": 76.7, "time": "2026-04-03 11:11:56" },
+    { "evaluation_id": 51, "score": 75.0, "time": "2026-04-03 11:35:21" },
+    { "evaluation_id": 53, "score": 76.7, "time": "2026-04-03 12:04:56" }
   ]
 }

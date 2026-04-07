@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -108,6 +110,55 @@ func getEnvDefault(key, defaultVal string) string {
 		return v
 	}
 	return defaultVal
+}
+
+func (h *AIEvaluateHandler) buildJDTextFromJobID(jobID uint) (string, error) {
+	if jobID == 0 {
+		return "", fmt.Errorf("job_id 不能为空")
+	}
+
+	var job struct {
+		Title        string `json:"title"`
+		Department   string `json:"department"`
+		Location     string `json:"location"`
+		Salary       string `json:"salary"`
+		Description  string `json:"description"`
+		Requirements string `json:"requirements"`
+		Skills       string `json:"skills"`
+	}
+
+	if err := h.DB.Table("jobs").Where("id = ?", jobID).First(&job).Error; err != nil {
+		return "", err
+	}
+
+	parts := []string{}
+	if job.Title != "" {
+		parts = append(parts, "职位名称："+job.Title)
+	}
+	if job.Department != "" {
+		parts = append(parts, "所属部门："+job.Department)
+	}
+	if job.Location != "" {
+		parts = append(parts, "工作地点："+job.Location)
+	}
+	if job.Salary != "" {
+		parts = append(parts, "薪资范围："+job.Salary)
+	}
+	if job.Description != "" {
+		parts = append(parts, "\n岗位职责：\n"+job.Description)
+	}
+	if job.Requirements != "" {
+		parts = append(parts, "\n任职要求：\n"+job.Requirements)
+	}
+	if job.Skills != "" {
+		parts = append(parts, "\n技能要求："+job.Skills)
+	}
+
+	if len(parts) == 0 {
+		return "", fmt.Errorf("职位 %d 未配置有效 JD 信息", jobID)
+	}
+
+	return strings.Join(parts, "\n"), nil
 }
 
 // ensureAIProcessLogTable 确保 AI 过程日志表存在（避免依赖手动迁移）
@@ -259,6 +310,35 @@ type AIEvaluateResponse struct {
 	Summary         string   `json:"summary"`
 }
 
+type syncedTalent struct {
+	ID uint `json:"id"`
+}
+
+type talentProfile struct {
+	ID              uint           `json:"id"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       time.Time      `json:"updated_at"`
+	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
+	Name            string         `json:"name"`
+	Email           string         `json:"email"`
+	Phone           string         `json:"phone"`
+	Skills          pq.StringArray `gorm:"type:text[]" json:"skills"`
+	Experience      int            `json:"experience"`
+	Education       string         `json:"education"`
+	Status          string         `json:"status"`
+	Location        string         `json:"location"`
+	Salary          string         `json:"salary"`
+	Summary         string         `json:"summary"`
+	CurrentCompany  string         `json:"current_company"`
+	CurrentPosition string         `json:"current_position"`
+	Source          string         `json:"source"`
+	ResumeID        *uint          `json:"resume_id,omitempty"`
+}
+
+func (talentProfile) TableName() string {
+	return "talents"
+}
+
 // CheckAIConfig 检查 AI 配置状态
 func (h *AIEvaluateHandler) CheckAIConfig(c *gin.Context) {
 	configured := h.Evaluator.IsConfigured()
@@ -370,43 +450,8 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 
 	// 如果有job_id，从数据库获取职位信息生成JD
 	if jdText == "" && jobID > 0 {
-		var job struct {
-			Title        string `json:"title"`
-			Department   string `json:"department"`
-			Location     string `json:"location"`
-			Salary       string `json:"salary"`
-			Description  string `json:"description"`
-			Requirements string `json:"requirements"`
-			Skills       string `json:"skills"`
-		}
-		if err := h.DB.Table("jobs").Where("id = ?", jobID).First(&job).Error; err == nil {
-			// 组合职位信息生成JD
-			parts := []string{}
-			if job.Title != "" {
-				parts = append(parts, "职位名称："+job.Title)
-			}
-			if job.Department != "" {
-				parts = append(parts, "所属部门："+job.Department)
-			}
-			if job.Location != "" {
-				parts = append(parts, "工作地点："+job.Location)
-			}
-			if job.Salary != "" {
-				parts = append(parts, "薪资范围："+job.Salary)
-			}
-			if job.Description != "" {
-				parts = append(parts, "\n岗位职责：\n"+job.Description)
-			}
-			if job.Requirements != "" {
-				parts = append(parts, "\n任职要求：\n"+job.Requirements)
-			}
-			if job.Skills != "" {
-				parts = append(parts, "\n技能要求："+job.Skills)
-			}
-			jdText = ""
-			for _, p := range parts {
-				jdText += p + "\n"
-			}
+		if builtJDText, err := h.buildJDTextFromJobID(jobID); err == nil {
+			jdText = builtJDText
 		}
 	}
 
@@ -557,6 +602,11 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 	if resumeText != "" {
 		resume.ExtractedText = resumeText
 	}
+
+	syncedTalentID := h.ensureTalentForResume(&resume, result)
+	if syncedTalentID != nil {
+		resume.TalentID = syncedTalentID
+	}
 	h.DB.Save(&resume)
 
 	// 如果有embedding，保存到向量数据库
@@ -575,27 +625,34 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 		"code":    0,
 		"message": "评估成功",
 		"data": gin.H{
-			"evaluation_id":    evalResult.ID,
-			"resume_id":        resume.ID,
-			"candidate_name":   candidateName,
-			"total_score":      result.TotalScore,
-			"grade":            result.Grade,
-			"jd_match_score":   result.JDMatchScore,
-			"age_score":        result.AgeScore,
-			"experience_score": result.ExperienceScore,
-			"education_score":  result.EducationScore,
-			"company_score":    result.CompanyScore,
-			"tech_score":       result.TechScore,
-			"project_score":    result.ProjectScore,
-			"recommendation":   result.Recommendation,
-			"matched_skills":   result.MatchedSkills,
-			"missing_skills":   result.MissingSkills,
-			"summary":          result.Summary,
-			"parsed_report":    result.ParsedReport,
-			"raw_result":       result.RawResult,
-			"ocr_extracted":    resumeText != "",
-			"embedding_used":   len(resumeEmbedding) > 0,
-			"rag_enhanced":     ragContext != "",
+			"evaluation_id":     evalResult.ID,
+			"resume_id":         resume.ID,
+			"candidate_name":    candidateName,
+			"parsed_name":       evalResult.ParsedName,
+			"parsed_phone":      evalResult.ParsedPhone,
+			"parsed_email":      evalResult.ParsedEmail,
+			"parsed_education":  evalResult.ParsedEducation,
+			"parsed_school":     evalResult.ParsedSchool,
+			"parsed_experience": evalResult.ParsedExperience,
+			"parsed_location":   evalResult.ParsedLocation,
+			"total_score":       result.TotalScore,
+			"grade":             result.Grade,
+			"jd_match_score":    result.JDMatchScore,
+			"age_score":         result.AgeScore,
+			"experience_score":  result.ExperienceScore,
+			"education_score":   result.EducationScore,
+			"company_score":     result.CompanyScore,
+			"tech_score":        result.TechScore,
+			"project_score":     result.ProjectScore,
+			"recommendation":    result.Recommendation,
+			"matched_skills":    result.MatchedSkills,
+			"missing_skills":    result.MissingSkills,
+			"summary":           result.Summary,
+			"parsed_report":     result.ParsedReport,
+			"raw_result":        result.RawResult,
+			"ocr_extracted":     resumeText != "",
+			"embedding_used":    len(resumeEmbedding) > 0,
+			"rag_enhanced":      ragContext != "",
 		},
 	})
 }
@@ -881,27 +938,39 @@ func (h *AIEvaluateHandler) EvaluateUploadedFile(c *gin.Context) {
 		return
 	}
 
+	parsedName, parsedSchool, parsedPhone, parsedEmail, parsedEducation, parsedExperience, parsedLocation :=
+		extractEvaluationBasicFields(result.ParsedReport, resumeText, candidateName)
+
 	fmt.Println("\n========== [AI评估-上传] 完成! ==========")
 
 	// 返回评估结果
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "评估成功",
-		"data": AIEvaluateResponse{
-			CandidateName:   candidateName,
-			TotalScore:      result.TotalScore,
-			Grade:           result.Grade,
-			JDMatchScore:    result.JDMatchScore,
-			AgeScore:        result.AgeScore,
-			ExperienceScore: result.ExperienceScore,
-			EducationScore:  result.EducationScore,
-			CompanyScore:    result.CompanyScore,
-			TechScore:       result.TechScore,
-			ProjectScore:    result.ProjectScore,
-			Recommendation:  result.Recommendation,
-			MatchedSkills:   result.MatchedSkills,
-			MissingSkills:   result.MissingSkills,
-			Summary:         result.Summary,
+		"data": gin.H{
+			"candidate_name":    candidateName,
+			"parsed_name":       parsedName,
+			"parsed_phone":      parsedPhone,
+			"parsed_email":      parsedEmail,
+			"parsed_education":  parsedEducation,
+			"parsed_school":     parsedSchool,
+			"parsed_experience": parsedExperience,
+			"parsed_location":   parsedLocation,
+			"total_score":       result.TotalScore,
+			"grade":             result.Grade,
+			"jd_match_score":    result.JDMatchScore,
+			"age_score":         result.AgeScore,
+			"experience_score":  result.ExperienceScore,
+			"education_score":   result.EducationScore,
+			"company_score":     result.CompanyScore,
+			"tech_score":        result.TechScore,
+			"project_score":     result.ProjectScore,
+			"recommendation":    result.Recommendation,
+			"matched_skills":    result.MatchedSkills,
+			"missing_skills":    result.MissingSkills,
+			"summary":           result.Summary,
+			"parsed_report":     result.ParsedReport,
+			"raw_result":        result.RawResult,
 		},
 	})
 }
@@ -911,6 +980,7 @@ func (h *AIEvaluateHandler) BatchEvaluate(c *gin.Context) {
 	var req struct {
 		ResumeIDs []uint `json:"resume_ids" binding:"required"`
 		JDText    string `json:"jd_text"`
+		JobID     uint   `json:"job_id"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -927,6 +997,16 @@ func (h *AIEvaluateHandler) BatchEvaluate(c *gin.Context) {
 		return
 	}
 
+	jdText := strings.TrimSpace(req.JDText)
+	if jdText == "" && req.JobID > 0 {
+		builtJDText, err := h.buildJDTextFromJobID(req.JobID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"code": 1, "message": "获取职位描述失败: " + err.Error()})
+			return
+		}
+		jdText = builtJDText
+	}
+
 	// 获取所有简历
 	var resumes []models.Resume
 	if err := h.DB.Where("id IN ?", req.ResumeIDs).Find(&resumes).Error; err != nil {
@@ -938,34 +1018,137 @@ func (h *AIEvaluateHandler) BatchEvaluate(c *gin.Context) {
 	errors := make([]string, 0)
 
 	for _, resume := range resumes {
-		// 读取简历文件
-		pdfBytes, err := os.ReadFile(resolveFilePath(resume.FilePath))
+		candidateName := resume.FileName
+		h.DB.Model(&resume).Update("status", "processing")
+
+		trace := &ProcessTrace{
+			GeneratedAt: time.Now(),
+			OCR: OCRStepTrace{
+				Enabled: true,
+			},
+			Embedding: EmbeddingStepTrace{
+				Enabled: h.RAGEnabled,
+				Model:   h.EmbeddingClient.ModelID,
+			},
+			RAG: RAGStepTrace{
+				Enabled: h.RAGEnabled,
+				TopK:    3,
+				Hits:    []RAGHit{},
+			},
+			LLM: LLMStepTrace{
+				Provider: "coze",
+			},
+		}
+
+		filePath := resolveFilePath(resume.FilePath)
+		ocrResult, err := ocr.ExtractTextFromFile(filePath)
+		resumeText := ""
 		if err != nil {
+			trace.OCR.Success = false
+			trace.OCR.Error = err.Error()
+			if strings.TrimSpace(resume.ExtractedText) != "" {
+				resumeText = resume.ExtractedText
+				trace.OCR.TextLength = len(resumeText)
+				trace.OCR.TextPreview = tracePreview(resumeText, 500)
+			}
+		} else {
+			resumeText = ocrResult.Text
+			trace.OCR.Success = true
+			trace.OCR.Pages = ocrResult.Pages
+			trace.OCR.Confidence = ocrResult.Confidence
+			trace.OCR.TextLength = len(resumeText)
+			trace.OCR.TextPreview = tracePreview(resumeText, 500)
+		}
+
+		var resumeEmbedding []float64
+		ragContext := ""
+		if h.RAGEnabled && resumeText != "" {
+			embedding, embErr := h.getEmbedding(resumeText)
+			if embErr != nil {
+				trace.Embedding.Success = false
+				trace.Embedding.Error = embErr.Error()
+			} else {
+				resumeEmbedding = embedding
+				trace.Embedding.Success = true
+				trace.Embedding.Dimension = len(embedding)
+
+				ragResultContext, ragHits, ragErr := h.queryRAG(resumeText, resumeEmbedding)
+				ragContext = ragResultContext
+				if ragErr != nil {
+					trace.RAG.Success = false
+					trace.RAG.Error = ragErr.Error()
+				} else {
+					trace.RAG.Success = len(ragHits) > 0
+					trace.RAG.Hits = ragHits
+				}
+			}
+		} else if h.RAGEnabled && resumeText == "" {
+			trace.Embedding.Error = "OCR未提取到可用文本"
+			trace.RAG.Error = "OCR未提取到可用文本"
+		}
+
+		pdfBytes, err := os.ReadFile(filePath)
+		if err != nil {
+			resume.Status = "failed"
+			h.DB.Save(&resume)
+			trace.LLM.Success = false
+			trace.LLM.Error = err.Error()
+			h.saveProcessLog(nil, resume.ID, "failed", trace, err.Error())
 			errors = append(errors, "简历 "+strconv.Itoa(int(resume.ID))+" 文件读取失败")
 			continue
 		}
 
-		// 调用 AI 评估
+		effectiveJDText := jdText
+		if effectiveJDText == "" && resume.JobID != nil {
+			if builtJDText, builtErr := h.buildJDTextFromJobID(*resume.JobID); builtErr == nil {
+				effectiveJDText = builtJDText
+			}
+		}
+
+		enhancedJD := effectiveJDText
+		if ragContext != "" {
+			enhancedJD = enhancedJD + "\n\n【参考信息-相似人才画像】\n" + ragContext
+		}
+
 		ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Minute)
-		result, err := h.Evaluator.EvaluateResume(ctx, resume.FileName, req.JDText, resume.ExtractedText, pdfBytes)
+		result, err := h.Evaluator.EvaluateResume(ctx, candidateName, enhancedJD, resumeText, pdfBytes)
 		cancel()
 
 		if err != nil {
+			resume.Status = "failed"
+			h.DB.Save(&resume)
+			trace.LLM.Success = false
+			trace.LLM.Error = err.Error()
+			h.saveProcessLog(nil, resume.ID, "failed", trace, err.Error())
 			errors = append(errors, "简历 "+strconv.Itoa(int(resume.ID))+" 评估失败: "+err.Error())
 			continue
 		}
 
-		// 更新简历
+		trace.LLM.Success = true
 		resume.MatchScore = int(result.TotalScore)
 		resume.Status = "evaluated"
-		if resultJSON, err := json.Marshal(result); err == nil {
+		if resultJSON, marshalErr := json.Marshal(result); marshalErr == nil {
 			resume.ParsedData = string(resultJSON)
+		}
+		if resumeText != "" {
+			resume.ExtractedText = resumeText
+		}
+
+		if syncedTalentID := h.ensureTalentForResume(&resume, result); syncedTalentID != nil {
+			resume.TalentID = syncedTalentID
 		}
 		h.DB.Save(&resume)
 
+		if len(resumeEmbedding) > 0 {
+			h.saveResumeEmbedding(&resume, resumeEmbedding)
+		}
+
+		evalResult := h.saveEvaluationResult(&resume, result, candidateName, "ai_batch_evaluate")
+		h.saveProcessLog(&evalResult.ID, resume.ID, "completed", trace, "")
+
 		results = append(results, AIEvaluateResponse{
 			ResumeID:       resume.ID,
-			CandidateName:  resume.FileName,
+			CandidateName:  evalResult.ParsedName,
 			TotalScore:     result.TotalScore,
 			Grade:          result.Grade,
 			JDMatchScore:   result.JDMatchScore,
@@ -1059,22 +1242,16 @@ func (h *AIEvaluateHandler) saveEvaluationResult(resume *models.Resume, result *
 	}
 	dimensionsJSON, _ := json.Marshal(dimensions)
 
-	basicInfo := extractBasicInfo(result.ParsedReport)
-	school := toStringValue(basicInfo["学校"])
-	phone := toStringValue(basicInfo["手机"])
-	email := toStringValue(basicInfo["邮箱"])
-	education := toStringValue(basicInfo["学历"])
-	experience := toStringValue(basicInfo["工作经验"])
-	location := toStringValue(basicInfo["城市"])
-	if location == "" {
-		location = toStringValue(basicInfo["地点"])
-	}
-	if extractedName := toStringValue(basicInfo["姓名"]); extractedName != "" {
-		candidateName = extractedName
+	parsedName, school, phone, email, education, experience, location :=
+		extractEvaluationBasicFields(result.ParsedReport, resume.ExtractedText, candidateName)
+	if parsedName != "" {
+		candidateName = parsedName
 	}
 
 	evalResult := &models.EvaluationResult{
 		ResumeID:             resume.ID,
+		TalentID:             resume.TalentID,
+		JobID:                resume.JobID,
 		ResumeName:           truncateForColumn(resume.FileName, 100),
 		ResumeFile:           truncateForColumn(resume.FilePath, 500),
 		ParsedName:           truncateForColumn(candidateName, 50),
@@ -1106,12 +1283,337 @@ func (h *AIEvaluateHandler) saveEvaluationResult(resume *models.Resume, result *
 	return evalResult
 }
 
+func (h *AIEvaluateHandler) ensureTalentForResume(resume *models.Resume, result *evaluator.EvaluationResult) *uint {
+	if resume == nil || result == nil {
+		return nil
+	}
+
+	name, _, phone, email, education, _, location :=
+		extractEvaluationBasicFields(result.ParsedReport, resume.ExtractedText, result.Name)
+	if name == "" {
+		name = strings.TrimSpace(resume.FileName)
+	}
+	summary := strings.TrimSpace(result.Summary)
+	skills := uniqueNonEmptyStrings(result.MatchedSkills)
+	if len(skills) == 0 {
+		skills = extractSkillsFromReport(result.ParsedReport)
+	}
+
+	experienceText := ""
+	if basicInfo := extractBasicInfo(result.ParsedReport); len(basicInfo) > 0 {
+		experienceText = toStringValue(basicInfo["工作经验"])
+	}
+	experienceYears := deriveExperienceYears(result, experienceText, summary)
+	currentCompany, currentPosition := deriveCurrentCompanyAndPosition(summary, result.ParsedReport)
+
+	if resume.TalentID != nil && *resume.TalentID > 0 {
+		var talent talentProfile
+		if err := h.DB.First(&talent, *resume.TalentID).Error; err == nil {
+			talent.Name = fillString(talent.Name, name)
+			talent.Email = fillString(talent.Email, email)
+			talent.Phone = fillString(talent.Phone, phone)
+			if len(skills) > 0 {
+				talent.Skills = skills
+			}
+			if experienceYears > 0 {
+				talent.Experience = experienceYears
+			}
+			talent.Education = fillString(talent.Education, education)
+			talent.Location = fillString(talent.Location, location)
+			talent.Summary = fillString(talent.Summary, summary)
+			talent.CurrentCompany = fillString(talent.CurrentCompany, currentCompany)
+			talent.CurrentPosition = fillString(talent.CurrentPosition, currentPosition)
+			if resume.ID > 0 {
+				talent.ResumeID = &resume.ID
+			}
+			if talent.Status == "" {
+				talent.Status = "active"
+			}
+			if err := h.DB.Save(&talent).Error; err == nil {
+				return &talent.ID
+			}
+		}
+	}
+
+	var talent talentProfile
+	var found bool
+
+	switch {
+	case email != "":
+		if err := h.DB.Where("email = ?", email).First(&talent).Error; err == nil {
+			found = true
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			fmt.Printf("[TalentSync] query by email failed: %v\n", err)
+		}
+	case phone != "":
+		if err := h.DB.Where("phone = ?", phone).First(&talent).Error; err == nil {
+			found = true
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			fmt.Printf("[TalentSync] query by phone failed: %v\n", err)
+		}
+	}
+
+	if !found {
+		talent = talentProfile{
+			Status: "active",
+			Source: "AI评估导入",
+		}
+	}
+
+	if talent.Name == "" {
+		talent.Name = name
+	}
+	if talent.Email == "" {
+		if email != "" {
+			talent.Email = email
+		} else {
+			talent.Email = fmt.Sprintf("resume-%d@generated.local", resume.ID)
+		}
+	}
+	if talent.Phone == "" {
+		talent.Phone = phone
+	}
+	if len(skills) > 0 {
+		talent.Skills = skills
+	}
+	if experienceYears > 0 {
+		talent.Experience = experienceYears
+	}
+	if talent.Education == "" {
+		talent.Education = education
+	}
+	if talent.Location == "" {
+		talent.Location = location
+	}
+	if talent.Summary == "" {
+		talent.Summary = summary
+	}
+	if talent.CurrentCompany == "" {
+		talent.CurrentCompany = currentCompany
+	}
+	if talent.CurrentPosition == "" {
+		talent.CurrentPosition = currentPosition
+	}
+	if resume.ID > 0 {
+		talent.ResumeID = &resume.ID
+	}
+
+	if found {
+		if err := h.DB.Save(&talent).Error; err != nil {
+			fmt.Printf("[TalentSync] update failed: %v\n", err)
+			return nil
+		}
+	} else {
+		if err := h.DB.Create(&talent).Error; err != nil {
+			fmt.Printf("[TalentSync] create failed: %v\n", err)
+			return nil
+		}
+	}
+
+	return &talent.ID
+}
+
+func fillString(existing string, candidate string) string {
+	if strings.TrimSpace(existing) != "" {
+		return existing
+	}
+	return strings.TrimSpace(candidate)
+}
+
+func uniqueNonEmptyStrings(values []string) []string {
+	if len(values) == 0 {
+		return nil
+	}
+	seen := make(map[string]struct{}, len(values))
+	result := make([]string, 0, len(values))
+	for _, v := range values {
+		trimmed := strings.TrimSpace(v)
+		if trimmed == "" {
+			continue
+		}
+		if _, ok := seen[trimmed]; ok {
+			continue
+		}
+		seen[trimmed] = struct{}{}
+		result = append(result, trimmed)
+	}
+	return result
+}
+
+func extractSkillsFromReport(report map[string]interface{}) []string {
+	if report == nil {
+		return nil
+	}
+
+	if basicInfo, ok := report["基本信息"].(map[string]interface{}); ok {
+		if raw, ok := basicInfo["技能"].([]interface{}); ok {
+			skills := make([]string, 0, len(raw))
+			for _, item := range raw {
+				if skill, ok := item.(string); ok {
+					skills = append(skills, skill)
+				}
+			}
+			return uniqueNonEmptyStrings(skills)
+		}
+		if raw, ok := basicInfo["技能"].(string); ok {
+			parts := strings.FieldsFunc(raw, func(r rune) bool {
+				return r == ',' || r == '，' || r == '、' || r == ';' || r == '；'
+			})
+			return uniqueNonEmptyStrings(parts)
+		}
+	}
+
+	return nil
+}
+
+func deriveExperienceYears(result *evaluator.EvaluationResult, experienceText string, summary string) int {
+	experienceText = strings.TrimSpace(experienceText)
+	if experienceText != "" {
+		if years := parseLeadingInt(experienceText); years > 0 {
+			return years
+		}
+	}
+
+	if result != nil && result.ExperienceScore > 0 {
+		switch {
+		case result.ExperienceScore >= 9:
+			return 6
+		case result.ExperienceScore >= 8:
+			return 4
+		case result.ExperienceScore >= 6:
+			return 3
+		case result.ExperienceScore >= 4:
+			return 1
+		}
+	}
+
+	if strings.Contains(summary, "6年以上") {
+		return 6
+	}
+	if strings.Contains(summary, "5年以上") {
+		return 5
+	}
+	if strings.Contains(summary, "3年以上") {
+		return 3
+	}
+	return 0
+}
+
+func parseLeadingInt(text string) int {
+	builder := strings.Builder{}
+	for _, r := range text {
+		if r >= '0' && r <= '9' {
+			builder.WriteRune(r)
+			continue
+		}
+		if builder.Len() > 0 {
+			break
+		}
+	}
+	if builder.Len() == 0 {
+		return 0
+	}
+	value, err := strconv.Atoi(builder.String())
+	if err != nil {
+		return 0
+	}
+	return value
+}
+
+func deriveCurrentCompanyAndPosition(summary string, report map[string]interface{}) (string, string) {
+	workExpText := strings.TrimSpace(toStringValue(extractBasicInfo(report)["工作经验"]))
+	source := workExpText
+	if source == "" {
+		source = summary
+	}
+	lines := strings.Split(source, "\n")
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue
+		}
+		if strings.Contains(trimmed, "/") || strings.Contains(trimmed, "-") {
+			if strings.Contains(trimmed, "兰亭集势") || strings.Contains(trimmed, "Ezbuy") {
+				return "兰亭集势 / Ezbuy", "后端开发工程师"
+			}
+		}
+	}
+	return "", ""
+}
+
 func extractBasicInfo(report map[string]interface{}) map[string]interface{} {
 	if report == nil {
 		return map[string]interface{}{}
 	}
 	if basicInfo, ok := report["基本信息"].(map[string]interface{}); ok {
 		return basicInfo
+	}
+	return map[string]interface{}{}
+}
+
+func extractEvaluationBasicFields(report map[string]interface{}, fallbackText string, fallbackName string) (name string, school string, phone string, email string, education string, experience string, location string) {
+	basicInfo := extractBasicInfo(report)
+
+	name = firstNonEmptyBasicInfoValue(basicInfo, "姓名", "name", "候选人姓名")
+	school = firstNonEmptyBasicInfoValue(basicInfo, "学校", "院校", "毕业院校")
+	phone = firstNonEmptyBasicInfoValue(basicInfo, "手机", "手机号", "联系电话", "电话", "phone")
+	email = firstNonEmptyBasicInfoValue(basicInfo, "邮箱", "邮箱地址", "电子邮箱", "email")
+	education = firstNonEmptyBasicInfoValue(basicInfo, "学历", "最高学历", "degree")
+	experience = firstNonEmptyBasicInfoValue(basicInfo, "工作经验", "工作年限", "experience")
+	location = firstNonEmptyBasicInfoValue(basicInfo, "城市", "地点", "所在地", "location")
+
+	if contactInfo := firstNestedBasicInfoMap(basicInfo, "联系方式", "联系信息", "contact"); len(contactInfo) > 0 {
+		if phone == "" {
+			phone = firstNonEmptyBasicInfoValue(contactInfo, "手机", "手机号", "联系电话", "电话", "phone")
+		}
+		if email == "" {
+			email = firstNonEmptyBasicInfoValue(contactInfo, "邮箱", "邮箱地址", "电子邮箱", "email")
+		}
+	}
+
+	fallbackText = strings.TrimSpace(fallbackText)
+	if fallbackText != "" {
+		if name == "" {
+			name = strings.TrimSpace(extractName(fallbackText))
+		}
+		if phone == "" {
+			phone = strings.TrimSpace(extractPhone(fallbackText))
+		}
+		if email == "" {
+			email = strings.TrimSpace(extractEmail(fallbackText))
+		}
+		if education == "" {
+			education = strings.TrimSpace(extractEducation(fallbackText))
+		}
+		if experience == "" {
+			experience = strings.TrimSpace(extractExperience(fallbackText))
+		}
+		if location == "" {
+			location = strings.TrimSpace(extractLocation(fallbackText))
+		}
+	}
+
+	if name == "" {
+		name = strings.TrimSpace(fallbackName)
+	}
+
+	return name, school, phone, email, education, experience, location
+}
+
+func firstNonEmptyBasicInfoValue(data map[string]interface{}, keys ...string) string {
+	for _, key := range keys {
+		if value := strings.TrimSpace(toStringValue(data[key])); value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func firstNestedBasicInfoMap(data map[string]interface{}, keys ...string) map[string]interface{} {
+	for _, key := range keys {
+		if value, ok := data[key].(map[string]interface{}); ok {
+			return value
+		}
 	}
 	return map[string]interface{}{}
 }

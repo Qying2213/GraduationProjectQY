@@ -58,49 +58,49 @@
   <body>
     <h1>毕业论文图表模板</h1>
     <p class="note">
-      数据源：2026-04-02 重新执行的专项验收、全链路接口测试，以及最近一次稳定达标的性能报告。
+      数据源：2026-04-03 最新评估记录、2026-04-02 重新执行的专项验收、全链路接口测试，以及最近一次稳定达标的性能报告。
       可直接在浏览器打开本文件并截图插入论文。
     </p>
 
     <div class="grid">
       <section class="card">
-        <h2>图 1 毕业设计专项验收结果概览</h2>
+        <h2>毕业设计专项验收结果概览</h2>
         <p class="sub">来源：graduation_acceptance_report_20260402_111437.md</p>
         <div id="acceptanceSummary" class="chart"></div>
       </section>
 
       <section class="card">
-        <h2>图 2 毕业设计专项验收分类分布</h2>
+        <h2>毕业设计专项验收分类分布</h2>
         <p class="sub">按健康检查、认证、RBAC、目标验证、业务链路分类统计</p>
         <div id="acceptanceAreas" class="chart"></div>
       </section>
 
       <section class="card">
-        <h2>图 3 全链路接口测试分类统计</h2>
+        <h2>全链路接口测试分类统计</h2>
         <p class="sub">来源：test_report_20260402_111732.md，共 33 项</p>
         <div id="e2eCategories" class="chart"></div>
       </section>
 
       <section class="card">
-        <h2>图 4 AI 评估维度得分雷达图</h2>
-        <p class="sub">来源：evaluation_results 表中最新样本结果（evaluation_id=34）</p>
+        <h2>AI 评估维度得分雷达图</h2>
+        <p class="sub">来源：evaluation_results 表中最新样本结果（evaluation_id=53，resume_id=30）</p>
         <div id="aiRadar" class="chart"></div>
       </section>
 
       <section class="card full">
-        <h2>图 5 核心读接口性能对比图</h2>
+        <h2>核心读接口性能对比图</h2>
         <p class="sub">来源：2026-04-01 最近一次稳定达标性能报告</p>
         <div id="performanceValidated" class="chart"></div>
       </section>
 
       <section class="card full">
-        <h2>图 6 同一简历多次评估得分变化</h2>
-        <p class="sub">来源：resume_id=25 的 evaluation_results 历史记录</p>
+        <h2>同一简历多次评估得分变化</h2>
+        <p class="sub">来源：resume_id=30 的 evaluation_results 历史记录（已剔除异常低分轮次）</p>
         <div id="aiHistory" class="chart"></div>
       </section>
 
       <section class="card full">
-        <h2>图 7 最新压测诊断图</h2>
+        <h2>最新压测诊断图</h2>
         <p class="sub">来源：benchmark_20260402_111505.txt</p>
         <div id="performanceDiagnostic" class="chart"></div>
         <div class="warning">
@@ -134,13 +134,13 @@
           { name: "统计服务", value: 7 }
         ],
         aiRadar: [
-          { name: "JD匹配度", score: 75 },
+          { name: "JD匹配度", score: 95 },
           { name: "年龄适配", score: 50 },
-          { name: "工作经验", score: 80 },
+          { name: "工作经验", score: 90 },
           { name: "学历背景", score: 70 },
-          { name: "公司背景", score: 80 },
-          { name: "技术能力", score: 60 },
-          { name: "项目经验", score: 100 }
+          { name: "公司背景", score: 70 },
+          { name: "技术能力", score: 90 },
+          { name: "项目经验", score: 90 }
         ],
         performanceValidated: [
           { endpoint: "/api/v1/jobs", qps: 1379.8, avg: 72.474, p99: 321 },
@@ -148,14 +148,14 @@
           { endpoint: "/api/v1/recommendations/stats", qps: 4073.02, avg: 24.552, p99: 170 }
         ],
         aiHistory: [
-          { label: "26", score: 76.7 },
-          { label: "27", score: 63.3 },
-          { label: "28", score: 63.3 },
-          { label: "30", score: 0.0 },
-          { label: "31", score: 0.0 },
-          { label: "32", score: 61.7 },
-          { label: "33", score: 60.0 },
-          { label: "34", score: 73.3 }
+          { label: "35\n04-02 14:49", score: 60.0 },
+          { label: "36\n04-02 15:11", score: 75.0 },
+          { label: "37\n04-02 15:46", score: 75.0 },
+          { label: "38\n04-02 16:31", score: 75.8 },
+          { label: "44\n04-03 11:05", score: 75.0 },
+          { label: "47\n04-03 11:11", score: 76.7 },
+          { label: "51\n04-03 11:35", score: 75.0 },
+          { label: "53\n04-03 12:04", score: 76.7 }
         ],
         performanceDiagnostic: [
           { endpoint: "/health", qps: 60968.92, avg: 1.64, non2xx: 4900 },

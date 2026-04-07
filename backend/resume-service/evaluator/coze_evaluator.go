@@ -271,6 +271,8 @@ func (e *CozeEvaluator) parseResult(envelope map[string]interface{}, name string
 	fmt.Println(outputStr)
 	fmt.Println("========== [Coze Debug] END EXTRACTED ==========")
 
+	rawOutputStr := outputStr
+
 	// 清理 JSON 字符串（移除 markdown 代码块标记）
 	outputStr = cleanJSONString(outputStr)
 	fmt.Printf("[Coze Debug] After cleaning, length: %d\n", len(outputStr))
@@ -298,6 +300,9 @@ func (e *CozeEvaluator) parseResult(envelope map[string]interface{}, name string
 
 	fmt.Printf("[Coze Debug] JSON parsed successfully! Keys: %v\n", getMapKeys(resultData))
 	result.ParsedReport = resultData
+	if recovered := restoreInterviewQuestions(resultData, rawOutputStr); recovered > 0 {
+		fmt.Printf("[Coze Debug] Recovered %d interview questions from truncated output\n", recovered)
+	}
 
 	// 打印解析后的各个部分
 	if basicInfo, ok := resultData["基本信息"].(map[string]interface{}); ok {
@@ -383,6 +388,112 @@ func (e *CozeEvaluator) parseResult(envelope map[string]interface{}, name string
 	}
 
 	return result, nil
+}
+
+// restoreInterviewQuestions 尝试从原始输出里恢复「面试题目」数组。
+// 背景：当 Coze 输出在题目区域被截断时，cleanJSONString 会把面试题置空以保证 JSON 可解析。
+// 这里额外做一次「已完整对象」恢复，避免前端完全看不到题目。
+func restoreInterviewQuestions(parsed map[string]interface{}, rawOutput string) int {
+	if parsed == nil || rawOutput == "" {
+		return 0
+	}
+
+	rec, ok := parsed["录用建议"].(map[string]interface{})
+	if !ok || rec == nil {
+		rec = map[string]interface{}{}
+		parsed["录用建议"] = rec
+	}
+
+	if existing, ok := rec["面试题目"].([]interface{}); ok && len(existing) > 0 {
+		return 0
+	}
+
+	recovered := extractInterviewQuestionObjects(rawOutput)
+	if len(recovered) == 0 {
+		return 0
+	}
+
+	items := make([]interface{}, 0, len(recovered))
+	for _, question := range recovered {
+		items = append(items, question)
+	}
+	rec["面试题目"] = items
+	return len(items)
+}
+
+func extractInterviewQuestionObjects(rawOutput string) []map[string]interface{} {
+	keyIdx := strings.Index(rawOutput, `"面试题目"`)
+	if keyIdx < 0 {
+		return nil
+	}
+
+	arrayStartRel := strings.Index(rawOutput[keyIdx:], "[")
+	if arrayStartRel < 0 {
+		return nil
+	}
+
+	arrayContent := rawOutput[keyIdx+arrayStartRel+1:]
+	return parseCompleteJSONObjectsFromArray(arrayContent)
+}
+
+func parseCompleteJSONObjectsFromArray(input string) []map[string]interface{} {
+	if input == "" {
+		return nil
+	}
+
+	results := make([]map[string]interface{}, 0)
+	inString := false
+	escaped := false
+	depth := 0
+	objStart := -1
+
+	for i := 0; i < len(input); i++ {
+		ch := input[i]
+
+		if inString {
+			if escaped {
+				escaped = false
+				continue
+			}
+			if ch == '\\' {
+				escaped = true
+				continue
+			}
+			if ch == '"' {
+				inString = false
+			}
+			continue
+		}
+
+		switch ch {
+		case '"':
+			inString = true
+		case '{':
+			if depth == 0 {
+				objStart = i
+			}
+			depth++
+		case '}':
+			if depth == 0 {
+				continue
+			}
+			depth--
+			if depth == 0 && objStart >= 0 {
+				rawObj := input[objStart : i+1]
+				var obj map[string]interface{}
+				if err := json.Unmarshal([]byte(rawObj), &obj); err == nil {
+					results = append(results, obj)
+				}
+				objStart = -1
+			}
+		case ']':
+			if depth == 0 {
+				return results
+			}
+		}
+	}
+
+	return results
 }
 
 // cleanJSONString 清理 JSON 字符串

@@ -201,6 +201,7 @@ import { ref, onMounted, onUnmounted, watch, markRaw } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { statsApi } from '@/api/stats'
+import request from '@/utils/request'
 import * as echarts from 'echarts'
 import {
   User, Suitcase, Document, MagicStick, ArrowUp, ArrowDown,
@@ -319,19 +320,25 @@ const fetchRecentActivities = async () => {
   const colors = ['#0ea5e9', '#06b6d4', '#38bdf8', '#22c55e', '#14b8a6']
   const icons = [markRaw(UserFilled), markRaw(Briefcase), markRaw(Document), markRaw(TrendCharts), markRaw(ChatDotRound)]
   try {
-    const res = await fetch('/api/v1/messages?page=1&page_size=5')
-    const data = await res.json()
-    if (data.code === 0 && data.data?.list) {
-      recentActivities.value = data.data.list.map((m: any, i: number) => ({
+    const res = await request.get('/messages', {
+      params: { page: 1, page_size: 5 }
+    })
+    const data = res.data
+    const messages = data?.data?.messages || []
+    if (data?.code === 0 && messages.length > 0) {
+      recentActivities.value = messages.map((m: any, i: number) => ({
         title: m.title || '系统消息',
         description: m.content?.slice(0, 30) || '',
         time: formatTime(m.created_at),
         icon: icons[i % icons.length],
         color: colors[i % colors.length]
       }))
+    } else {
+      recentActivities.value = []
     }
   } catch (error) {
     console.error('获取最近活动失败:', error)
+    recentActivities.value = []
   }
 }
 
@@ -358,18 +365,31 @@ const hotJobs = ref<any[]>([])
 // 从后端获取热门人才
 const fetchTopTalents = async () => {
   try {
-    const res = await fetch('/api/v1/talents?page=1&page_size=5')
-    const data = await res.json()
-    if (data.code === 0 && data.data?.list) {
-      topTalents.value = data.data.list.map((t: any) => ({
-        id: t.id,
-        name: t.name,
-        skills: t.skills || [],
-        score: t.experience ? t.experience * 10 : 80
-      }))
+    const res = await request.get('/talents', {
+      params: { page: 1, page_size: 20 }
+    })
+    const data = res.data
+    const talents = data?.data?.talents || []
+    if (data?.code === 0 && talents.length > 0) {
+      const rankedTalents = talents
+        .map((t: any) => ({
+          id: t.id,
+          name: t.name,
+          skills: t.skills || [],
+          score: typeof t.match_score === 'number'
+            ? Math.round(t.match_score)
+          : (t.experience ? t.experience * 10 : 80)
+        }))
+        .sort((a: any, b: any) => b.score - a.score)
+        .slice(0, 5)
+
+      topTalents.value = rankedTalents
+    } else {
+      topTalents.value = []
     }
   } catch (error) {
     console.error('获取热门人才失败:', error)
+    topTalents.value = []
   }
 }
 

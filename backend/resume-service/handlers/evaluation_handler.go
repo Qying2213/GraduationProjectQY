@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"resume-service/models"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -21,20 +22,26 @@ func NewEvaluationHandler(db *gorm.DB) *EvaluationHandler {
 	return &EvaluationHandler{DB: db}
 }
 
-// ListEvaluations 获取评估结果列表
-func (h *EvaluationHandler) ListEvaluations(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
-	status := c.Query("status")
-	evalType := c.Query("eval_type")
-	search := c.Query("search")
-	sortBy := c.DefaultQuery("sort_by", "created_at")
-	sortOrder := c.DefaultQuery("sort_order", "desc")
+func shouldUseLatestOnly(raw string) bool {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "", "1", "true", "yes", "y":
+		return true
+	case "0", "false", "no", "n":
+		return false
+	default:
+		return true
+	}
+}
 
-	offset := (page - 1) * pageSize
+func (h *EvaluationHandler) latestEvaluationsQuery() *gorm.DB {
+	subQuery := h.DB.Model(&models.EvaluationResult{}).
+		Select("DISTINCT ON (resume_id) *").
+		Order("resume_id, created_at DESC, id DESC")
 
-	query := h.DB.Model(&models.EvaluationResult{})
+	return h.DB.Table("(?) AS latest_evaluations", subQuery)
+}
 
+func applyEvaluationFilters(query *gorm.DB, status, evalType, search string) *gorm.DB {
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}
@@ -46,6 +53,30 @@ func (h *EvaluationHandler) ListEvaluations(c *gin.Context) {
 	if search != "" {
 		query = query.Where("resume_name ILIKE ? OR parsed_name ILIKE ?", "%"+search+"%", "%"+search+"%")
 	}
+
+	return query
+}
+
+// ListEvaluations 获取评估结果列表
+func (h *EvaluationHandler) ListEvaluations(c *gin.Context) {
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	status := c.Query("status")
+	evalType := c.Query("eval_type")
+	search := c.Query("search")
+	latestOnly := shouldUseLatestOnly(c.DefaultQuery("latest_only", "true"))
+	sortBy := c.DefaultQuery("sort_by", "created_at")
+	sortOrder := c.DefaultQuery("sort_order", "desc")
+
+	offset := (page - 1) * pageSize
+
+	var query *gorm.DB
+	if latestOnly {
+		query = h.latestEvaluationsQuery()
+	} else {
+		query = h.DB.Model(&models.EvaluationResult{})
+	}
+	query = applyEvaluationFilters(query, status, evalType, search)
 
 	var total int64
 	query.Count(&total)
@@ -66,7 +97,7 @@ func (h *EvaluationHandler) ListEvaluations(c *gin.Context) {
 	orderClause := sortBy + " " + sortOrder
 
 	var evaluations []models.EvaluationResult
-	if err := query.Order(orderClause).Offset(offset).Limit(pageSize).Find(&evaluations).Error; err != nil {
+	if err := query.Order(orderClause).Offset(offset).Limit(pageSize).Scan(&evaluations).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "查询失败"})
 		return
 	}
@@ -85,6 +116,7 @@ func (h *EvaluationHandler) ListEvaluations(c *gin.Context) {
 			"total":       total,
 			"page":        page,
 			"page_size":   pageSize,
+			"latest_only": latestOnly,
 		},
 	})
 }
@@ -189,6 +221,11 @@ func (h *EvaluationHandler) DeleteEvaluation(c *gin.Context) {
 
 // GetEvaluationStats 获取评估统计
 func (h *EvaluationHandler) GetEvaluationStats(c *gin.Context) {
+	status := c.Query("status")
+	evalType := c.Query("eval_type")
+	search := c.Query("search")
+	latestOnly := shouldUseLatestOnly(c.DefaultQuery("latest_only", "true"))
+
 	var stats struct {
 		Total         int64   `json:"total"`
 		Completed     int64   `json:"completed"`
@@ -199,17 +236,27 @@ func (h *EvaluationHandler) GetEvaluationStats(c *gin.Context) {
 		AvgRiskScore  float64 `json:"avg_risk_score"`
 	}
 
-	h.DB.Model(&models.EvaluationResult{}).Count(&stats.Total)
-	h.DB.Model(&models.EvaluationResult{}).Where("status = ?", "completed").Count(&stats.Completed)
-	h.DB.Model(&models.EvaluationResult{}).Where("match_level = ?", "high").Count(&stats.HighMatch)
-	h.DB.Model(&models.EvaluationResult{}).Where("match_level = ?", "medium").Count(&stats.MediumMatch)
-	h.DB.Model(&models.EvaluationResult{}).Where("match_level = ?", "low").Count(&stats.LowMatch)
+	buildQuery := func() *gorm.DB {
+		var query *gorm.DB
+		if latestOnly {
+			query = h.latestEvaluationsQuery()
+		} else {
+			query = h.DB.Model(&models.EvaluationResult{})
+		}
+		return applyEvaluationFilters(query, status, evalType, search)
+	}
+
+	buildQuery().Count(&stats.Total)
+	buildQuery().Where("status = ?", "completed").Count(&stats.Completed)
+	buildQuery().Where("match_level = ?", "high").Count(&stats.HighMatch)
+	buildQuery().Where("match_level = ?", "medium").Count(&stats.MediumMatch)
+	buildQuery().Where("match_level = ?", "low").Count(&stats.LowMatch)
 
 	var avgScores struct {
 		AvgMatch float64
 		AvgRisk  float64
 	}
-	h.DB.Model(&models.EvaluationResult{}).
+	buildQuery().
 		Select("AVG(match_score) as avg_match, AVG(risk_score) as avg_risk").
 		Where("status = ?", "completed").
 		Scan(&avgScores)
@@ -220,7 +267,17 @@ func (h *EvaluationHandler) GetEvaluationStats(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "success",
-		"data":    stats,
+		"data": gin.H{
+			"total":             stats.Total,
+			"completed":         stats.Completed,
+			"high_match":        stats.HighMatch,
+			"medium_match":      stats.MediumMatch,
+			"low_match":         stats.LowMatch,
+			"avg_match_score":   stats.AvgMatchScore,
+			"avg_risk_score":    stats.AvgRiskScore,
+			"latest_only":       latestOnly,
+			"stats_scope_label": map[bool]string{true: "latest_per_resume", false: "all_records"}[latestOnly],
+		},
 	})
 }
 
@@ -232,10 +289,16 @@ func (h *EvaluationHandler) SaveEvaluation(eval *models.EvaluationResult) error 
 // formatEvaluation 格式化评估结果
 func (h *EvaluationHandler) formatEvaluation(eval *models.EvaluationResult) map[string]interface{} {
 	var fallbackEvalData map[string]interface{}
-	if (eval.ParsedReport == "" || eval.RawResult == "") && eval.ResumeID > 0 {
+	var fallbackExtractedText string
+	if eval.ResumeID > 0 && (eval.ParsedReport == "" || eval.RawResult == "" ||
+		eval.ParsedName == "" || eval.ParsedPhone == "" || eval.ParsedEmail == "" ||
+		eval.ParsedEducation == "" || eval.ParsedExperience == "" || eval.ParsedLocation == "") {
 		var resume models.Resume
-		if err := h.DB.Select("parsed_data").First(&resume, eval.ResumeID).Error; err == nil && resume.ParsedData != "" {
-			_ = json.Unmarshal([]byte(resume.ParsedData), &fallbackEvalData)
+		if err := h.DB.Select("parsed_data", "extracted_text").First(&resume, eval.ResumeID).Error; err == nil {
+			fallbackExtractedText = resume.ExtractedText
+			if resume.ParsedData != "" {
+				_ = json.Unmarshal([]byte(resume.ParsedData), &fallbackEvalData)
+			}
 		}
 	}
 
@@ -318,5 +381,38 @@ func (h *EvaluationHandler) formatEvaluation(eval *models.EvaluationResult) map[
 		result["raw_result"] = fallbackRawResult
 	}
 
+	parsedReport := asMap(result["parsed_report"])
+	parsedName, parsedSchool, parsedPhone, parsedEmail, parsedEducation, parsedExperience, parsedLocation :=
+		extractEvaluationBasicFields(parsedReport, fallbackExtractedText, eval.ParsedName)
+
+	if result["parsed_name"] == "" && parsedName != "" {
+		result["parsed_name"] = parsedName
+	}
+	if result["parsed_phone"] == "" && parsedPhone != "" {
+		result["parsed_phone"] = parsedPhone
+	}
+	if result["parsed_email"] == "" && parsedEmail != "" {
+		result["parsed_email"] = parsedEmail
+	}
+	if result["parsed_education"] == "" && parsedEducation != "" {
+		result["parsed_education"] = parsedEducation
+	}
+	if result["parsed_school"] == "" && parsedSchool != "" {
+		result["parsed_school"] = parsedSchool
+	}
+	if result["parsed_experience"] == "" && parsedExperience != "" {
+		result["parsed_experience"] = parsedExperience
+	}
+	if result["parsed_location"] == "" && parsedLocation != "" {
+		result["parsed_location"] = parsedLocation
+	}
+
 	return result
+}
+
+func asMap(value interface{}) map[string]interface{} {
+	if m, ok := value.(map[string]interface{}); ok {
+		return m
+	}
+	return map[string]interface{}{}
 }

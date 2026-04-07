@@ -483,8 +483,8 @@ const startEvaluate = async () => {
       evaluateResult.value = {
         // 解析信息
         parsed_name: data.candidate_name || data.parsed_name || getString(basicInfo['姓名']),
-        parsed_phone: data.parsed_phone || getString(basicInfo['手机']),
-        parsed_email: data.parsed_email || getString(basicInfo['邮箱']),
+        parsed_phone: data.parsed_phone || getFirstString(basicInfo, ['手机', '手机号', '联系电话', '电话', 'phone']),
+        parsed_email: data.parsed_email || getFirstString(basicInfo, ['邮箱', '邮箱地址', '电子邮箱', 'email']),
         parsed_education: data.parsed_education || getString(basicInfo['学历']) || getEducationFromGrade(data.education_score),
         parsed_school: getString(basicInfo['学校']),
         parsed_experience: data.parsed_experience || getString(basicInfo['工作经验']) || `${data.experience_score || 0}年`,
@@ -562,6 +562,14 @@ const asRecord = (value: any): Record<string, any> => {
 
 const getString = (value: any) => {
   return typeof value === 'string' ? value : ''
+}
+
+const getFirstString = (record: Record<string, any>, keys: string[]) => {
+  for (const key of keys) {
+    const value = getString(record[key])
+    if (value) return value
+  }
+  return ''
 }
 
 const getNumber = (value: any) => {

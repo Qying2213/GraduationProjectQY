@@ -4,7 +4,7 @@
     <div class="page-header">
       <div class="header-left">
         <h1>评估结果管理</h1>
-        <p class="subtitle">查看和管理所有AI评估记录</p>
+        <p class="subtitle">查看每份简历最新的AI评估结果</p>
       </div>
     </div>
 
@@ -17,7 +17,7 @@
           </div>
           <div class="stat-info">
             <div class="stat-value">{{ stats.total }}</div>
-            <div class="stat-label">总评估数</div>
+            <div class="stat-label">已评估简历数</div>
           </div>
         </el-card>
       </el-col>
@@ -104,7 +104,8 @@
         stripe
         @sort-change="handleSortChange"
       >
-        <el-table-column prop="id" label="ID" width="70" />
+        <el-table-column prop="id" label="评估ID" width="90" />
+        <el-table-column prop="resume_id" label="简历ID" width="90" />
         <el-table-column prop="resume_name" label="简历名称" min-width="150" show-overflow-tooltip />
         <el-table-column prop="parsed_name" label="候选人" width="100" />
         <el-table-column label="匹配度" width="120" sortable="custom" prop="match_score">
@@ -161,7 +162,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="评估时间" width="160" sortable="custom" prop="created_at">
+        <el-table-column label="最新评估时间" width="160" sortable="custom" prop="created_at">
           <template #default="{ row }">
             {{ formatDate(row.created_at) }}
           </template>
@@ -461,6 +462,7 @@ const loadData = async () => {
   try {
     const res = await request.get('/evaluations', {
       params: {
+        latest_only: true,
         page: pagination.page,
         page_size: pagination.pageSize,
         search: filters.search,
@@ -507,7 +509,11 @@ const parseDimensions = (dimensions: any) => {
 // 加载统计
 const loadStats = async () => {
   try {
-    const res = await request.get('/evaluations/stats')
+    const res = await request.get('/evaluations/stats', {
+      params: {
+        latest_only: true
+      }
+    })
     if (res.data?.code === 0) {
       stats.value = res.data.data || {}
     }
@@ -541,7 +547,7 @@ const viewDetail = (row: any) => {
 // 删除
 const handleDelete = async (row: any) => {
   try {
-    await ElMessageBox.confirm('确定要删除这条评估记录吗？', '提示', {
+    await ElMessageBox.confirm('确定要删除这条最新评估结果吗？删除后该简历可能回退显示更早的一条评估记录。', '提示', {
       type: 'warning'
     })
 
@@ -623,6 +629,14 @@ const getString = (value: any) => {
   return typeof value === 'string' ? value : ''
 }
 
+const getFirstString = (record: Record<string, any>, keys: string[]) => {
+  for (const key of keys) {
+    const value = getString(record[key])
+    if (value) return value
+  }
+  return ''
+}
+
 const getNumber = (value: any) => {
   if (typeof value === 'number') return value
   if (typeof value === 'string') {
@@ -692,8 +706,8 @@ const normalizeEvaluation = (e: any) => {
   return {
     ...e,
     parsed_name: e.parsed_name || getString(basicInfo['姓名']),
-    parsed_phone: e.parsed_phone || getString(basicInfo['手机']),
-    parsed_email: e.parsed_email || getString(basicInfo['邮箱']),
+    parsed_phone: e.parsed_phone || getFirstString(basicInfo, ['手机', '手机号', '联系电话', '电话', 'phone']),
+    parsed_email: e.parsed_email || getFirstString(basicInfo, ['邮箱', '邮箱地址', '电子邮箱', 'email']),
     parsed_education: e.parsed_education || getString(basicInfo['学历']),
     parsed_school: e.parsed_school || getString(basicInfo['学校']),
     parsed_experience: e.parsed_experience || getString(basicInfo['工作经验']),

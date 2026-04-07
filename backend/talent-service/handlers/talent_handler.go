@@ -112,9 +112,13 @@ func (h *TalentHandler) ListTalents(c *gin.Context) {
 	// 计算匹配分数
 	talentsWithScore := make([]TalentWithScore, len(talents))
 	for i, talent := range talents {
+		score := h.calculateMatchScore(talent, search, skills)
+		if latestEvalScore := h.latestEvaluationScore(talent); latestEvalScore > 0 {
+			score = latestEvalScore
+		}
 		talentsWithScore[i] = TalentWithScore{
 			Talent:     talent,
-			MatchScore: h.calculateMatchScore(talent, search, skills),
+			MatchScore: score,
 		}
 	}
 
@@ -206,6 +210,26 @@ func (h *TalentHandler) calculateMatchScore(talent models.Talent, keyword string
 	}
 
 	return score
+}
+
+func (h *TalentHandler) latestEvaluationScore(talent models.Talent) float64 {
+	if talent.ResumeID == nil || *talent.ResumeID == 0 {
+		return 0
+	}
+
+	var result struct {
+		MatchScore float64 `json:"match_score"`
+	}
+	if err := h.DB.Table("evaluation_results").
+		Select("match_score").
+		Where("resume_id = ?", *talent.ResumeID).
+		Order("created_at DESC").
+		Limit(1).
+		Scan(&result).Error; err != nil {
+		return 0
+	}
+
+	return result.MatchScore
 }
 
 // GetTalent 获取单个人才详情
