@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import re
 import subprocess
+from copy import deepcopy
 from pathlib import Path
 from typing import List, Optional
 
@@ -192,6 +193,59 @@ def remove_body_from_anchor(doc: Document, anchor_text: str):
         if elem.tag.endswith("sectPr"):
             continue
         body.remove(elem)
+
+
+def find_paragraph_index_contains(doc: Document, needle: str) -> Optional[int]:
+    for idx, p in enumerate(doc.paragraphs):
+        if needle in p.text:
+            return idx
+    return None
+
+
+def previous_nonempty_paragraph_index(doc: Document, start_idx: int) -> int:
+    idx = start_idx
+    while idx > 0:
+        prev = doc.paragraphs[idx - 1].text.strip()
+        if prev:
+            return idx - 1
+        idx -= 1
+    return start_idx
+
+
+def extract_body_elements_between_paragraphs(doc: Document, start_para_idx: int, end_para_idx: int):
+    body = doc._body._element
+    children = list(body)
+    start_el = doc.paragraphs[start_para_idx]._element
+    end_el = doc.paragraphs[end_para_idx]._element
+    start_idx = children.index(start_el)
+    end_idx = children.index(end_el)
+    return [deepcopy(elem) for elem in children[start_idx:end_idx]]
+
+
+def clear_body_keep_final_sectpr(doc: Document):
+    body = doc._body._element
+    children = list(body)
+    for elem in children:
+        if elem.tag.endswith("sectPr"):
+            continue
+        body.remove(elem)
+
+
+def append_body_elements(doc: Document, elements):
+    body = doc._body._element
+    sect_pr = None
+    for elem in body:
+        if elem.tag.endswith("sectPr"):
+            sect_pr = elem
+            break
+
+    insert_idx = len(body)
+    if sect_pr is not None:
+        insert_idx = list(body).index(sect_pr)
+
+    for elem in elements:
+        body.insert(insert_idx, deepcopy(elem))
+        insert_idx += 1
 
 
 def try_convert_svg_to_png(svg_path: Path) -> Optional[Path]:
@@ -427,20 +481,11 @@ def fill_from_markdown(template_path: Path, md_path: Path, output_path: Path):
     data = extract_sections(lines)
 
     doc = Document(str(template_path))
+    # 保留模板原始封面、声明页、授权页，只删除锚点“论文/设计题目”之后的示例正文。
+    # 这样最终文档继续沿用学校模板前置页，不再由脚本额外生成封面，避免封面重复。
     remove_body_from_anchor(doc, "论文/设计题目")
     enable_update_fields_on_open(doc)
     style_names = {s.name for s in doc.styles if s.type == WD_STYLE_TYPE.PARAGRAPH}
-
-    # ---------- 标题 ----------
-    if data["title_cn"]:
-        p = doc.add_paragraph(data["title_cn"])
-        style_title_cn(p)
-
-    if data["title_en"]:
-        p = doc.add_paragraph(data["title_en"])
-        style_title_en(p)
-
-    doc.add_paragraph()
 
     # ---------- 中文摘要 ----------
     p = doc.add_paragraph("摘  要")
