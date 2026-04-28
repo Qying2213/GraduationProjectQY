@@ -1,11 +1,17 @@
 package handlers
 
 import (
-	"job-service/models"
+	"context"
+	"log"
 	"net/http"
 	"strconv"
 
+	"common/cache"
+	"common/database"
+	"job-service/models"
+
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -15,6 +21,76 @@ type JobHandler struct {
 
 func NewJobHandler(db *gorm.DB) *JobHandler {
 	return &JobHandler{DB: db}
+}
+
+const (
+	jobDetailCachePrefix = "job:detail"
+	jobHotZSetKey        = "job:hot:zset"
+)
+
+type HotJob struct {
+	models.Job
+	ViewCount int64 `json:"view_count"`
+}
+
+func buildJobDetailCacheKey(jobID interface{}) string {
+	return cache.BuildKey(jobDetailCachePrefix, jobID)
+}
+
+func (h *JobHandler) incrementJobView(ctx context.Context, jobID uint) {
+	client := database.GetRedis()
+	if client == nil {
+		return
+	}
+
+	member := strconv.FormatUint(uint64(jobID), 10)
+	if err := client.ZIncrBy(ctx, jobHotZSetKey, 1, member).Err(); err != nil {
+		log.Printf("increment job view failed: job_id=%d err=%v", jobID, err)
+	}
+}
+
+func (h *JobHandler) invalidateJobDetailCache(ctx context.Context, jobID uint) {
+	client := database.GetRedis()
+	if client == nil {
+		return
+	}
+
+	key := buildJobDetailCacheKey(jobID)
+	if err := client.Del(ctx, key).Err(); err != nil {
+		log.Printf("invalidate job cache failed: job_id=%d err=%v", jobID, err)
+	}
+}
+
+func (h *JobHandler) removeJobFromHotRanking(ctx context.Context, jobID uint) {
+	client := database.GetRedis()
+	if client == nil {
+		return
+	}
+
+	member := strconv.FormatUint(uint64(jobID), 10)
+	if err := client.ZRem(ctx, jobHotZSetKey, member).Err(); err != nil {
+		log.Printf("remove job from hot ranking failed: job_id=%d err=%v", jobID, err)
+	}
+}
+
+func (h *JobHandler) respondWithFallbackHotJobs(c *gin.Context) {
+	var jobs []models.Job
+	if err := h.DB.Where("status = ?", "open").Order("created_at DESC").Limit(10).Find(&jobs).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch hot jobs"})
+		return
+	}
+	hotJobs := make([]HotJob, 0, len(jobs))
+	for _, job := range jobs {
+		hotJobs = append(hotJobs, HotJob{
+			Job:       job,
+			ViewCount: 0,
+		})
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data":    hotJobs,
+	})
 }
 
 // CreateJob 创建职位
@@ -163,15 +239,42 @@ func (h *JobHandler) ListJobs(c *gin.Context) {
 		models.Job
 		Applicants int64 `json:"applicants"`
 	}
-
-	jobsWithApplicants := make([]JobWithApplicants, len(jobs))
-	for i, job := range jobs {
-		var count int64
-		h.DB.Table("applications").Where("job_id = ?", job.ID).Count(&count)
-		jobsWithApplicants[i] = JobWithApplicants{
-			Job:        job,
-			Applicants: count,
+	
+	type ApplicantCount struct {
+		JobID      uint  `json:"job_id"`
+		Applicants int64 `json:"applicants"`
+	}
+	
+	jobIDs := make([]uint, 0, len(jobs))
+	for _, job := range jobs {
+		jobIDs = append(jobIDs, job.ID)
+	}
+	
+	countMap := make(map[uint]int64)
+	if len(jobIDs) > 0 {
+		var counts []ApplicantCount
+		err := h.DB.Table("applications").
+			Select("job_id, COUNT(*) as applicants").
+			Where("job_id IN ?", jobIDs).
+			Where("deleted_at IS NULL").
+			Group("job_id").
+			Scan(&counts).Error
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch applicant counts"})
+			return
 		}
+	
+		for _, item := range counts {
+			countMap[item.JobID] = item.Applicants
+		}
+	}
+	
+	jobsWithApplicants := make([]JobWithApplicants, 0, len(jobs))
+	for _, job := range jobs {
+		jobsWithApplicants = append(jobsWithApplicants, JobWithApplicants{
+			Job:        job,
+			Applicants: countMap[job.ID],
+		})
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -189,17 +292,114 @@ func (h *JobHandler) ListJobs(c *gin.Context) {
 // GetJob 获取职位详情
 func (h *JobHandler) GetJob(c *gin.Context) {
 	id := c.Param("id")
+	ctx := c.Request.Context()
+	cacheKey := buildJobDetailCacheKey(id)
+
 	var job models.Job
+
+	if err := cache.GetJSON(ctx, cacheKey, &job); err == nil {
+		h.incrementJobView(ctx, job.ID)
+
+		c.JSON(http.StatusOK, gin.H{
+			"code":    0,
+			"message": "success",
+			"data":    job,
+		})
+		return
+	} else if err != redis.Nil {
+		log.Printf("get job cache failed: key=%s err=%v", cacheKey, err)
+	}
 
 	if err := h.DB.First(&job, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Job not found"})
 		return
 	}
 
+	if err := cache.Set(ctx, cacheKey, job, cache.DefaultTTL); err != nil {
+		log.Printf("set job cache failed: key=%s err=%v", cacheKey, err)
+	}
+
+	h.incrementJobView(ctx, job.ID)
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "success",
 		"data":    job,
+	})
+}
+
+func (h *JobHandler) GetHotJobs(c *gin.Context) {
+	ctx := c.Request.Context()
+	client := database.GetRedis()
+	if client == nil {
+		h.respondWithFallbackHotJobs(c)
+		return
+	}
+
+	results, err := client.ZRevRangeWithScores(ctx, jobHotZSetKey, 0, 9).Result()
+	if err != nil {
+		log.Printf("get hot jobs failed: err=%v", err)
+		h.respondWithFallbackHotJobs(c)
+		return
+	}
+
+	if len(results) == 0 {
+		h.respondWithFallbackHotJobs(c)
+		return
+	}
+
+	ids := make([]uint, 0, len(results))
+	scoreMap := make(map[uint]int64, len(results))
+
+	for _, item := range results {
+		memberStr, ok := item.Member.(string)
+		if !ok {
+			continue
+		}
+
+		parsedID, err := strconv.ParseUint(memberStr, 10, 64)
+		if err != nil {
+			continue
+		}
+
+		jobID := uint(parsedID)
+		ids = append(ids, jobID)
+		scoreMap[jobID] = int64(item.Score)
+	}
+
+	if len(ids) == 0 {
+		h.respondWithFallbackHotJobs(c)
+		return
+	}
+
+	var jobs []models.Job
+	if err := h.DB.Where("id IN ?", ids).Find(&jobs).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch hot jobs"})
+		return
+	}
+
+	jobMap := make(map[uint]models.Job, len(jobs))
+	for _, job := range jobs {
+		jobMap[job.ID] = job
+	}
+
+	hotJobs := make([]HotJob, 0, len(ids))
+	for _, id := range ids {
+		job, ok := jobMap[id]
+		if !ok {
+			continue
+		}
+
+		hotJobs = append(hotJobs, HotJob{
+			Job:       job,
+			ViewCount: scoreMap[id],
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data":    hotJobs,
 	})
 }
 
@@ -222,6 +422,7 @@ func (h *JobHandler) UpdateJob(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update job"})
 		return
 	}
+	h.invalidateJobDetailCache(c.Request.Context(), job.ID)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
@@ -234,10 +435,20 @@ func (h *JobHandler) UpdateJob(c *gin.Context) {
 func (h *JobHandler) DeleteJob(c *gin.Context) {
 	id := c.Param("id")
 
-	if err := h.DB.Delete(&models.Job{}, id).Error; err != nil {
+	var job models.Job
+	if err := h.DB.First(&job, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Job not found"})
+		return
+	}
+
+	if err := h.DB.Delete(&job).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete job"})
 		return
 	}
+
+	ctx := c.Request.Context()
+	h.invalidateJobDetailCache(ctx, job.ID)
+	h.removeJobFromHotRanking(ctx, job.ID)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,

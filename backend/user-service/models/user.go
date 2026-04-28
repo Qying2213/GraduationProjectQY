@@ -25,6 +25,7 @@ type User struct {
 }
 
 // HashPassword 使用 bcrypt 存储密码
+
 func (u *User) HashPassword(password string) error {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {

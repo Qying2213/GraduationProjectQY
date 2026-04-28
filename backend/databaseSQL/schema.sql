@@ -269,11 +269,17 @@ CREATE TABLE IF NOT EXISTS job_embeddings (
 -- 创建索引
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
 CREATE INDEX IF NOT EXISTS idx_jobs_department ON jobs(department);
+CREATE INDEX IF NOT EXISTS idx_jobs_active_created_at ON jobs(created_at DESC) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_jobs_active_status_created_at ON jobs(status, created_at DESC) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_jobs_type ON jobs(type);
+CREATE INDEX IF NOT EXISTS idx_jobs_level ON jobs(level);
+CREATE INDEX IF NOT EXISTS idx_jobs_education ON jobs(education);
 CREATE INDEX IF NOT EXISTS idx_talents_status ON talents(status);
 CREATE INDEX IF NOT EXISTS idx_talents_location ON talents(location);
 CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
 CREATE INDEX IF NOT EXISTS idx_applications_talent ON applications(talent_id);
 CREATE INDEX IF NOT EXISTS idx_applications_job ON applications(job_id);
+CREATE INDEX IF NOT EXISTS idx_applications_job_active ON applications(job_id) WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_interviews_status ON interviews(status);
 CREATE INDEX IF NOT EXISTS idx_interviews_date ON interviews(date);
 CREATE INDEX IF NOT EXISTS idx_interviews_candidate ON interviews(candidate_id);

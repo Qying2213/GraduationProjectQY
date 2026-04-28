@@ -5,6 +5,9 @@
 - 基础URL: `http://localhost:8080/api/v1`
 - 认证方式: JWT Bearer Token
 - 响应格式: JSON
+- 完整 Swagger/OpenAPI 文档: [`backend/docs/swagger.yaml`](../backend/docs/swagger.yaml)
+
+可以将 `backend/docs/swagger.yaml` 导入 Swagger Editor、Apifox、Postman 或其他 OpenAPI 工具查看完整接口、参数和响应模型。
 
 ## 通用响应格式
 

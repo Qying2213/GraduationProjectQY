@@ -13,8 +13,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	_ "gateway/docs"
 )
 
 var db *gorm.DB
@@ -454,6 +458,19 @@ func wsProxyHandler(c *gin.Context, targetHost string) {
 	targetConn.Close()
 }
 
+// @title 智能人才运营平台 API
+// @version 1.1.0
+// @description 基于 Go 微服务架构的智能人才运营平台 API。Swagger 注释文档以 API Gateway 对外暴露的接口为准。
+// @description 认证接口以外的大多数后台接口需要在请求头中携带 JWT：Authorization: Bearer <token>。
+// @host localhost:8080
+// @BasePath /
+// @schemes http
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @securityDefinitions.apikey InternalToken
+// @in header
+// @name X-Internal-Token
 func main() {
 	initDB()
 
@@ -486,6 +503,7 @@ func main() {
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "healthy", "services": serviceRegistry})
 	})
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := r.Group("/api/v1")
 

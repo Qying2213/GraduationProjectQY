@@ -1,80 +1,99 @@
 openapi: 3.0.3
 info:
   title: 智能人才运营平台 API
+  version: 1.1.0
   description: |
-    智能人才运营平台的 RESTful API 文档。
-    
-    ## 认证
-    大部分 API 需要 JWT Token 认证，请在请求头中添加：
+    智能人才运营平台完整 OpenAPI 文档，覆盖 API Gateway 对外暴露的 `/api/v1` 接口、
+    各微服务健康检查、内部服务接口，以及独立运行的 AI 评估系统接口。
+
+    ## 访问入口
+    - 业务 API Gateway: `http://localhost:8080`
+    - AI 评估系统: `http://localhost:8090`
+
+    ## 认证方式
+    大多数后台管理接口需要 JWT Token：
+
     ```
     Authorization: Bearer <token>
     ```
-    
-    ## 错误码
-    - 0: 成功
-    - 1: 通用错误
-    - 401: 未授权
-    - 403: 禁止访问
-    - 404: 资源不存在
-  version: 1.0.0
-  contact:
-    name: API Support
-    email: support@example.com
 
+    部分内部接口可使用：
+
+    ```
+    X-Internal-Token: <INTERNAL_API_KEY>
+    ```
+
+    ## 通用响应
+    常见 JSON 响应格式为：
+
+    ```json
+    {
+      "code": 0,
+      "message": "success",
+      "data": {}
+    }
+    ```
 servers:
-  - url: http://localhost:8080/api/v1
-    description: 开发环境
-  - url: https://api.talent-platform.com/api/v1
-    description: 生产环境
-
+  - url: http://localhost:8080
+    description: 本地 API Gateway
+  - url: http://localhost:8090
+    description: 本地 AI 评估系统
 tags:
+  - name: 网关
+    description: Gateway 健康检查与服务发现
   - name: 认证
-    description: 用户认证相关接口
+    description: 注册、登录与当前用户资料
   - name: 用户
-    description: 用户管理接口
+    description: 用户管理
   - name: 人才
-    description: 人才库管理接口
+    description: 人才库管理
   - name: 职位
-    description: 职位管理接口
+    description: 职位管理与职位投递查看
   - name: 简历
-    description: 简历管理接口
-  - name: 面试
-    description: 面试管理接口
+    description: 简历上传、解析、下载与在线简历
+  - name: 投递
+    description: 职位投递申请
+  - name: AI
+    description: 简历 AI 解析、OCR 与智能评估
+  - name: 评估
+    description: AI 评估结果查询
   - name: 推荐
-    description: 智能推荐接口
+    description: 人岗推荐、RAG 与语义匹配
   - name: 消息
-    description: 消息通知接口
+    description: 系统消息、会话、公告、在线状态与 WebSocket
+  - name: 面试
+    description: 面试安排、反馈与改期
+  - name: 日志
+    description: 操作日志查询与清理
   - name: 统计
-    description: 数据统计接口
+    description: 仪表盘与招聘统计
+  - name: AI评估系统
+    description: 独立 AI 简历评估系统接口
+  - name: 内部接口
+    description: 服务间调用接口
 
 paths:
-  /login:
-    post:
-      tags: [认证]
-      summary: 用户登录
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [username, password]
-              properties:
-                username:
-                  type: string
-                  example: admin
-                password:
-                  type: string
-                  example: password123
+  /health:
+    get:
+      tags: [网关]
+      summary: Gateway 健康检查
       responses:
         '200':
-          description: 登录成功
+          description: Gateway 正常
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LoginResponse'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  services:
+                    type: object
+                    additionalProperties:
+                      type: string
 
-  /register:
+  /api/v1/register:
     post:
       tags: [认证]
       summary: 用户注册
@@ -86,30 +105,115 @@ paths:
               $ref: '#/components/schemas/RegisterRequest'
       responses:
         '201':
-          description: 注册成功
+          $ref: '#/components/responses/RegisterSuccess'
+        '400':
+          $ref: '#/components/responses/Error'
 
-  /talents:
+  /api/v1/login:
+    post:
+      tags: [认证]
+      summary: 用户登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/LoginSuccess'
+        '401':
+          $ref: '#/components/responses/Error'
+
+  /api/v1/profile:
+    get:
+      tags: [认证]
+      summary: 获取当前用户资料
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 当前用户资料
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/User'
+    put:
+      tags: [认证]
+      summary: 更新当前用户资料
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/User'
+
+  /api/v1/users:
+    get:
+      tags: [用户]
+      summary: 用户列表
+      description: 需要 admin/hr/hr_manager/recruiter 角色。
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 用户列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          users:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/User'
+                          total:
+                            type: integer
+                          page:
+                            type: integer
+                          page_size:
+                            type: integer
+
+  /api/v1/talents:
     get:
       tags: [人才]
       summary: 获取人才列表
       security:
         - bearerAuth: []
       parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-        - name: page_size
-          in: query
-          schema:
-            type: integer
-            default: 20
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
         - name: status
           in: query
           schema:
             type: string
-            enum: [active, hired, pending, rejected]
         - name: search
           in: query
           schema:
@@ -120,14 +224,23 @@ paths:
             type: array
             items:
               type: string
+          style: form
+          explode: true
+        - name: location
+          in: query
+          schema:
+            type: string
+        - name: experience
+          in: query
+          schema:
+            type: integer
       responses:
         '200':
-          description: 成功
+          description: 人才分页列表
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TalentListResponse'
-
     post:
       tags: [人才]
       summary: 创建人才
@@ -138,84 +251,111 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TalentRequest'
+              $ref: '#/components/schemas/Talent'
       responses:
         '201':
           description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Talent'
 
-  /talents/{id}:
+  /api/v1/talents/stats:
+    get:
+      tags: [人才]
+      summary: 获取人才统计
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/talents/search:
+    get:
+      tags: [人才]
+      summary: 搜索人才
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: education
+          in: query
+          schema:
+            type: string
+        - name: location
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 搜索结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalentListResponse'
+
+  /api/v1/talents/{id}:
     get:
       tags: [人才]
       summary: 获取人才详情
       security:
         - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/Id'
       responses:
         '200':
-          description: 成功
+          description: 人才详情
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Talent'
-
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Talent'
     put:
       tags: [人才]
-      summary: 更新人才信息
+      summary: 更新人才
       security:
         - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/Id'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TalentRequest'
+              $ref: '#/components/schemas/Talent'
       responses:
         '200':
-          description: 更新成功
-
+          $ref: '#/components/responses/GenericSuccess'
     delete:
       tags: [人才]
       summary: 删除人才
       security:
         - bearerAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/Id'
       responses:
         '200':
-          description: 删除成功
+          $ref: '#/components/responses/GenericSuccess'
 
-  /jobs:
+  /api/v1/jobs:
     get:
       tags: [职位]
       summary: 获取职位列表
-      security:
-        - bearerAuth: []
       parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-        - name: page_size
-          in: query
-          schema:
-            type: integer
-            default: 20
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
         - name: status
           in: query
           schema:
@@ -226,17 +366,50 @@ paths:
           schema:
             type: string
             enum: [full-time, part-time, contract, internship]
+        - name: location
+          in: query
+          schema:
+            type: string
+        - name: education
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: level
+          in: query
+          schema:
+            type: string
+        - name: experience
+          in: query
+          schema:
+            type: string
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
       responses:
         '200':
-          description: 成功
+          description: 职位分页列表
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobListResponse'
-
     post:
       tags: [职位]
       summary: 创建职位
+      description: 需要 admin/hr/hr_manager/recruiter 角色。
       security:
         - bearerAuth: []
       requestBody:
@@ -244,19 +417,127 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/JobRequest'
+              $ref: '#/components/schemas/Job'
       responses:
         '201':
           description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Job'
 
-  /interviews:
+  /api/v1/jobs/stats:
     get:
-      tags: [面试]
-      summary: 获取面试列表
+      tags: [职位]
+      summary: 获取职位统计
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/jobs/hot:
+    get:
+      tags: [职位]
+      summary: 获取热门职位
+      responses:
+        '200':
+          description: 热门职位列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/HotJob'
+
+  /api/v1/jobs/{id}:
+    get:
+      tags: [职位]
+      summary: 获取职位详情
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: 职位详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Job'
+    put:
+      tags: [职位]
+      summary: 更新职位
       security:
         - bearerAuth: []
       parameters:
-        - name: page
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Job'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+    delete:
+      tags: [职位]
+      summary: 删除职位
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/jobs/{id}/applications:
+    get:
+      tags: [职位]
+      summary: 获取职位下的投递列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 职位投递列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ApplicationWithCandidate'
+
+  /api/v1/resumes:
+    get:
+      tags: [简历]
+      summary: 获取简历列表
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: talent_id
           in: query
           schema:
             type: integer
@@ -264,54 +545,555 @@ paths:
           in: query
           schema:
             type: string
-            enum: [scheduled, completed, cancelled, no_show]
-        - name: date
+        - name: search
           in: query
           schema:
             type: string
-            format: date
       responses:
         '200':
-          description: 成功
-
+          description: 简历分页列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResumeListResponse'
     post:
-      tags: [面试]
-      summary: 创建面试安排
+      tags: [简历]
+      summary: 创建或上传简历记录
+      description: 支持 multipart 文件上传，也兼容 JSON 创建简历记录。
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResumeUploadForm'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Resume'
+      responses:
+        '201':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/resumes/upload:
+    post:
+      tags: [简历]
+      summary: 登录用户上传简历文件
       security:
         - bearerAuth: []
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/InterviewRequest'
+              $ref: '#/components/schemas/ResumeUploadForm'
       responses:
         '201':
-          description: 创建成功
+          $ref: '#/components/responses/GenericSuccess'
 
-  /interviews/{id}/feedback:
-    post:
-      tags: [面试]
-      summary: 提交面试反馈
-      security:
-        - bearerAuth: []
+  /api/v1/resumes/evaluation:
+    get:
+      tags: [简历]
+      summary: 获取待评估简历列表
       parameters:
-        - name: id
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          schema:
+            type: string
+            default: pending
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/resumes/file/{filename}:
+    get:
+      tags: [简历]
+      summary: 获取简历文件
+      parameters:
+        - name: filename
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+      responses:
+        '200':
+          description: 文件流
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /api/v1/resumes/online:
+    get:
+      tags: [简历]
+      summary: 获取当前用户在线简历
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 在线简历
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/OnlineResumeResponse'
+    put:
+      tags: [简历]
+      summary: 保存当前用户在线简历
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InterviewFeedback'
+              $ref: '#/components/schemas/OnlineResumeRequest'
       responses:
         '200':
-          description: 提交成功
+          $ref: '#/components/responses/GenericSuccess'
 
-  /recommendations/jobs-for-talent:
+  /api/v1/resumes/parse:
+    post:
+      tags: [简历]
+      summary: 解析简历文本
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/resumes/match:
+    post:
+      tags: [简历]
+      summary: 计算简历与职位匹配度
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResumeMatchRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/resumes/risk-check:
+    post:
+      tags: [简历]
+      summary: 简历风险综合检查
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RiskCheckRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/resumes/risk-check/time-conflict:
+    post:
+      tags: [简历]
+      summary: 工作经历时间冲突检查
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RiskCheckRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/resumes/risk-check/education:
+    post:
+      tags: [简历]
+      summary: 教育经历真实性风险检查
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RiskCheckRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/resumes/{id}:
+    get:
+      tags: [简历]
+      summary: 获取简历详情
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: 简历详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Resume'
+    delete:
+      tags: [简历]
+      summary: 删除简历
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/resumes/{id}/download:
+    get:
+      tags: [简历]
+      summary: 下载简历文件
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: 文件下载
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /api/v1/resumes/{id}/job:
+    put:
+      tags: [简历]
+      summary: 为简历关联职位
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [job_id]
+              properties:
+                job_id:
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/resumes/{id}/status:
+    put:
+      tags: [简历]
+      summary: 更新简历状态
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [pending, processing, parsed, active, archived, failed]
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/applications:
+    get:
+      tags: [投递]
+      summary: 获取投递列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: job_id
+          in: query
+          schema:
+            type: integer
+        - name: talent_id
+          in: query
+          description: 可传 `me` 表示当前登录用户的人才档案。
+          schema:
+            oneOf:
+              - type: integer
+              - type: string
+                enum: [me]
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 投递列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationListResponse'
+    post:
+      tags: [投递]
+      summary: 创建职位投递
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Application'
+      responses:
+        '201':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/applications/{id}:
+    put:
+      tags: [投递]
+      summary: 更新投递状态
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, viewed, interview, offer, rejected]
+                notes:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+    delete:
+      tags: [投递]
+      summary: 撤回或删除投递
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/ai/config:
+    get:
+      tags: [AI]
+      summary: 检查 AI 配置
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/ai/current-task:
+    get:
+      tags: [AI]
+      summary: 获取当前 AI 任务
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/ai/evaluate:
+    post:
+      tags: [AI]
+      summary: 根据简历 ID 发起 AI 评估
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIEvaluateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+        '503':
+          $ref: '#/components/responses/Error'
+
+  /api/v1/ai/evaluate/upload:
+    post:
+      tags: [AI]
+      summary: 上传 PDF 并发起 AI 评估
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                jd_text:
+                  type: string
+                candidate_name:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/ai/evaluate/batch:
+    post:
+      tags: [AI]
+      summary: 批量发起 AI 评估
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [resume_ids]
+              properties:
+                resume_ids:
+                  type: array
+                  items:
+                    type: integer
+                jd_text:
+                  type: string
+                job_id:
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/ai/evaluate/{id}/result:
+    get:
+      tags: [AI]
+      summary: 获取 AI 评估结果
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/ai/parse:
+    post:
+      tags: [AI]
+      summary: AI 智能解析简历
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resume_id:
+                  type: integer
+                text:
+                  type: string
+                file_url:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/ai/ocr:
+    post:
+      tags: [AI]
+      summary: OCR 文本提取
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resume_id:
+                  type: integer
+                file_url:
+                  type: string
+                file_path:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/evaluations:
+    get:
+      tags: [评估]
+      summary: 获取评估记录列表
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: eval_type
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/evaluations/stats:
+    get:
+      tags: [评估]
+      summary: 获取评估统计
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/evaluations/{id}:
+    get:
+      tags: [评估]
+      summary: 获取评估详情
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+    delete:
+      tags: [评估]
+      summary: 删除评估记录
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/evaluations/{id}/process:
+    get:
+      tags: [评估]
+      summary: 获取评估流程详情
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/recommendations/jobs-for-talent:
     post:
       tags: [推荐]
       summary: 为人才推荐职位
@@ -322,22 +1104,16 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                talent_id:
-                  type: integer
-                limit:
-                  type: integer
-                  default: 10
+              $ref: '#/components/schemas/TalentProfile'
       responses:
         '200':
-          description: 成功
+          description: 推荐职位
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RecommendationResponse'
+                $ref: '#/components/schemas/RecommendationListResponse'
 
-  /recommendations/talents-for-job:
+  /api/v1/recommendations/talents-for-job:
     post:
       tags: [推荐]
       summary: 为职位推荐人才
@@ -348,39 +1124,29 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                job_id:
-                  type: integer
-                limit:
-                  type: integer
-                  default: 10
+              $ref: '#/components/schemas/JobProfile'
       responses:
         '200':
-          description: 成功
+          description: 推荐人才
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationListResponse'
 
-  /messages:
+  /api/v1/recommendations/stats:
     get:
-      tags: [消息]
-      summary: 获取消息列表
+      tags: [推荐]
+      summary: 获取推荐统计
       security:
         - bearerAuth: []
-      parameters:
-        - name: is_read
-          in: query
-          schema:
-            type: boolean
-        - name: type
-          in: query
-          schema:
-            type: string
       responses:
         '200':
-          description: 成功
+          $ref: '#/components/responses/GenericSuccess'
 
+  /api/v1/recommendations/batch:
     post:
-      tags: [消息]
-      summary: 发送消息
+      tags: [推荐]
+      summary: 批量推荐
       security:
         - bearerAuth: []
       requestBody:
@@ -388,24 +1154,1521 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MessageRequest'
+              type: object
+              properties:
+                talent_ids:
+                  type: array
+                  items:
+                    type: integer
+                job_ids:
+                  type: array
+                  items:
+                    type: integer
       responses:
-        '201':
-          description: 发送成功
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
 
-  /stats/dashboard:
-    get:
-      tags: [统计]
-      summary: 获取仪表板统计数据
+  /api/v1/recommendations/attribution-report:
+    post:
+      tags: [推荐]
+      summary: 生成推荐归因报告
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [talent_id, job_id]
+              properties:
+                talent_id:
+                  type: integer
+                job_id:
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/recommendations/semantic-match:
+    post:
+      tags: [推荐]
+      summary: 语义相似度匹配
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text1, text2]
+              properties:
+                text1:
+                  type: string
+                text2:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/recommendations/rag/query:
+    post:
+      tags: [推荐]
+      summary: RAG 查询
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RAGQueryRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/recommendations/rag/index-talent:
+    post:
+      tags: [推荐]
+      summary: 索引单个人才
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [talent_id]
+              properties:
+                talent_id:
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/recommendations/rag/index-job:
+    post:
+      tags: [推荐]
+      summary: 索引单个职位
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [job_id]
+              properties:
+                job_id:
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/recommendations/rag/index-resume:
+    post:
+      tags: [推荐]
+      summary: 索引单份简历
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [resume_id]
+              properties:
+                resume_id:
+                  type: integer
+                content:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/recommendations/rag/index-all:
+    post:
+      tags: [推荐]
+      summary: 全量索引人才与职位
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: 成功
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/recommendations/rag/match:
+    post:
+      tags: [推荐]
+      summary: RAG 人岗匹配
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [talent_id, job_id]
+              properties:
+                talent_id:
+                  type: integer
+                job_id:
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/messages:
+    get:
+      tags: [消息]
+      summary: 获取系统消息列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: is_read
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+    post:
+      tags: [消息]
+      summary: 发送系统消息
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+      responses:
+        '201':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/messages/stats:
+    get:
+      tags: [消息]
+      summary: 获取消息统计
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/messages/unread-count:
+    get:
+      tags: [消息]
+      summary: 获取未读消息数
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/messages/{id}/read:
+    put:
+      tags: [消息]
+      summary: 标记消息已读
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/messages/{id}:
+    delete:
+      tags: [消息]
+      summary: 删除消息
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/conversations:
+    get:
+      tags: [消息]
+      summary: 获取会话列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 会话列表
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DashboardStats'
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ConversationListResponse'
+    post:
+      tags: [消息]
+      summary: 创建或获取会话
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConversationRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/conversations/unread-count:
+    get:
+      tags: [消息]
+      summary: 获取会话未读总数
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/conversations/{id}/messages:
+    get:
+      tags: [消息]
+      summary: 获取会话消息
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+    post:
+      tags: [消息]
+      summary: 发送会话消息
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendChatMessageRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/conversations/{id}/read:
+    put:
+      tags: [消息]
+      summary: 标记会话已读
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/online-status:
+    get:
+      tags: [消息]
+      summary: 获取在线用户统计
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/online-status/{user_id}:
+    get:
+      tags: [消息]
+      summary: 获取指定用户在线状态
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/ws:
+    get:
+      tags: [消息]
+      summary: WebSocket 实时消息连接
+      description: |
+        Gateway 会将 WebSocket 连接转发到 message-service 的 `/ws`。
+        实际使用时通常携带 `Authorization` 请求头，或按前端实现携带 token 查询参数。
+      security:
+        - bearerAuth: []
+      responses:
+        '101':
+          description: WebSocket 协议切换成功
+
+  /api/v1/notices:
+    get:
+      tags: [消息]
+      summary: 获取公告列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: priority
+          in: query
+          schema:
+            type: string
+        - name: is_pinned
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+    post:
+      tags: [消息]
+      summary: 创建公告
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notice'
+      responses:
+        '201':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/notices/{id}:
+    get:
+      tags: [消息]
+      summary: 获取公告详情
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+    put:
+      tags: [消息]
+      summary: 更新公告
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notice'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+    delete:
+      tags: [消息]
+      summary: 删除公告
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/interviews:
+    get:
+      tags: [面试]
+      summary: 获取面试列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [scheduled, completed, cancelled, no_show]
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: interviewer_id
+          in: query
+          schema:
+            type: integer
+        - name: candidate_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 面试列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/InterviewListResponse'
+    post:
+      tags: [面试]
+      summary: 创建面试安排
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterviewScheduleRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/interviews/stats:
+    get:
+      tags: [面试]
+      summary: 获取面试统计
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 面试统计
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/InterviewStats'
+
+  /api/v1/interviews/today:
+    get:
+      tags: [面试]
+      summary: 获取今日面试
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/interviews/interviewer/{interviewer_id}:
+    get:
+      tags: [面试]
+      summary: 获取面试官日程
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: interviewer_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/interviews/candidate/{candidate_id}:
+    get:
+      tags: [面试]
+      summary: 获取候选人面试列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: candidate_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/interviews/{id}:
+    get:
+      tags: [面试]
+      summary: 获取面试详情
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+    put:
+      tags: [面试]
+      summary: 更新面试
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterviewUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+    delete:
+      tags: [面试]
+      summary: 删除面试
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/interviews/{id}/cancel:
+    post:
+      tags: [面试]
+      summary: 取消面试
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/interviews/{id}/complete:
+    post:
+      tags: [面试]
+      summary: 完成面试
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                feedback:
+                  type: string
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/interviews/{id}/feedback:
+    get:
+      tags: [面试]
+      summary: 获取面试反馈
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+    post:
+      tags: [面试]
+      summary: 提交面试反馈
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterviewFeedback'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/interviews/{id}/reschedule:
+    post:
+      tags: [面试]
+      summary: 面试改期
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                time:
+                  type: string
+                reason:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/logs:
+    get:
+      tags: [日志]
+      summary: 查询操作日志
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: service
+          in: query
+          schema:
+            type: string
+        - name: username
+          in: query
+          schema:
+            type: string
+        - name: method
+          in: query
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: module
+          in: query
+          schema:
+            type: string
+        - name: level
+          in: query
+          schema:
+            type: string
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+        - name: start_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/logs/stats:
+    get:
+      tags: [日志]
+      summary: 获取日志统计
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: start_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/logs/services:
+    get:
+      tags: [日志]
+      summary: 获取日志服务列表
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/logs/actions:
+    get:
+      tags: [日志]
+      summary: 获取日志操作类型
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/logs/cleanup:
+    delete:
+      tags: [日志]
+      summary: 清理旧日志
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 30
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/stats/dashboard:
+    get:
+      tags: [统计]
+      summary: 获取仪表盘统计
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/stats/funnel:
+    get:
+      tags: [统计]
+      summary: 获取招聘漏斗统计
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/stats/channels:
+    get:
+      tags: [统计]
+      summary: 获取渠道统计
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/stats/department-progress:
+    get:
+      tags: [统计]
+      summary: 获取部门招聘进度
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/stats/interviewer-rank:
+    get:
+      tags: [统计]
+      summary: 获取面试官排名
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/stats/trend:
+    get:
+      tags: [统计]
+      summary: 获取招聘趋势
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/v1/stats/job-rank:
+    get:
+      tags: [统计]
+      summary: 获取职位排名
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /internal/messages:
+    post:
+      tags: [内部接口]
+      summary: 内部发送消息
+      security:
+        - internalToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+      responses:
+        '201':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /internal/recommendations/rag/query:
+    post:
+      tags: [内部接口]
+      summary: 内部 RAG 查询
+      security:
+        - internalToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RAGQueryRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /internal/recommendations/rag/index-talent:
+    post:
+      tags: [内部接口]
+      summary: 内部索引人才
+      security:
+        - internalToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [talent_id]
+              properties:
+                talent_id:
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /internal/recommendations/rag/index-job:
+    post:
+      tags: [内部接口]
+      summary: 内部索引职位
+      security:
+        - internalToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [job_id]
+              properties:
+                job_id:
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /internal/recommendations/rag/index-resume:
+    post:
+      tags: [内部接口]
+      summary: 内部索引简历
+      security:
+        - internalToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [resume_id]
+              properties:
+                resume_id:
+                  type: integer
+                content:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /internal/recommendations/rag/index-all:
+    post:
+      tags: [内部接口]
+      summary: 内部全量索引
+      security:
+        - internalToken: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /internal/recommendations/rag/match:
+    post:
+      tags: [内部接口]
+      summary: 内部 RAG 人岗匹配
+      security:
+        - internalToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [talent_id, job_id]
+              properties:
+                talent_id:
+                  type: integer
+                job_id:
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /:
+    get:
+      tags: [AI评估系统]
+      summary: AI 评估系统首页
+      responses:
+        '200':
+          description: HTML 首页
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /api/auth/login:
+    post:
+      tags: [AI评估系统]
+      summary: AI 评估系统登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [corp_code, username, password]
+              properties:
+                corp_code:
+                  type: string
+                username:
+                  type: string
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/auth/profile:
+    get:
+      tags: [AI评估系统]
+      summary: 获取 AI 评估系统当前用户
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/auth/logout:
+    post:
+      tags: [AI评估系统]
+      summary: AI 评估系统退出登录
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/templates/jd:
+    get:
+      tags: [AI评估系统]
+      summary: 获取 JD 模板
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/evaluate:
+    post:
+      tags: [AI评估系统]
+      summary: 上传简历进行独立 AI 评估
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [resume]
+              properties:
+                resume:
+                  type: string
+                  format: binary
+                position_id:
+                  type: integer
+                jd:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/evaluate/batch:
+    post:
+      tags: [AI评估系统]
+      summary: 批量上传简历进行 AI 评估
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                resumes:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                jd:
+                  type: string
+                criteria:
+                  type: string
+                force_reevaluate:
+                  type: boolean
+      responses:
+        '200':
+          description: SSE 或批处理结果
+          content:
+            text/event-stream:
+              schema:
+                type: string
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/evaluate/batch/graduate:
+    post:
+      tags: [AI评估系统]
+      summary: 从毕业设计后台拉取简历批量评估
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/positions:
+    get:
+      tags: [AI评估系统]
+      summary: 获取评估系统岗位列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/positions/sync:
+    post:
+      tags: [AI评估系统]
+      summary: 同步岗位数据
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/credentials/status:
+    get:
+      tags: [AI评估系统]
+      summary: 获取外部凭据配置状态
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/credentials:
+    post:
+      tags: [AI评估系统]
+      summary: 保存外部凭据配置
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/export/pdf:
+    post:
+      tags: [AI评估系统]
+      summary: 导出 PDF 报告
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: PDF 文件
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  /api/export/excel:
+    post:
+      tags: [AI评估系统]
+      summary: 导出 Excel 报表
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Excel 文件
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+
+  /api/candidates/stats/summary:
+    get:
+      tags: [AI评估系统]
+      summary: 候选人统计摘要
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/candidates/stats/charts:
+    get:
+      tags: [AI评估系统]
+      summary: 候选人图表统计
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/candidates:
+    get:
+      tags: [AI评估系统]
+      summary: 获取候选人列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+    delete:
+      tags: [AI评估系统]
+      summary: 批量删除候选人
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/candidates/{id}:
+    get:
+      tags: [AI评估系统]
+      summary: 获取候选人详情
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: 候选人详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Candidate'
+    delete:
+      tags: [AI评估系统]
+      summary: 删除候选人
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/candidates/{id}/resume:
+    get:
+      tags: [AI评估系统]
+      summary: 获取候选人简历内容
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/candidates/{id}/status:
+    put:
+      tags: [AI评估系统]
+      summary: 更新候选人状态
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/candidates/{id}/notes:
+    put:
+      tags: [AI评估系统]
+      summary: 更新候选人备注
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notes:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/candidates/compare:
+    post:
+      tags: [AI评估系统]
+      summary: 候选人对比
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                candidate_ids:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/candidates/compare/export:
+    post:
+      tags: [AI评估系统]
+      summary: 导出候选人对比报告
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                candidate_ids:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/dingtalk/config:
+    get:
+      tags: [AI评估系统]
+      summary: 获取默认钉钉配置
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+    post:
+      tags: [AI评估系统]
+      summary: 创建或更新钉钉配置
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/dingtalk/configs:
+    get:
+      tags: [AI评估系统]
+      summary: 获取所有钉钉配置
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/dingtalk/configs/{id}:
+    get:
+      tags: [AI评估系统]
+      summary: 获取指定钉钉配置
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+    delete:
+      tags: [AI评估系统]
+      summary: 删除钉钉配置
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/dingtalk/test:
+    post:
+      tags: [AI评估系统]
+      summary: 测试钉钉推送
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
+
+  /api/dingtalk/push:
+    post:
+      tags: [AI评估系统]
+      summary: 立即推送候选人评估结果到钉钉
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                candidate_id:
+                  type: integer
+                config_id:
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/GenericSuccess'
 
 components:
   securitySchemes:
@@ -413,22 +2676,96 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    internalToken:
+      type: apiKey
+      in: header
+      name: X-Internal-Token
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    PageSize:
+      name: page_size
+      in: query
+      schema:
+        type: integer
+        default: 10
+        minimum: 1
+        maximum: 100
+
+  responses:
+    GenericSuccess:
+      description: 请求成功
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    Error:
+      description: 请求失败
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    RegisterSuccess:
+      description: 注册成功
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+    LoginSuccess:
+      description: 登录成功
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/LoginResponse'
 
   schemas:
-    LoginResponse:
+    ApiResponse:
       type: object
       properties:
         code:
           type: integer
+          example: 0
         message:
           type: string
+          example: success
         data:
-          type: object
-          properties:
-            token:
-              type: string
-            user:
-              $ref: '#/components/schemas/User'
+          nullable: true
+      additionalProperties: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 1
+        message:
+          type: string
+          example: error message
+        error:
+          type: string
+      additionalProperties: true
 
     RegisterRequest:
       type: object
@@ -436,18 +2773,51 @@ components:
       properties:
         username:
           type: string
+          minLength: 3
+          maxLength: 50
         email:
           type: string
           format: email
         password:
           type: string
+          format: password
           minLength: 6
         role:
           type: string
-          enum: [admin, hr_manager, recruiter, interviewer, viewer]
+          enum: [hr, candidate]
+          default: candidate
         real_name:
           type: string
         phone:
+          type: string
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          description: 用户名或邮箱
+        password:
+          type: string
+          format: password
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    ProfileUpdateRequest:
+      type: object
+      properties:
+        real_name:
+          type: string
+        phone:
+          type: string
+        avatar:
           type: string
 
     User:
@@ -455,17 +2825,31 @@ components:
       properties:
         id:
           type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
         username:
           type: string
         email:
           type: string
+          format: email
         role:
           type: string
+          enum: [admin, hr_manager, recruiter, interviewer, viewer, hr, candidate]
         avatar:
+          type: string
+        phone:
           type: string
         department:
           type: string
         position:
+          type: string
+        real_name:
+          type: string
+        status:
           type: string
 
     Talent:
@@ -473,10 +2857,17 @@ components:
       properties:
         id:
           type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
         name:
           type: string
         email:
           type: string
+          format: email
         phone:
           type: string
         skills:
@@ -489,57 +2880,63 @@ components:
           type: string
         status:
           type: string
-        location:
-          type: string
-        salary:
-          type: string
-
-    TalentRequest:
-      type: object
-      required: [name, email]
-      properties:
-        name:
-          type: string
-        email:
-          type: string
-        phone:
-          type: string
-        skills:
+        tags:
           type: array
           items:
             type: string
-        experience:
+        user_id:
           type: integer
-        education:
-          type: string
+          nullable: true
         location:
           type: string
         salary:
           type: string
+        summary:
+          type: string
+        gender:
+          type: string
+        age:
+          type: integer
+        current_company:
+          type: string
+        current_position:
+          type: string
+        source:
+          type: string
+        resume_id:
+          type: integer
+          nullable: true
 
     TalentListResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        data:
-          type: object
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
           properties:
-            talents:
-              type: array
-              items:
-                $ref: '#/components/schemas/Talent'
-            total:
-              type: integer
-            page:
-              type: integer
-            page_size:
-              type: integer
+            data:
+              type: object
+              properties:
+                talents:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Talent'
+                total:
+                  type: integer
+                page:
+                  type: integer
+                page_size:
+                  type: integer
 
-    JobRequest:
+    Job:
       type: object
-      required: [title]
       properties:
+        id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
         title:
           type: string
         description:
@@ -555,33 +2952,619 @@ components:
         type:
           type: string
           enum: [full-time, part-time, contract, internship]
-        skills:
-          type: array
-          items:
-            type: string
+        status:
+          type: string
+          enum: [open, closed, filled, paused]
+        created_by:
+          type: integer
         department:
           type: string
         level:
           type: string
-
-    JobListResponse:
-      type: object
-      properties:
-        code:
+        education:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        benefits:
+          type: array
+          items:
+            type: string
+        headcount:
           type: integer
-        data:
-          type: object
+
+    HotJob:
+      allOf:
+        - $ref: '#/components/schemas/Job'
+        - type: object
           properties:
-            jobs:
-              type: array
-              items:
-                type: object
-            total:
+            view_count:
               type: integer
 
-    InterviewRequest:
+    JobListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                jobs:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Job'
+                total:
+                  type: integer
+                page:
+                  type: integer
+                page_size:
+                  type: integer
+
+    Resume:
       type: object
-      required: [candidate_id, position_id, date, time, interviewer_id]
+      properties:
+        id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        talent_id:
+          type: integer
+          nullable: true
+        job_id:
+          type: integer
+          nullable: true
+        file_name:
+          type: string
+        file_path:
+          type: string
+        file_url:
+          type: string
+        file_size:
+          type: integer
+          format: int64
+        file_type:
+          type: string
+        parsed_data:
+          type: string
+        extracted_text:
+          type: string
+        match_score:
+          type: integer
+        status:
+          type: string
+
+    ResumeUploadForm:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+        talent_id:
+          type: integer
+        job_id:
+          type: integer
+
+    ResumeListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                resumes:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Resume'
+                total:
+                  type: integer
+                page:
+                  type: integer
+                page_size:
+                  type: integer
+
+    ResumeMatchRequest:
+      type: object
+      required: [resume_text]
+      properties:
+        resume_text:
+          type: string
+        job_skills:
+          type: array
+          items:
+            type: string
+        job_experience:
+          type: integer
+        job_education:
+          type: string
+
+    RiskCheckRequest:
+      type: object
+      properties:
+        resume_id:
+          type: integer
+        resume_text:
+          type: string
+        parsed_data:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+
+    BasicInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        location:
+          type: string
+        avatar:
+          type: string
+        gender:
+          type: string
+        age:
+          type: integer
+        summary:
+          type: string
+
+    WorkExperience:
+      type: object
+      properties:
+        company:
+          type: string
+        position:
+          type: string
+        start_date:
+          type: string
+        end_date:
+          type: string
+        is_current:
+          type: boolean
+        description:
+          type: string
+        location:
+          type: string
+
+    Education:
+      type: object
+      properties:
+        school:
+          type: string
+        degree:
+          type: string
+        major:
+          type: string
+        start_date:
+          type: string
+        end_date:
+          type: string
+        is_current:
+          type: boolean
+        gpa:
+          type: string
+        activities:
+          type: string
+
+    OnlineResumeRequest:
+      type: object
+      properties:
+        basic_info:
+          $ref: '#/components/schemas/BasicInfo'
+        work_experience:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkExperience'
+        education:
+          type: array
+          items:
+            $ref: '#/components/schemas/Education'
+        skills:
+          type: array
+          items:
+            type: string
+
+    OnlineResumeResponse:
+      allOf:
+        - $ref: '#/components/schemas/OnlineResumeRequest'
+        - type: object
+          properties:
+            id:
+              type: integer
+            is_complete:
+              type: boolean
+            updated_at:
+              type: string
+              format: date-time
+
+    Application:
+      type: object
+      properties:
+        id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        job_id:
+          type: integer
+        talent_id:
+          type: integer
+        resume_id:
+          type: integer
+        stage:
+          type: string
+          enum: [applied, screening, interview, offer, hired, rejected]
+        status:
+          type: string
+          enum: [pending, reviewed, viewed, interview, offer, rejected, accepted]
+        source:
+          type: string
+        cover_letter:
+          type: string
+        notes:
+          type: string
+
+    ApplicationWithCandidate:
+      allOf:
+        - $ref: '#/components/schemas/Application'
+        - type: object
+          properties:
+            candidate_name:
+              type: string
+            candidate_email:
+              type: string
+            candidate_phone:
+              type: string
+            resume_summary:
+              type: string
+            talent_name:
+              type: string
+            job_title:
+              type: string
+            location:
+              type: string
+            experience:
+              type: integer
+            salary:
+              type: string
+            skills:
+              type: array
+              items:
+                type: string
+            match_score:
+              type: integer
+
+    ApplicationListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                applications:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ApplicationWithCandidate'
+                total:
+                  type: integer
+                page:
+                  type: integer
+                page_size:
+                  type: integer
+
+    AIEvaluateRequest:
+      type: object
+      required: [resume_id]
+      properties:
+        resume_id:
+          type: integer
+        jd_text:
+          type: string
+        job_id:
+          type: integer
+        candidate_name:
+          type: string
+
+    TalentProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        experience:
+          type: integer
+        education:
+          type: string
+        location:
+          type: string
+        salary:
+          type: string
+        current_company:
+          type: string
+        current_position:
+          type: string
+
+    JobProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        location:
+          type: string
+        requirements:
+          type: array
+          items:
+            type: string
+        level:
+          type: string
+        salary:
+          type: string
+        department:
+          type: string
+
+    Recommendation:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        score:
+          type: number
+          format: float
+        reason:
+          type: string
+        match_level:
+          type: string
+        match_details:
+          type: array
+          items:
+            type: string
+        semantic_score:
+          type: number
+          format: float
+        attribution_url:
+          type: string
+
+    RecommendationListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Recommendation'
+
+    RAGQueryRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+        top_k:
+          type: integer
+          default: 5
+        type:
+          type: string
+          enum: [talent, job, resume]
+        query_type:
+          type: string
+          enum: [talent, job, resume]
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        sender_id:
+          type: integer
+          nullable: true
+        receiver_id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        type:
+          type: string
+          enum: [system, chat, interview, feedback, offer, reminder, application]
+        is_read:
+          type: boolean
+        read_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversation_id:
+          type: integer
+        sender_id:
+          type: integer
+        content:
+          type: string
+        message_type:
+          type: string
+          enum: [text, image, file]
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    ConversationWithDetails:
+      type: object
+      properties:
+        id:
+          type: integer
+        participant:
+          type: object
+          properties:
+            id:
+              type: integer
+            username:
+              type: string
+            name:
+              type: string
+            avatar:
+              type: string
+            role:
+              type: string
+            is_online:
+              type: boolean
+        last_message:
+          $ref: '#/components/schemas/ChatMessage'
+        unread_count:
+          type: integer
+        last_message_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ConversationListResponse:
+      type: object
+      properties:
+        conversations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConversationWithDetails'
+        total:
+          type: integer
+
+    CreateConversationRequest:
+      type: object
+      required: [participant_id]
+      properties:
+        participant_id:
+          type: integer
+
+    SendChatMessageRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+        message_type:
+          type: string
+          enum: [text, image, file]
+
+    Notice:
+      type: object
+      properties:
+        id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        title:
+          type: string
+        content:
+          type: string
+        status:
+          type: string
+          enum: [draft, published]
+        created_by:
+          type: integer
+        is_pinned:
+          type: boolean
+        priority:
+          type: string
+          enum: [normal, high, urgent]
+
+    Interview:
+      type: object
+      properties:
+        id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        candidate_id:
+          type: integer
+        candidate_name:
+          type: string
+        position_id:
+          type: integer
+        position:
+          type: string
+        type:
+          type: string
+          enum: [initial, second, final, hr]
+        date:
+          type: string
+          format: date
+        time:
+          type: string
+        duration:
+          type: integer
+        interviewer_id:
+          type: integer
+        interviewer:
+          type: string
+        method:
+          type: string
+          enum: [onsite, video, phone]
+        location:
+          type: string
+        status:
+          type: string
+          enum: [scheduled, completed, cancelled, no_show]
+        notes:
+          type: string
+        feedback:
+          type: string
+        rating:
+          type: integer
+        created_by:
+          type: integer
+
+    InterviewScheduleRequest:
+      type: object
+      required: [candidate_id, candidate_name, position_id, position, type, date, time, interviewer_id, interviewer]
       properties:
         candidate_id:
           type: integer
@@ -614,10 +3597,45 @@ components:
         notes:
           type: string
 
+    InterviewUpdateRequest:
+      type: object
+      properties:
+        type:
+          type: string
+        date:
+          type: string
+          format: date
+        time:
+          type: string
+        duration:
+          type: integer
+        interviewer_id:
+          type: integer
+        interviewer:
+          type: string
+        method:
+          type: string
+        location:
+          type: string
+        status:
+          type: string
+        notes:
+          type: string
+        feedback:
+          type: string
+        rating:
+          type: integer
+
     InterviewFeedback:
       type: object
       required: [rating]
       properties:
+        id:
+          type: integer
+        interview_id:
+          type: integer
+        interviewer_id:
+          type: integer
         rating:
           type: integer
           minimum: 1
@@ -632,56 +3650,106 @@ components:
           type: string
           enum: [pass, fail, pending]
 
-    MessageRequest:
-      type: object
-      required: [receiver_id, title, content]
-      properties:
-        receiver_id:
-          type: integer
-        title:
-          type: string
-        content:
-          type: string
-        type:
-          type: string
-          enum: [system, interview, feedback, offer, reminder, chat]
-
-    RecommendationResponse:
+    InterviewListResponse:
       type: object
       properties:
-        code:
-          type: integer
-        data:
+        interviews:
           type: array
           items:
-            type: object
-            properties:
-              id:
-                type: integer
-              title:
-                type: string
-              match_score:
-                type: number
-              match_reasons:
-                type: array
-                items:
-                  type: string
+            $ref: '#/components/schemas/Interview'
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
 
-    DashboardStats:
+    InterviewStats:
       type: object
       properties:
-        code:
+        total_interviews:
           type: integer
-        data:
-          type: object
-          properties:
-            total_talents:
-              type: integer
-            total_jobs:
-              type: integer
-            total_applications:
-              type: integer
-            total_interviews:
-              type: integer
-            match_rate:
-              type: number
+        scheduled_interviews:
+          type: integer
+        completed_interviews:
+          type: integer
+        cancelled_interviews:
+          type: integer
+        today_interviews:
+          type: integer
+        week_interviews:
+          type: integer
+
+    Candidate:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        apply_id:
+          type: string
+        name:
+          type: string
+        filename:
+          type: string
+        pdf_path:
+          type: string
+        total_score:
+          type: number
+        grade:
+          type: string
+        jd_match:
+          type: integer
+        age_score:
+          type: integer
+        experience_score:
+          type: integer
+        education_score:
+          type: integer
+        company_score:
+          type: integer
+        tech_score:
+          type: integer
+        project_score:
+          type: integer
+        age_reason:
+          type: string
+        experience_reason:
+          type: string
+        education_reason:
+          type: string
+        company_reason:
+          type: string
+        tech_reason:
+          type: string
+        project_reason:
+          type: string
+        recommendation:
+          type: string
+        report_markdown:
+          type: string
+        resume_markdown:
+          type: string
+        coze_report_json:
+          type: string
+        status:
+          type: string
+        notes:
+          type: string
+        notify_count:
+          type: integer
+        first_notify_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_notify_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time

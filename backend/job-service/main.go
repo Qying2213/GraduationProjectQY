@@ -1,12 +1,14 @@
 package main
 
 import (
-	"job-service/handlers"
-	"job-service/models"
+	"fmt"
 	"log"
 	"os"
 
+	"common/database"
 	"common/middleware"
+	"job-service/handlers"
+	"job-service/models"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
@@ -43,6 +45,20 @@ func main() {
 		log.Fatal("Failed to migrate database:", err)
 	}
 
+	redisHost := getEnv("REDIS_HOST", "localhost")
+	redisPort := getEnv("REDIS_PORT", "6379")
+	redisPassword := getEnv("REDIS_PASSWORD", "")
+
+	if err := database.InitRedis(database.RedisConfig{
+		Addr:     fmt.Sprintf("%s:%s", redisHost, redisPort),
+		Password: redisPassword,
+		DB:       0,
+	}); err != nil {
+		log.Printf("Warning: Failed to connect to Redis: %v (caching disabled)", err)
+	} else {
+		log.Println("Redis connected, caching enabled")
+	}
+
 	r := gin.Default()
 
 	r.Use(middleware.CORS())
@@ -59,6 +75,7 @@ func main() {
 	{
 		api.GET("", jobHandler.ListJobs)
 		api.GET("/stats", jobHandler.GetJobStats)
+		api.GET("/hot", jobHandler.GetHotJobs)
 		api.GET("/:id", jobHandler.GetJob)
 	}
 

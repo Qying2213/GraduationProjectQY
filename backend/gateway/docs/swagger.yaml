@@ -1,0 +1,2804 @@
+basePath: /
+definitions:
+  main.SwaggerAny:
+    additionalProperties: true
+    type: object
+  main.SwaggerErrorResponse:
+    properties:
+      code:
+        example: 1
+        type: integer
+      error:
+        type: string
+      message:
+        example: error message
+        type: string
+    type: object
+  main.SwaggerResponse:
+    properties:
+      code:
+        example: 0
+        type: integer
+      data: {}
+      message:
+        example: success
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: |-
+    基于 Go 微服务架构的智能人才运营平台 API。Swagger 注释文档以 API Gateway 对外暴露的接口为准。
+    认证接口以外的大多数后台接口需要在请求头中携带 JWT：Authorization: Bearer <token>。
+  title: 智能人才运营平台 API
+  version: 1.1.0
+paths:
+  /api/v1/ai/config:
+    get:
+      description: 返回 Coze、OCR、RAG 等 AI 能力配置状态。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 检查 AI 配置
+      tags:
+      - AI
+  /api/v1/ai/current-task:
+    get:
+      description: 获取当前正在处理的 AI 评估任务。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取当前 AI 任务
+      tags:
+      - AI
+  /api/v1/ai/evaluate:
+    post:
+      consumes:
+      - application/json
+      description: 基于简历 ID 和 JD 文本或职位 ID 发起 AI 评估。
+      parameters:
+      - description: 评估参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/main.SwaggerErrorResponse'
+      summary: 根据简历 ID 发起 AI 评估
+      tags:
+      - AI
+  /api/v1/ai/evaluate/{id}/result:
+    get:
+      description: 根据评估 ID 获取 AI 评估结果。
+      parameters:
+      - description: 评估 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取 AI 评估结果
+      tags:
+      - AI
+  /api/v1/ai/evaluate/batch:
+    post:
+      consumes:
+      - application/json
+      description: 按简历 ID 列表批量发起 AI 评估。
+      parameters:
+      - description: 批量评估参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 批量发起 AI 评估
+      tags:
+      - AI
+  /api/v1/ai/evaluate/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传 PDF 简历文件并立即进行 AI 评估。
+      parameters:
+      - description: PDF 简历
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: JD 文本
+        in: formData
+        name: jd_text
+        type: string
+      - description: 候选人姓名
+        in: formData
+        name: candidate_name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 上传 PDF 并发起 AI 评估
+      tags:
+      - AI
+  /api/v1/ai/ocr:
+    post:
+      consumes:
+      - application/json
+      description: 从简历文件中提取文本。
+      parameters:
+      - description: OCR 参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: OCR 文本提取
+      tags:
+      - AI
+  /api/v1/ai/parse:
+    post:
+      consumes:
+      - application/json
+      description: 调用 AI 能力解析简历。
+      parameters:
+      - description: 解析参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: AI 智能解析简历
+      tags:
+      - AI
+  /api/v1/applications:
+    get:
+      description: 查询职位投递列表，talent_id 可传 me 表示当前登录用户。
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 职位 ID
+        in: query
+        name: job_id
+        type: integer
+      - description: 人才 ID 或 me
+        in: query
+        name: talent_id
+        type: string
+      - description: 投递状态
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取投递列表
+      tags:
+      - 投递
+    post:
+      consumes:
+      - application/json
+      description: 当前登录求职者投递职位。
+      parameters:
+      - description: 投递参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建职位投递
+      tags:
+      - 投递
+  /api/v1/applications/{id}:
+    delete:
+      description: 删除投递申请或求职者撤回申请。
+      parameters:
+      - description: 投递 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 撤回或删除投递
+      tags:
+      - 投递
+    put:
+      consumes:
+      - application/json
+      description: 更新投递申请状态和备注。
+      parameters:
+      - description: 投递 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 状态参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新投递状态
+      tags:
+      - 投递
+  /api/v1/conversations:
+    get:
+      description: 获取当前用户聊天会话列表。
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取会话列表
+      tags:
+      - 消息
+    post:
+      consumes:
+      - application/json
+      description: 与指定用户创建或获取已有会话。
+      parameters:
+      - description: 会话参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建或获取会话
+      tags:
+      - 消息
+  /api/v1/conversations/{id}/messages:
+    get:
+      description: 获取指定会话中的聊天消息。
+      parameters:
+      - description: 会话 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取会话消息
+      tags:
+      - 消息
+    post:
+      consumes:
+      - application/json
+      description: 向指定会话发送聊天消息。
+      parameters:
+      - description: 会话 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 聊天消息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 发送会话消息
+      tags:
+      - 消息
+  /api/v1/conversations/{id}/read:
+    put:
+      description: 将指定会话中的消息标记为已读。
+      parameters:
+      - description: 会话 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 标记会话已读
+      tags:
+      - 消息
+  /api/v1/conversations/unread-count:
+    get:
+      description: 获取当前用户所有会话未读消息数。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取会话未读总数
+      tags:
+      - 消息
+  /api/v1/evaluations:
+    get:
+      description: 查询 AI 评估记录。
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 状态
+        in: query
+        name: status
+        type: string
+      - description: 评估类型
+        in: query
+        name: eval_type
+        type: string
+      - description: 关键词
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取评估记录列表
+      tags:
+      - 评估
+  /api/v1/evaluations/{id}:
+    delete:
+      description: 删除指定 AI 评估记录。
+      parameters:
+      - description: 评估 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 删除评估记录
+      tags:
+      - 评估
+    get:
+      description: 根据 ID 获取评估记录详情。
+      parameters:
+      - description: 评估 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取评估详情
+      tags:
+      - 评估
+  /api/v1/evaluations/{id}/process:
+    get:
+      description: 获取 AI 评估流程、OCR、Embedding、RAG、LLM 步骤信息。
+      parameters:
+      - description: 评估 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取评估流程详情
+      tags:
+      - 评估
+  /api/v1/evaluations/stats:
+    get:
+      description: 获取 AI 评估记录统计。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取评估统计
+      tags:
+      - 评估
+  /api/v1/interviews:
+    get:
+      description: 查询面试安排列表。
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 状态
+        in: query
+        name: status
+        type: string
+      - description: 日期
+        in: query
+        name: date
+        type: string
+      - description: 开始日期
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期
+        in: query
+        name: end_date
+        type: string
+      - description: 面试官 ID
+        in: query
+        name: interviewer_id
+        type: integer
+      - description: 候选人 ID
+        in: query
+        name: candidate_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取面试列表
+      tags:
+      - 面试
+    post:
+      consumes:
+      - application/json
+      description: 创建候选人面试安排。
+      parameters:
+      - description: 面试安排
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建面试安排
+      tags:
+      - 面试
+  /api/v1/interviews/{id}:
+    delete:
+      description: 删除指定面试安排。
+      parameters:
+      - description: 面试 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除面试
+      tags:
+      - 面试
+    get:
+      description: 根据 ID 获取面试详情。
+      parameters:
+      - description: 面试 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取面试详情
+      tags:
+      - 面试
+    put:
+      consumes:
+      - application/json
+      description: 更新面试安排。
+      parameters:
+      - description: 面试 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 面试信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新面试
+      tags:
+      - 面试
+  /api/v1/interviews/{id}/cancel:
+    post:
+      description: 取消指定面试。
+      parameters:
+      - description: 面试 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 取消面试
+      tags:
+      - 面试
+  /api/v1/interviews/{id}/complete:
+    post:
+      consumes:
+      - application/json
+      description: 标记面试完成，并可提交简要反馈与评分。
+      parameters:
+      - description: 面试 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 完成参数
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 完成面试
+      tags:
+      - 面试
+  /api/v1/interviews/{id}/feedback:
+    get:
+      description: 获取指定面试的反馈详情。
+      parameters:
+      - description: 面试 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取面试反馈
+      tags:
+      - 面试
+    post:
+      consumes:
+      - application/json
+      description: 为指定面试提交评分、优劣势和录用建议。
+      parameters:
+      - description: 面试 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 面试反馈
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 提交面试反馈
+      tags:
+      - 面试
+  /api/v1/interviews/{id}/reschedule:
+    post:
+      consumes:
+      - application/json
+      description: 修改面试日期和时间。
+      parameters:
+      - description: 面试 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 改期参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 面试改期
+      tags:
+      - 面试
+  /api/v1/interviews/candidate/{candidate_id}:
+    get:
+      description: 查询指定候选人的面试安排。
+      parameters:
+      - description: 候选人 ID
+        in: path
+        name: candidate_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取候选人面试列表
+      tags:
+      - 面试
+  /api/v1/interviews/interviewer/{interviewer_id}:
+    get:
+      description: 查询指定面试官的面试日程。
+      parameters:
+      - description: 面试官 ID
+        in: path
+        name: interviewer_id
+        required: true
+        type: integer
+      - description: 开始日期
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取面试官日程
+      tags:
+      - 面试
+  /api/v1/interviews/stats:
+    get:
+      description: 获取面试数量和状态统计。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取面试统计
+      tags:
+      - 面试
+  /api/v1/interviews/today:
+    get:
+      description: 获取当天的面试安排。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取今日面试
+      tags:
+      - 面试
+  /api/v1/jobs:
+    get:
+      description: 公开查询职位列表，支持关键词、状态、地点、学历、级别等筛选。
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 职位状态
+        in: query
+        name: status
+        type: string
+      - description: 职位类型
+        in: query
+        name: type
+        type: string
+      - description: 地点
+        in: query
+        name: location
+        type: string
+      - description: 学历
+        in: query
+        name: education
+        type: string
+      - description: 搜索关键词
+        in: query
+        name: search
+        type: string
+      - description: 关键词
+        in: query
+        name: keyword
+        type: string
+      - description: 级别
+        in: query
+        name: level
+        type: string
+      - description: 经验要求
+        in: query
+        name: experience
+        type: string
+      - description: 排序字段
+        in: query
+        name: sort_by
+        type: string
+      - description: 排序方向
+        in: query
+        name: sort_order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取职位列表
+      tags:
+      - 职位
+    post:
+      consumes:
+      - application/json
+      description: 创建招聘职位，需要管理员或 HR 类角色。
+      parameters:
+      - description: 职位信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建职位
+      tags:
+      - 职位
+  /api/v1/jobs/{id}:
+    delete:
+      description: 删除职位，需要管理员或 HR 类角色。
+      parameters:
+      - description: 职位 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除职位
+      tags:
+      - 职位
+    get:
+      description: 根据职位 ID 获取职位详情。
+      parameters:
+      - description: 职位 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取职位详情
+      tags:
+      - 职位
+    put:
+      consumes:
+      - application/json
+      description: 更新职位信息，需要管理员或 HR 类角色。
+      parameters:
+      - description: 职位 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 职位信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新职位
+      tags:
+      - 职位
+  /api/v1/jobs/{id}/applications:
+    get:
+      description: 查询某个职位下的投递申请，需要管理员或 HR 类角色。
+      parameters:
+      - description: 职位 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 投递状态
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取职位投递列表
+      tags:
+      - 职位
+  /api/v1/jobs/hot:
+    get:
+      description: 获取热门职位列表。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取热门职位
+      tags:
+      - 职位
+  /api/v1/jobs/stats:
+    get:
+      description: 获取职位数量、状态分布等统计信息。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取职位统计
+      tags:
+      - 职位
+  /api/v1/login:
+    post:
+      consumes:
+      - application/json
+      description: 使用用户名/邮箱和密码登录，返回 JWT Token。
+      parameters:
+      - description: 登录参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/main.SwaggerErrorResponse'
+      summary: 用户登录
+      tags:
+      - 认证
+  /api/v1/logs:
+    get:
+      description: 按服务、用户、路径、动作、时间范围等条件查询操作日志。
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 服务名
+        in: query
+        name: service
+        type: string
+      - description: 用户名
+        in: query
+        name: username
+        type: string
+      - description: HTTP 方法
+        in: query
+        name: method
+        type: string
+      - description: 路径
+        in: query
+        name: path
+        type: string
+      - description: 动作
+        in: query
+        name: action
+        type: string
+      - description: 模块
+        in: query
+        name: module
+        type: string
+      - description: 级别
+        in: query
+        name: level
+        type: string
+      - description: 关键词
+        in: query
+        name: keyword
+        type: string
+      - description: 用户 ID
+        in: query
+        name: user_id
+        type: integer
+      - description: 开始时间
+        in: query
+        name: start_time
+        type: string
+      - description: 结束时间
+        in: query
+        name: end_time
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 查询操作日志
+      tags:
+      - 日志
+  /api/v1/logs/actions:
+    get:
+      description: 获取日志中出现过的操作类型列表。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取日志操作类型
+      tags:
+      - 日志
+  /api/v1/logs/cleanup:
+    delete:
+      description: 按保留天数清理旧日志。
+      parameters:
+      - description: 保留天数
+        in: query
+        name: days
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 清理旧日志
+      tags:
+      - 日志
+  /api/v1/logs/services:
+    get:
+      description: 获取日志中出现过的服务名列表。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取日志服务列表
+      tags:
+      - 日志
+  /api/v1/logs/stats:
+    get:
+      description: 获取操作日志聚合统计。
+      parameters:
+      - description: 开始时间
+        in: query
+        name: start_time
+        type: string
+      - description: 结束时间
+        in: query
+        name: end_time
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取日志统计
+      tags:
+      - 日志
+  /api/v1/messages:
+    get:
+      description: 获取当前用户的系统消息。
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 消息类型
+        in: query
+        name: type
+        type: string
+      - description: 是否已读
+        in: query
+        name: is_read
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取系统消息列表
+      tags:
+      - 消息
+    post:
+      consumes:
+      - application/json
+      description: 发送站内系统消息。
+      parameters:
+      - description: 消息内容
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 发送系统消息
+      tags:
+      - 消息
+  /api/v1/messages/{id}:
+    delete:
+      description: 删除指定系统消息。
+      parameters:
+      - description: 消息 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除消息
+      tags:
+      - 消息
+  /api/v1/messages/{id}/read:
+    put:
+      description: 将指定消息标记为已读。
+      parameters:
+      - description: 消息 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 标记消息已读
+      tags:
+      - 消息
+  /api/v1/messages/stats:
+    get:
+      description: 获取当前用户消息统计。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取消息统计
+      tags:
+      - 消息
+  /api/v1/messages/unread-count:
+    get:
+      description: 获取当前用户未读消息数量。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取未读消息数
+      tags:
+      - 消息
+  /api/v1/notices:
+    get:
+      description: 查询系统公告。
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 关键词
+        in: query
+        name: keyword
+        type: string
+      - description: 状态
+        in: query
+        name: status
+        type: string
+      - description: 优先级
+        in: query
+        name: priority
+        type: string
+      - description: 是否置顶
+        in: query
+        name: is_pinned
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取公告列表
+      tags:
+      - 消息
+    post:
+      consumes:
+      - application/json
+      description: 创建系统公告。
+      parameters:
+      - description: 公告内容
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建公告
+      tags:
+      - 消息
+  /api/v1/notices/{id}:
+    delete:
+      description: 删除指定公告。
+      parameters:
+      - description: 公告 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除公告
+      tags:
+      - 消息
+    get:
+      description: 根据 ID 获取公告详情。
+      parameters:
+      - description: 公告 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取公告详情
+      tags:
+      - 消息
+    put:
+      consumes:
+      - application/json
+      description: 更新公告内容。
+      parameters:
+      - description: 公告 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 公告内容
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新公告
+      tags:
+      - 消息
+  /api/v1/online-status:
+    get:
+      description: 获取在线用户总数和列表。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取在线用户统计
+      tags:
+      - 消息
+  /api/v1/online-status/{user_id}:
+    get:
+      description: 查询指定用户是否在线。
+      parameters:
+      - description: 用户 ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取指定用户在线状态
+      tags:
+      - 消息
+  /api/v1/profile:
+    get:
+      description: 根据 JWT 获取当前登录用户资料。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/main.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取当前用户资料
+      tags:
+      - 认证
+    put:
+      consumes:
+      - application/json
+      description: 更新当前登录用户的姓名、手机号、头像等资料。
+      parameters:
+      - description: 用户资料
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/main.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新当前用户资料
+      tags:
+      - 认证
+  /api/v1/recommendations/attribution-report:
+    post:
+      consumes:
+      - application/json
+      description: 生成指定人才与职位的匹配归因报告。
+      parameters:
+      - description: 归因参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 生成推荐归因报告
+      tags:
+      - 推荐
+  /api/v1/recommendations/batch:
+    post:
+      consumes:
+      - application/json
+      description: 批量计算人才与职位推荐。
+      parameters:
+      - description: 批量推荐参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 批量推荐
+      tags:
+      - 推荐
+  /api/v1/recommendations/jobs-for-talent:
+    post:
+      consumes:
+      - application/json
+      description: 根据人才画像推荐匹配职位。
+      parameters:
+      - description: 人才画像
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 为人才推荐职位
+      tags:
+      - 推荐
+  /api/v1/recommendations/rag/index-all:
+    post:
+      description: 重建人才与职位 RAG 索引。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 全量索引人才与职位
+      tags:
+      - 推荐
+  /api/v1/recommendations/rag/index-job:
+    post:
+      consumes:
+      - application/json
+      description: 将指定职位写入 RAG 索引。
+      parameters:
+      - description: 职位索引参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 索引单个职位
+      tags:
+      - 推荐
+  /api/v1/recommendations/rag/index-resume:
+    post:
+      consumes:
+      - application/json
+      description: 将指定简历写入 RAG 索引。
+      parameters:
+      - description: 简历索引参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 索引单份简历
+      tags:
+      - 推荐
+  /api/v1/recommendations/rag/index-talent:
+    post:
+      consumes:
+      - application/json
+      description: 将指定人才写入 RAG 索引。
+      parameters:
+      - description: 人才索引参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 索引单个人才
+      tags:
+      - 推荐
+  /api/v1/recommendations/rag/match:
+    post:
+      consumes:
+      - application/json
+      description: 使用 RAG 能力对指定人才和职位进行匹配。
+      parameters:
+      - description: 匹配参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: RAG 人岗匹配
+      tags:
+      - 推荐
+  /api/v1/recommendations/rag/query:
+    post:
+      consumes:
+      - application/json
+      description: 查询向量索引中的人才、职位或简历内容。
+      parameters:
+      - description: RAG 查询参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: RAG 查询
+      tags:
+      - 推荐
+  /api/v1/recommendations/semantic-match:
+    post:
+      consumes:
+      - application/json
+      description: 计算两段文本的语义相似度。
+      parameters:
+      - description: 文本参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 语义相似度匹配
+      tags:
+      - 推荐
+  /api/v1/recommendations/stats:
+    get:
+      description: 获取推荐和匹配相关统计。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取推荐统计
+      tags:
+      - 推荐
+  /api/v1/recommendations/talents-for-job:
+    post:
+      consumes:
+      - application/json
+      description: 根据职位画像推荐匹配人才。
+      parameters:
+      - description: 职位画像
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 为职位推荐人才
+      tags:
+      - 推荐
+  /api/v1/register:
+    post:
+      consumes:
+      - application/json
+      description: 创建求职者或 HR 用户账号。
+      parameters:
+      - description: 注册参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.SwaggerErrorResponse'
+      summary: 用户注册
+      tags:
+      - 认证
+  /api/v1/resumes:
+    get:
+      description: 按人才、状态和关键词查询简历列表。
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 人才 ID
+        in: query
+        name: talent_id
+        type: integer
+      - description: 简历状态
+        in: query
+        name: status
+        type: string
+      - description: 搜索关键词
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取简历列表
+      tags:
+      - 简历
+    post:
+      consumes:
+      - multipart/form-data
+      description: 创建简历记录，或通过 multipart 上传简历文件。
+      parameters:
+      - description: 简历文件
+        in: formData
+        name: file
+        type: file
+      - description: 人才 ID
+        in: formData
+        name: talent_id
+        type: integer
+      - description: 职位 ID
+        in: formData
+        name: job_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 创建或上传简历记录
+      tags:
+      - 简历
+  /api/v1/resumes/{id}:
+    delete:
+      description: 删除指定简历。
+      parameters:
+      - description: 简历 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 删除简历
+      tags:
+      - 简历
+    get:
+      description: 根据简历 ID 获取详情。
+      parameters:
+      - description: 简历 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取简历详情
+      tags:
+      - 简历
+  /api/v1/resumes/{id}/download:
+    get:
+      description: 根据简历 ID 下载文件。
+      parameters:
+      - description: 简历 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      summary: 下载简历文件
+      tags:
+      - 简历
+  /api/v1/resumes/{id}/job:
+    put:
+      consumes:
+      - application/json
+      description: 为已有简历补充或修改关联职位。
+      parameters:
+      - description: 简历 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 职位关联参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 为简历关联职位
+      tags:
+      - 简历
+  /api/v1/resumes/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: 更新简历处理状态。
+      parameters:
+      - description: 简历 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 状态参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新简历状态
+      tags:
+      - 简历
+  /api/v1/resumes/evaluation:
+    get:
+      description: 获取自动评估系统使用的简历列表。
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 简历状态
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取待评估简历列表
+      tags:
+      - 简历
+  /api/v1/resumes/file/{filename}:
+    get:
+      description: 根据文件名返回简历文件流。
+      parameters:
+      - description: 文件名
+        in: path
+        name: filename
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      summary: 获取简历文件
+      tags:
+      - 简历
+  /api/v1/resumes/match:
+    post:
+      consumes:
+      - application/json
+      description: 根据简历文本和职位要求计算匹配度。
+      parameters:
+      - description: 匹配参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 简历职位匹配
+      tags:
+      - 简历
+  /api/v1/resumes/online:
+    get:
+      description: 获取当前登录用户的在线简历。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取在线简历
+      tags:
+      - 简历
+    put:
+      consumes:
+      - application/json
+      description: 保存当前登录用户在线编辑的简历。
+      parameters:
+      - description: 在线简历
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 保存在线简历
+      tags:
+      - 简历
+  /api/v1/resumes/parse:
+    post:
+      consumes:
+      - application/json
+      description: 根据传入的纯文本解析简历结构化信息。
+      parameters:
+      - description: 简历文本
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 解析简历文本
+      tags:
+      - 简历
+  /api/v1/resumes/risk-check:
+    post:
+      consumes:
+      - application/json
+      description: 检查简历内容中的潜在风险。
+      parameters:
+      - description: 风险检查参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 简历风险综合检查
+      tags:
+      - 简历
+  /api/v1/resumes/risk-check/education:
+    post:
+      consumes:
+      - application/json
+      description: 检查简历教育经历真实性风险。
+      parameters:
+      - description: 风险检查参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 教育经历风险检查
+      tags:
+      - 简历
+  /api/v1/resumes/risk-check/time-conflict:
+    post:
+      consumes:
+      - application/json
+      description: 检查简历工作经历是否存在时间冲突。
+      parameters:
+      - description: 风险检查参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 工作经历时间冲突检查
+      tags:
+      - 简历
+  /api/v1/resumes/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 求职者门户上传简历，后端根据 JWT 自动绑定人才档案。
+      parameters:
+      - description: 简历文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: 人才 ID
+        in: formData
+        name: talent_id
+        type: integer
+      - description: 职位 ID
+        in: formData
+        name: job_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 登录用户上传简历文件
+      tags:
+      - 简历
+  /api/v1/stats/channels:
+    get:
+      description: 获取招聘渠道数据统计。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取渠道统计
+      tags:
+      - 统计
+  /api/v1/stats/dashboard:
+    get:
+      description: 获取仪表盘核心统计指标。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取仪表盘统计
+      tags:
+      - 统计
+  /api/v1/stats/department-progress:
+    get:
+      description: 获取各部门招聘进度统计。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取部门招聘进度
+      tags:
+      - 统计
+  /api/v1/stats/funnel:
+    get:
+      description: 获取招聘流程各阶段漏斗数据。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取招聘漏斗统计
+      tags:
+      - 统计
+  /api/v1/stats/interviewer-rank:
+    get:
+      description: 获取面试官维度的统计排名。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取面试官排名
+      tags:
+      - 统计
+  /api/v1/stats/job-rank:
+    get:
+      description: 获取职位维度的招聘排名。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取职位排名
+      tags:
+      - 统计
+  /api/v1/stats/trend:
+    get:
+      description: 获取招聘数据趋势图。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: 获取招聘趋势
+      tags:
+      - 统计
+  /api/v1/talents:
+    get:
+      description: 按状态、关键词、技能、地点和经验筛选人才。
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 人才状态
+        in: query
+        name: status
+        type: string
+      - description: 搜索关键词
+        in: query
+        name: search
+        type: string
+      - collectionFormat: csv
+        description: 技能
+        in: query
+        items:
+          type: string
+        name: skills
+        type: array
+      - description: 地点
+        in: query
+        name: location
+        type: string
+      - description: 经验年限
+        in: query
+        name: experience
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取人才列表
+      tags:
+      - 人才
+    post:
+      consumes:
+      - application/json
+      description: 创建人才库候选人记录。
+      parameters:
+      - description: 人才信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建人才
+      tags:
+      - 人才
+  /api/v1/talents/{id}:
+    delete:
+      description: 删除人才库候选人记录。
+      parameters:
+      - description: 人才 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除人才
+      tags:
+      - 人才
+    get:
+      description: 根据人才 ID 获取详情。
+      parameters:
+      - description: 人才 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取人才详情
+      tags:
+      - 人才
+    put:
+      consumes:
+      - application/json
+      description: 更新人才库候选人信息。
+      parameters:
+      - description: 人才 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 人才信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新人才
+      tags:
+      - 人才
+  /api/v1/talents/search:
+    get:
+      description: 按关键词、学历和地点搜索人才。
+      parameters:
+      - description: 关键词
+        in: query
+        name: keyword
+        type: string
+      - description: 学历
+        in: query
+        name: education
+        type: string
+      - description: 地点
+        in: query
+        name: location
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 搜索人才
+      tags:
+      - 人才
+  /api/v1/talents/stats:
+    get:
+      description: 获取人才库总量、状态分布等统计信息。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取人才统计
+      tags:
+      - 人才
+  /api/v1/users:
+    get:
+      description: 查询系统用户列表，需要管理员或 HR 类角色。
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/main.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 用户列表
+      tags:
+      - 用户
+  /api/v1/ws:
+    get:
+      description: 建立实时消息 WebSocket 连接。
+      responses:
+        "101":
+          description: Switching Protocols
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: WebSocket 实时消息连接
+      tags:
+      - 消息
+  /health:
+    get:
+      description: 返回 Gateway 状态和当前服务注册表。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      summary: Gateway 健康检查
+      tags:
+      - 网关
+  /internal/messages:
+    post:
+      consumes:
+      - application/json
+      description: 服务间调用的消息发送接口，可使用 X-Internal-Token。
+      parameters:
+      - description: 消息内容
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - InternalToken: []
+      summary: 内部发送消息
+      tags:
+      - 内部接口
+  /internal/recommendations/rag/index-all:
+    post:
+      description: 服务间调用的全量索引接口。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - InternalToken: []
+      summary: 内部全量索引
+      tags:
+      - 内部接口
+  /internal/recommendations/rag/index-job:
+    post:
+      consumes:
+      - application/json
+      description: 服务间调用的职位索引接口。
+      parameters:
+      - description: 职位索引参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - InternalToken: []
+      summary: 内部索引职位
+      tags:
+      - 内部接口
+  /internal/recommendations/rag/index-resume:
+    post:
+      consumes:
+      - application/json
+      description: 服务间调用的简历索引接口。
+      parameters:
+      - description: 简历索引参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - InternalToken: []
+      summary: 内部索引简历
+      tags:
+      - 内部接口
+  /internal/recommendations/rag/index-talent:
+    post:
+      consumes:
+      - application/json
+      description: 服务间调用的人才索引接口。
+      parameters:
+      - description: 人才索引参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - InternalToken: []
+      summary: 内部索引人才
+      tags:
+      - 内部接口
+  /internal/recommendations/rag/match:
+    post:
+      consumes:
+      - application/json
+      description: 服务间调用的人岗匹配接口。
+      parameters:
+      - description: 匹配参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - InternalToken: []
+      summary: 内部 RAG 人岗匹配
+      tags:
+      - 内部接口
+  /internal/recommendations/rag/query:
+    post:
+      consumes:
+      - application/json
+      description: 服务间调用的 RAG 查询接口。
+      parameters:
+      - description: RAG 查询参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SwaggerAny'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SwaggerResponse'
+      security:
+      - InternalToken: []
+      summary: 内部 RAG 查询
+      tags:
+      - 内部接口
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+  InternalToken:
+    in: header
+    name: X-Internal-Token
+    type: apiKey
+swagger: "2.0"
