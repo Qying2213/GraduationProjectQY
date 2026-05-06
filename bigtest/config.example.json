@@ -1,0 +1,11 @@
+{
+  "env": {
+    "frontendBaseUrl": "http://localhost:5173",
+    "replayBaseUrl": "http://localhost:8080"
+  },
+  "auth": {
+    "loginPath": "/login",
+    "username": "admin",
+    "password": "admin123"
+  }
+}

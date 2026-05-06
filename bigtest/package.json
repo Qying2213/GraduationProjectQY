@@ -1,0 +1,12 @@
+{
+  "name": "talent-platform-bigtest",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "run": "node ./src/index.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.59.1"
+  }
+}
