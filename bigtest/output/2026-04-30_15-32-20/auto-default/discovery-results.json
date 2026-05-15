@@ -1,0 +1,295 @@
+{
+  "exploration": {
+    "routesDiscovered": 36,
+    "routesFromFiles": [
+      "/login",
+      "/register",
+      "/dev-logs",
+      "/portal",
+      "/portal/jobs",
+      "/portal/jobs/1",
+      "/portal/companies",
+      "/portal/login",
+      "/portal/register",
+      "/portal/my-applications",
+      "/portal/my-resume",
+      "/portal/chat",
+      "/data-screen",
+      "/dashboard",
+      "/talents",
+      "/talents/1",
+      "/jobs",
+      "/jobs/1",
+      "/resumes",
+      "/recommend",
+      "/kanban",
+      "/calendar",
+      "/interviews/1",
+      "/messages",
+      "/chat",
+      "/profile",
+      "/roles",
+      "/reports",
+      "/settings",
+      "/logs",
+      "/ai-evaluate",
+      "/ai-process",
+      "/evaluation-results",
+      "/notices/1/edit",
+      "/notices",
+      "/notices/1"
+    ],
+    "routesFromPageDirs": [],
+    "routesFromDom": [
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies"
+    ],
+    "visitedRoutes": [
+      "/portal",
+      "/portal/jobs",
+      "/portal/jobs/1",
+      "/portal/companies",
+      "/portal/my-applications",
+      "/portal/my-resume",
+      "/portal/chat",
+      "/data-screen",
+      "/dashboard",
+      "/talents",
+      "/talents/1",
+      "/jobs",
+      "/jobs/1",
+      "/resumes",
+      "/recommend",
+      "/kanban",
+      "/calendar",
+      "/interviews/1",
+      "/messages",
+      "/chat",
+      "/profile",
+      "/roles",
+      "/reports",
+      "/settings",
+      "/logs",
+      "/notices/1/edit",
+      "/notices",
+      "/notices/1"
+    ],
+    "pagesVisited": 28,
+    "inputsFound": 437,
+    "inputsFilled": 133,
+    "buttonsFound": 542,
+    "buttonsClicked": 160,
+    "skippedButtons": [],
+    "buttonFailures": [
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "error": "locator.click: Timeout 1000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button, a, .el-button, [role=\\'button\\']').nth(5)\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" data-v-cf3bdcb2=\"\" aria-disabled=\"true\" class=\"el-button el-button--primary el-button--large is-disabled\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n",
+        "screenshot": ""
+      }
+    ],
+    "failedRoutes": [],
+    "dialogsDismissed": 0
+  },
+  "apiCoverage": {
+    "resources": [
+      {
+        "name": "stats",
+        "methods": [
+          "GET"
+        ],
+        "count": 1
+      },
+      {
+        "name": "messages",
+        "methods": [
+          "DELETE",
+          "GET",
+          "POST"
+        ],
+        "count": 6
+      },
+      {
+        "name": "talents",
+        "methods": [
+          "DELETE",
+          "GET",
+          "POST",
+          "PUT"
+        ],
+        "count": 6
+      },
+      {
+        "name": "jobs",
+        "methods": [
+          "DELETE",
+          "GET",
+          "POST",
+          "PUT"
+        ],
+        "count": 11
+      },
+      {
+        "name": "conversations",
+        "methods": [
+          "GET"
+        ],
+        "count": 2
+      },
+      {
+        "name": "applications",
+        "methods": [
+          "GET"
+        ],
+        "count": 3
+      },
+      {
+        "name": "resumes",
+        "methods": [
+          "GET"
+        ],
+        "count": 3
+      },
+      {
+        "name": "interviews",
+        "methods": [
+          "DELETE",
+          "GET",
+          "POST",
+          "PUT"
+        ],
+        "count": 8
+      },
+      {
+        "name": "logs",
+        "methods": [
+          "GET"
+        ],
+        "count": 1
+      },
+      {
+        "name": "notices",
+        "methods": [
+          "DELETE",
+          "GET",
+          "POST",
+          "PUT"
+        ],
+        "count": 6
+      }
+    ]
+  },
+  "safetyBlocks": {
+    "total": 0,
+    "skippedReplay": 0,
+    "skippedButtons": 0
+  }
+}

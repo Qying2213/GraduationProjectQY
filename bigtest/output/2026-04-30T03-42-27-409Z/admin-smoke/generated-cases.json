@@ -1,0 +1,1569 @@
+[
+  {
+    "id": "admin-smoke-1",
+    "profile": "admin-smoke",
+    "fingerprint": "POST::/api/v1/login::anon::{\n  \"kind\": \"object\",\n  \"keys\": [\n    \"password\",\n    \"username\"\n  ]\n}",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      1
+    ],
+    "request": {
+      "method": "POST",
+      "originalUrl": "http://localhost:5173/api/v1/login",
+      "normalizedPath": "/api/v1/login",
+      "resourceType": "xhr",
+      "requiresAuth": false,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "connection": "keep-alive",
+        "content-length": "42",
+        "content-type": "application/json",
+        "host": "localhost:5173",
+        "origin": "http://localhost:5173",
+        "referer": "http://localhost:5173/login",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": {
+        "username": "admin",
+        "password": "<redacted>"
+      },
+      "bodyShape": {
+        "kind": "object",
+        "keys": [
+          "password",
+          "username"
+        ]
+      }
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": null,
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-2",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/stats/dashboard::auth::",
+    "occurrences": 4,
+    "sourceRequestIds": [
+      2,
+      7,
+      47,
+      53
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/stats/dashboard",
+      "normalizedPath": "/api/v1/stats/dashboard",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/dashboard",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-3",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/talents?page=1&page_size=20::auth::",
+    "occurrences": 4,
+    "sourceRequestIds": [
+      3,
+      10,
+      48,
+      54
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/talents?page=1&page_size=20",
+      "normalizedPath": "/api/v1/talents?page=1&page_size=20",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/dashboard",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-4",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/messages?page=1&page_size=5::auth::",
+    "occurrences": 4,
+    "sourceRequestIds": [
+      4,
+      9,
+      49,
+      52
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/messages?page=1&page_size=5",
+      "normalizedPath": "/api/v1/messages?page=1&page_size=5",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/dashboard",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-5",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/messages/unread-count::auth::",
+    "occurrences": 28,
+    "sourceRequestIds": [
+      5,
+      8,
+      13,
+      16,
+      19,
+      20,
+      24,
+      50,
+      51,
+      57,
+      61,
+      62,
+      68,
+      69,
+      75,
+      77,
+      79,
+      82,
+      84,
+      86,
+      88,
+      89,
+      90,
+      94,
+      95,
+      99,
+      102,
+      105
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/messages/unread-count",
+      "normalizedPath": "/api/v1/messages/unread-count",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/dashboard",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-6",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/jobs?page=1&page_size=5::anon::",
+    "occurrences": 4,
+    "sourceRequestIds": [
+      6,
+      11,
+      46,
+      55
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs?page=1&page_size=5",
+      "normalizedPath": "/api/v1/jobs?page=1&page_size=5",
+      "resourceType": "fetch",
+      "requiresAuth": false,
+      "headersSanitized": {
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/dashboard",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-7",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/jobs?page=1&page_size=10::auth::",
+    "occurrences": 6,
+    "sourceRequestIds": [
+      12,
+      63,
+      65,
+      91,
+      92,
+      93
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs?page=1&page_size=10&search=&status=&type=&location=",
+      "normalizedPath": "/api/v1/jobs?page=1&page_size=10",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/jobs",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-8",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/jobs?page=1&page_size=10&search=%E5%90%8E%E7%AB%AF::auth::",
+    "occurrences": 2,
+    "sourceRequestIds": [
+      14,
+      64
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs?page=1&page_size=10&search=%E5%90%8E%E7%AB%AF&status=&type=&location=",
+      "normalizedPath": "/api/v1/jobs?page=1&page_size=10&search=%E5%90%8E%E7%AB%AF",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/jobs",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-9",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/jobs/1::auth::",
+    "occurrences": 3,
+    "sourceRequestIds": [
+      15,
+      32,
+      66
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs/1",
+      "normalizedPath": "/api/v1/jobs/1",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/jobs/1",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-10",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/jobs/1/applications?page=1&page_size=10::auth::",
+    "occurrences": 2,
+    "sourceRequestIds": [
+      17,
+      67
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs/1/applications?page=1&page_size=10",
+      "normalizedPath": "/api/v1/jobs/1/applications?page=1&page_size=10",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/jobs/1",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-11",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/messages?page=1&page_size=10&user_id=1::auth::",
+    "occurrences": 3,
+    "sourceRequestIds": [
+      18,
+      56,
+      83
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/messages?user_id=1&page=1&page_size=10",
+      "normalizedPath": "/api/v1/messages?page=1&page_size=10&user_id=1",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/messages",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-12",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/notices?page=1&page_size=10::auth::",
+    "occurrences": 4,
+    "sourceRequestIds": [
+      21,
+      100,
+      101,
+      106
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/notices?keyword=&status=&page=1&page_size=10",
+      "normalizedPath": "/api/v1/notices?page=1&page_size=10",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/notices",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-13",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/notices?keyword=%E6%A0%A1%E5%9B%AD%E6%8B%9B%E8%81%98&page=1&page_size=10::auth::",
+    "occurrences": 2,
+    "sourceRequestIds": [
+      22,
+      103
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/notices?keyword=%E6%A0%A1%E5%9B%AD%E6%8B%9B%E8%81%98&status=&page=1&page_size=10",
+      "normalizedPath": "/api/v1/notices?keyword=%E6%A0%A1%E5%9B%AD%E6%8B%9B%E8%81%98&page=1&page_size=10",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/notices",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-14",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/notices/1::auth::",
+    "occurrences": 3,
+    "sourceRequestIds": [
+      23,
+      98,
+      104
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/notices/1",
+      "normalizedPath": "/api/v1/notices/1",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/notices/1",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-15",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/conversations/unread-count::auth::",
+    "occurrences": 7,
+    "sourceRequestIds": [
+      25,
+      30,
+      34,
+      35,
+      37,
+      42,
+      44
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/conversations/unread-count",
+      "normalizedPath": "/api/v1/conversations/unread-count",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-16",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/jobs?keyword=%E5%90%8E%E7%AB%AF&page=1&page_size=10&status=open::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      26
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs?page=1&page_size=10&status=open&keyword=%E5%90%8E%E7%AB%AF",
+      "normalizedPath": "/api/v1/jobs?keyword=%E5%90%8E%E7%AB%AF&page=1&page_size=10&status=open",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal/jobs?keyword=%E5%90%8E%E7%AB%AF&city=",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-17",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/applications?page=1&page_size=1000&talent_id=me::auth::",
+    "occurrences": 4,
+    "sourceRequestIds": [
+      27,
+      29,
+      33,
+      39
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/applications?page=1&page_size=1000&talent_id=me",
+      "normalizedPath": "/api/v1/applications?page=1&page_size=1000&talent_id=me",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal/jobs?keyword=%E5%90%8E%E7%AB%AF&city=",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-18",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/jobs?page=1&page_size=10&status=open::auth::",
+    "occurrences": 2,
+    "sourceRequestIds": [
+      28,
+      31
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs?page=1&page_size=10&status=open",
+      "normalizedPath": "/api/v1/jobs?page=1&page_size=10&status=open",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal/jobs",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-19",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/applications?page=1&page_size=20::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      36
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/applications?page=1&page_size=20",
+      "normalizedPath": "/api/v1/applications?page=1&page_size=20",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal/my-applications",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-20",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/jobs/62::auth::",
+    "occurrences": 2,
+    "sourceRequestIds": [
+      38,
+      74
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs/62",
+      "normalizedPath": "/api/v1/jobs/62",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal/jobs/62",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-21",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/resumes/online::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      40
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/resumes/online",
+      "normalizedPath": "/api/v1/resumes/online",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal/my-resume",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-22",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/resumes?page_size=10::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      41
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/resumes?page_size=10",
+      "normalizedPath": "/api/v1/resumes?page_size=10",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal/my-resume",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": null,
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-23",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/conversations::auth::",
+    "occurrences": 4,
+    "sourceRequestIds": [
+      43,
+      45,
+      85,
+      87
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/conversations",
+      "normalizedPath": "/api/v1/conversations",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal/chat",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-24",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/talents?page=1&page_size=10::auth::",
+    "occurrences": 2,
+    "sourceRequestIds": [
+      58,
+      60
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/talents?page=1&page_size=10&search=&status=&experience=&location=",
+      "normalizedPath": "/api/v1/talents?page=1&page_size=10",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/talents",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-25",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/talents?page=1&page_size=10&search=%E6%B5%8B%E8%AF%95::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      59
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/talents?page=1&page_size=10&search=%E6%B5%8B%E8%AF%95&status=&experience=&location=",
+      "normalizedPath": "/api/v1/talents?page=1&page_size=10&search=%E6%B5%8B%E8%AF%95",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/talents",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-26",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/jobs?page_size=100&status=open::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      70
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs?page_size=100&status=open",
+      "normalizedPath": "/api/v1/jobs?page_size=100&status=open",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/resumes",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": null,
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-27",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/resumes?page=1&page_size=10::auth::",
+    "occurrences": 2,
+    "sourceRequestIds": [
+      71,
+      73
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/resumes?page=1&page_size=10",
+      "normalizedPath": "/api/v1/resumes?page=1&page_size=10",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/resumes",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": null,
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-28",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/resumes?page=1&page_size=10&search=%E6%B5%8B%E8%AF%95::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      72
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/resumes?page=1&page_size=10&search=%E6%B5%8B%E8%AF%95",
+      "normalizedPath": "/api/v1/resumes?page=1&page_size=10&search=%E6%B5%8B%E8%AF%95",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/resumes",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-29",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/jobs?page=1&page_size=20::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      76
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs?page=1&page_size=20",
+      "normalizedPath": "/api/v1/jobs?page=1&page_size=20",
+      "resourceType": "fetch",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/kanban",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-30",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/applications?page=1&page_size=50::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      78
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/applications?page=1&page_size=50",
+      "normalizedPath": "/api/v1/applications?page=1&page_size=50",
+      "resourceType": "fetch",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/kanban",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": null,
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-31",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/interviews/1::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      80
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/interviews/1",
+      "normalizedPath": "/api/v1/interviews/1",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/interviews/1",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-32",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/interviews/1/feedback::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      81
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/interviews/1/feedback",
+      "normalizedPath": "/api/v1/interviews/1/feedback",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/interviews/1",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-33",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/logs?page=1&page_size=20::auth::",
+    "occurrences": 2,
+    "sourceRequestIds": [
+      96,
+      97
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/logs?page=1&page_size=20",
+      "normalizedPath": "/api/v1/logs?page=1&page_size=20",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/logs",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message",
+          "warning"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  }
+]

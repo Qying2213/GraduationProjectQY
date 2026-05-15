@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>简历解析模块流程图</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 32px;
+      color: #000;
+      background: #fff;
+      font-family: "Songti SC", "SimSun", "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    .page {
+      width: 1120px;
+      margin: 0 auto;
+      padding: 28px;
+      border: 2px solid #000;
+      background: #fff;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      text-align: center;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      margin: 0 0 24px;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    .chart-block {
+      margin-top: 24px;
+      padding: 18px;
+      border: 2px solid #000;
+      background: #fff;
+    }
+
+    .chart-block:first-of-type {
+      margin-top: 0;
+    }
+
+    .chart-title {
+      margin: 0 0 12px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #fff;
+    }
+
+    .node {
+      fill: #fff;
+      stroke: #000;
+      stroke-width: 2;
+    }
+
+    .line {
+      stroke: #000;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .text {
+      fill: #000;
+      font-size: 14px;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+
+    .small {
+      font-size: 12px;
+    }
+
+    .label {
+      fill: #000;
+      font-size: 13px;
+      text-anchor: middle;
+    }
+
+    .note {
+      margin-top: 18px;
+      padding: 12px;
+      border: 2px solid #000;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+      }
+
+      .page {
+        border: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <h1>简历解析模块流程图</h1>
+    <p class="subtitle">上传入库、文本抽取与 OCR 兜底、AI/本地解析及风控校验</p>
+
+    <section class="chart-block">
+      <h2 class="chart-title">图 4-1-1 简历上传与入库流程</h2>
+      <svg viewBox="0 0 1040 560" role="img" aria-label="简历上传与入库流程图">
+        <defs>
+          <marker id="arrow1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <path d="M0,0 L9,3 L0,6 Z" fill="#000"></path>
+          </marker>
+        </defs>
+
+        <rect class="node" x="430" y="15" width="180" height="46" rx="23"></rect>
+        <text class="text" x="520" y="38">开始上传简历</text>
+
+        <line class="line" x1="520" y1="61" x2="520" y2="92" marker-end="url(#arrow1)"></line>
+        <rect class="node" x="405" y="92" width="230" height="62"></rect>
+        <text class="text" x="520" y="115">接收 multipart 文件</text>
+        <text class="text small" x="520" y="136">POST /api/v1/resumes/upload</text>
+
+        <line class="line" x1="520" y1="154" x2="520" y2="185" marker-end="url(#arrow1)"></line>
+        <polygon class="node" points="520,185 600,245 520,305 440,245"></polygon>
+        <text class="text" x="520" y="237">扩展名是否合法</text>
+        <text class="text small" x="520" y="258">仅允许 .pdf / .doc / .docx</text>
+
+        <line class="line" x1="440" y1="245" x2="280" y2="245" marker-end="url(#arrow1)"></line>
+        <text class="label" x="360" y="232">否</text>
+        <rect class="node" x="70" y="213" width="210" height="64"></rect>
+        <text class="text" x="175" y="237">返回 400</text>
+        <text class="text small" x="175" y="258">文件格式不支持</text>
+
+        <line class="line" x1="520" y1="305" x2="520" y2="335" marker-end="url(#arrow1)"></line>
+        <text class="label" x="540" y="320">是</text>
+        <polygon class="node" points="520,335 600,395 520,455 440,395"></polygon>
+        <text class="text" x="520" y="387">文件大小是否合法</text>
+        <text class="text small" x="520" y="408">最大 10MB</text>
+
+        <line class="line" x1="440" y1="395" x2="280" y2="395" marker-end="url(#arrow1)"></line>
+        <text class="label" x="360" y="382">否</text>
+        <rect class="node" x="70" y="363" width="210" height="64"></rect>
+        <text class="text" x="175" y="387">返回 400</text>
+        <text class="text small" x="175" y="408">文件超过 10MB</text>
+
+        <line class="line" x1="520" y1="455" x2="520" y2="485" marker-end="url(#arrow1)"></line>
+        <text class="label" x="540" y="470">是</text>
+        <rect class="node" x="405" y="485" width="230" height="62"></rect>
+        <text class="text" x="520" y="508">保存文件到 uploads</text>
+        <text class="text small" x="520" y="529">UnixNano 原文件名生成唯一名</text>
+
+        <line class="line" x1="635" y1="516" x2="775" y2="516" marker-end="url(#arrow1)"></line>
+        <rect class="node" x="775" y="485" width="220" height="62"></rect>
+        <text class="text" x="885" y="508">写入 resumes 表</text>
+        <text class="text small" x="885" y="529">FilePath、FileURL、FileType、pending</text>
+
+        <line class="line" x1="885" y1="485" x2="885" y2="415" marker-end="url(#arrow1)"></line>
+        <rect class="node" x="775" y="340" width="220" height="75"></rect>
+        <text class="text" x="885" y="362">candidate 自动绑定</text>
+        <text class="text small" x="885" y="384">根据 JWT user_id 查 talents</text>
+        <text class="text small" x="885" y="402">填充 talent_id，可附带 job_id</text>
+      </svg>
+    </section>
+
+    <section class="chart-block">
+      <h2 class="chart-title">图 4-1-2 文本抽取与 OCR 兜底流程</h2>
+      <svg viewBox="0 0 1040 930" role="img" aria-label="文本抽取与 OCR 兜底流程图">
+        <defs>
+          <marker id="arrow2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <path d="M0,0 L9,3 L0,6 Z" fill="#000"></path>
+          </marker>
+        </defs>
+
+        <rect class="node" x="430" y="10" width="180" height="46" rx="23"></rect>
+        <text class="text" x="520" y="33">开始文本提取</text>
+
+        <line class="line" x1="520" y1="56" x2="520" y2="88" marker-end="url(#arrow2)"></line>
+        <polygon class="node" points="520,88 610,150 520,212 430,150"></polygon>
+        <text class="text" x="520" y="142">判断文件类型</text>
+        <text class="text small" x="520" y="163">ExtractTextFromFile</text>
+
+        <line class="line" x1="430" y1="150" x2="250" y2="150" marker-end="url(#arrow2)"></line>
+        <text class="label" x="340" y="137">DOC/DOCX</text>
+        <rect class="node" x="40" y="115" width="210" height="70"></rect>
+        <text class="text" x="145" y="140">Word 文本提取</text>
+        <text class="text small" x="145" y="162">DOCX 解压 XML / DOC antiword</text>
+
+        <line class="line" x1="610" y1="150" x2="800" y2="150" marker-end="url(#arrow2)"></line>
+        <text class="label" x="705" y="137">图片</text>
+        <rect class="node" x="800" y="115" width="210" height="70"></rect>
+        <text class="text" x="905" y="140">图片 OCR</text>
+        <text class="text small" x="905" y="162">tesseract --psm 6</text>
+
+        <line class="line" x1="520" y1="212" x2="520" y2="238" marker-end="url(#arrow2)"></line>
+        <text class="label" x="542" y="228">PDF</text>
+        <rect class="node" x="390" y="238" width="260" height="70"></rect>
+        <text class="text" x="520" y="263">候选一：pdftotext</text>
+        <text class="text small" x="520" y="285">UTF-8、raw、nopgbrk 提取文本层</text>
+
+        <line class="line" x1="390" y1="273" x2="250" y2="273" marker-end="url(#arrow2)"></line>
+        <rect class="node" x="40" y="238" width="210" height="70"></rect>
+        <text class="text" x="145" y="263">候选二：go-pdf</text>
+        <text class="text small" x="145" y="285">逐页 GetPlainText</text>
+
+        <line class="line" x1="520" y1="308" x2="520" y2="338" marker-end="url(#arrow2)"></line>
+        <rect class="node" x="390" y="338" width="260" height="82"></rect>
+        <text class="text" x="520" y="362">清洗候选文本</text>
+        <text class="text small" x="520" y="383">NFKC、换行/空白归一</text>
+        <text class="text small" x="520" y="402">过滤重复噪声和异常 ASCII 块</text>
+
+        <line class="line" x1="520" y1="420" x2="520" y2="450" marker-end="url(#arrow2)"></line>
+        <rect class="node" x="390" y="450" width="260" height="82"></rect>
+        <text class="text" x="520" y="474">统计有效信息行</text>
+        <text class="text small" x="520" y="495">signalRatio</text>
+        <text class="text small" x="520" y="514">中文、邮箱、冒号、正常长度行</text>
+
+        <line class="line" x1="390" y1="491" x2="250" y2="491" marker-end="url(#arrow2)"></line>
+        <rect class="node" x="40" y="455" width="210" height="72"></rect>
+        <text class="text" x="145" y="480">统计有效字符比例</text>
+        <text class="text small" x="145" y="501">contentRatio</text>
+        <text class="text small" x="145" y="519">中文、字母、数字、常见标点</text>
+
+        <line class="line" x1="650" y1="491" x2="790" y2="491" marker-end="url(#arrow2)"></line>
+        <rect class="node" x="790" y="455" width="220" height="72"></rect>
+        <text class="text" x="900" y="480">统计文本长度</text>
+        <text class="text small" x="900" y="501">lengthScore</text>
+        <text class="text small" x="900" y="519">越接近正常简历长度越高</text>
+
+        <line class="line" x1="520" y1="532" x2="520" y2="562" marker-end="url(#arrow2)"></line>
+        <rect class="node" x="390" y="562" width="260" height="86"></rect>
+        <text class="text" x="520" y="584">计算候选文本质量分</text>
+        <text class="text small" x="520" y="606">0.38*signal + 0.34*content</text>
+        <text class="text small" x="520" y="626">+ 0.20*length - 噪声惩罚</text>
+
+        <line class="line" x1="390" y1="605" x2="250" y2="605" marker-end="url(#arrow2)"></line>
+        <rect class="node" x="40" y="570" width="210" height="70"></rect>
+        <text class="text" x="145" y="594">噪声惩罚</text>
+        <text class="text small" x="145" y="616">短 ASCII 行、异常编码块</text>
+
+        <line class="line" x1="650" y1="605" x2="790" y2="605" marker-end="url(#arrow2)"></line>
+        <rect class="node" x="790" y="570" width="220" height="70"></rect>
+        <text class="text" x="900" y="594">简历信号加分</text>
+        <text class="text small" x="900" y="616">手机号、邮箱、教育、经历等关键词</text>
+
+        <line class="line" x1="520" y1="648" x2="520" y2="678" marker-end="url(#arrow2)"></line>
+        <rect class="node" x="390" y="678" width="260" height="82"></rect>
+        <text class="text" x="520" y="702">选择最佳文本候选</text>
+        <text class="text small" x="520" y="723">pickBestTextCandidate</text>
+        <text class="text small" x="520" y="742">分数更高优先；分数接近则选更长文本</text>
+
+        <line class="line" x1="520" y1="760" x2="520" y2="790" marker-end="url(#arrow2)"></line>
+        <polygon class="node" points="520,790 610,848 520,906 430,848"></polygon>
+        <text class="text" x="520" y="841">是否需要 OCR</text>
+        <text class="text small" x="520" y="862">文本少于 120 或 score &lt; 0.58</text>
+
+        <line class="line" x1="430" y1="848" x2="255" y2="848" marker-end="url(#arrow2)"></line>
+        <text class="label" x="342" y="835">否</text>
+        <rect class="node" x="40" y="816" width="215" height="64"></rect>
+        <text class="text" x="148" y="840">采用最佳文本候选</text>
+        <text class="text small" x="148" y="861">返回 text / pages / confidence</text>
+
+        <line class="line" x1="610" y1="848" x2="800" y2="848" marker-end="url(#arrow2)"></line>
+        <text class="label" x="705" y="835">是</text>
+        <rect class="node" x="800" y="792" width="220" height="112"></rect>
+        <text class="text" x="910" y="814">PDF 转图片后 OCR</text>
+        <text class="text small" x="910" y="836">检查 tesseract / pdftoppm</text>
+        <text class="text small" x="910" y="858">pdftoppm -r 300 -gray -png</text>
+        <text class="text small" x="910" y="880">逐页 tesseract --psm 6 识别</text>
+      </svg>
+    </section>
+
+    <section class="chart-block">
+      <h2 class="chart-title">图 4-1-3 AI/本地结构化解析与风控流程</h2>
+      <svg viewBox="0 0 1040 790" role="img" aria-label="AI本地结构化解析与风控流程图">
+        <defs>
+          <marker id="arrow3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <path d="M0,0 L9,3 L0,6 Z" fill="#000"></path>
+          </marker>
+        </defs>
+
+        <rect class="node" x="430" y="10" width="180" height="46" rx="23"></rect>
+        <text class="text" x="520" y="33">开始解析</text>
+
+        <line class="line" x1="520" y1="56" x2="520" y2="88" marker-end="url(#arrow3)"></line>
+        <polygon class="node" points="520,88 610,150 520,212 430,150"></polygon>
+        <text class="text" x="520" y="142">解析来源</text>
+        <text class="text small" x="520" y="163">resume_id 或 multipart 文件</text>
+
+        <line class="line" x1="430" y1="150" x2="250" y2="150" marker-end="url(#arrow3)"></line>
+        <text class="label" x="340" y="137">resume_id</text>
+        <rect class="node" x="40" y="115" width="210" height="70"></rect>
+        <text class="text" x="145" y="140">读取 resumes 记录</text>
+        <text class="text small" x="145" y="162">校验 FilePath 是否存在</text>
+
+        <line class="line" x1="610" y1="150" x2="800" y2="150" marker-end="url(#arrow3)"></line>
+        <text class="label" x="705" y="137">上传文件</text>
+        <rect class="node" x="800" y="115" width="210" height="70"></rect>
+        <text class="text" x="905" y="140">保存临时文件</text>
+        <text class="text small" x="905" y="162">解析结束后清理</text>
+
+        <line class="line" x1="520" y1="212" x2="520" y2="244" marker-end="url(#arrow3)"></line>
+        <rect class="node" x="390" y="244" width="260" height="70"></rect>
+        <text class="text" x="520" y="269">调用 ExtractTextFromFile</text>
+        <text class="text small" x="520" y="291">得到 ocr_text、pages、confidence</text>
+
+        <line class="line" x1="520" y1="314" x2="520" y2="346" marker-end="url(#arrow3)"></line>
+        <polygon class="node" points="520,346 610,408 520,470 430,408"></polygon>
+        <text class="text" x="520" y="400">Coze 是否配置</text>
+        <text class="text small" x="520" y="421">COZE_TOKEN / workflow_id</text>
+
+        <line class="line" x1="430" y1="408" x2="250" y2="408" marker-end="url(#arrow3)"></line>
+        <text class="label" x="340" y="395">否或调用失败</text>
+        <rect class="node" x="40" y="373" width="210" height="70"></rect>
+        <text class="text" x="145" y="397">本地规则解析</text>
+        <text class="text small" x="145" y="419">姓名、手机、邮箱、学历、技能</text>
+
+        <line class="line" x1="610" y1="408" x2="800" y2="408" marker-end="url(#arrow3)"></line>
+        <text class="label" x="705" y="395">是</text>
+        <rect class="node" x="800" y="365" width="220" height="86"></rect>
+        <text class="text" x="910" y="387">Coze AI 解析</text>
+        <text class="text small" x="910" y="409">上传文件获取 file_id</text>
+        <text class="text small" x="910" y="429">运行 workflow 返回结构化结果</text>
+
+        <line class="line" x1="250" y1="408" x2="390" y2="520" marker-end="url(#arrow3)"></line>
+        <line class="line" x1="800" y1="408" x2="650" y2="520" marker-end="url(#arrow3)"></line>
+        <rect class="node" x="390" y="500" width="260" height="70"></rect>
+        <text class="text" x="520" y="525">保存解析结果</text>
+        <text class="text small" x="520" y="547">status=parsed、ParsedData、ExtractedText</text>
+
+        <line class="line" x1="520" y1="570" x2="520" y2="600" marker-end="url(#arrow3)"></line>
+        <rect class="node" x="390" y="600" width="260" height="58"></rect>
+        <text class="text" x="520" y="621">规则风控检查</text>
+        <text class="text small" x="520" y="643">POST /api/v1/resumes/risk-check</text>
+
+        <line class="line" x1="390" y1="629" x2="250" y2="629" marker-end="url(#arrow3)"></line>
+        <rect class="node" x="40" y="596" width="210" height="66"></rect>
+        <text class="text" x="145" y="618">时间冲突检测</text>
+        <text class="text small" x="145" y="640">工作/教育经历时间重叠</text>
+
+        <line class="line" x1="390" y1="650" x2="250" y2="710" marker-end="url(#arrow3)"></line>
+        <rect class="node" x="40" y="680" width="210" height="66"></rect>
+        <text class="text" x="145" y="702">学历异常检测</text>
+        <text class="text small" x="145" y="724">入学年龄、毕业年份、学制</text>
+
+        <line class="line" x1="650" y1="629" x2="790" y2="629" marker-end="url(#arrow3)"></line>
+        <rect class="node" x="790" y="596" width="220" height="66"></rect>
+        <text class="text" x="900" y="618">逻辑一致性检测</text>
+        <text class="text small" x="900" y="640">高级技能与经验年限匹配</text>
+
+        <line class="line" x1="650" y1="650" x2="790" y2="710" marker-end="url(#arrow3)"></line>
+        <rect class="node" x="790" y="680" width="220" height="66"></rect>
+        <text class="text" x="900" y="702">工作空白期检测</text>
+        <text class="text small" x="900" y="724">经历间隔超过 12 个月提示</text>
+
+        <line class="line" x1="520" y1="658" x2="520" y2="690" marker-end="url(#arrow3)"></line>
+        <rect class="node" x="392" y="690" width="256" height="56"></rect>
+        <text class="text" x="520" y="710">输出风险结果</text>
+        <text class="text small" x="520" y="731">has_risk、risk_items、score</text>
+
+        <line class="line" x1="800" y1="451" x2="648" y2="690" marker-end="url(#arrow3)"></line>
+        <text class="label" x="740" y="555">AI评估辅助参考</text>
+
+        <line class="line" x1="520" y1="746" x2="520" y2="756" marker-end="url(#arrow3)"></line>
+        <rect class="node" x="430" y="756" width="180" height="24" rx="12"></rect>
+        <text class="text small" x="520" y="768">返回解析与风控结果</text>
+      </svg>
+    </section>
+
+    <div class="note">
+      <strong>代码对应关系</strong>
+      上传入库对应 backend/resume-service/handlers/resume_handler.go；文本抽取和 OCR 兜底对应
+      backend/resume-service/ocr/ocr.go；AI/本地解析对应 backend/resume-service/handlers/ai_parse_handler.go 与
+      ai/coze_parser.go；风控校验对应 backend/resume-service/riskcheck/risk_checker.go 与 handlers/risk_handler.go。
+    </div>
+  </main>
+</body>
+
+</html>

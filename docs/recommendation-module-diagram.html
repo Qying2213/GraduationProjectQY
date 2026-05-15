@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>人岗匹配与推荐模块流程图</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 32px;
+      color: #000;
+      background: #fff;
+      font-family: "Songti SC", "SimSun", "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    .page {
+      width: 1180px;
+      margin: 0 auto;
+      padding: 28px;
+      border: 2px solid #000;
+      background: #fff;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      text-align: center;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      margin: 0 0 20px;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    .chart-block {
+      padding: 18px;
+      border: 2px solid #000;
+      background: #fff;
+    }
+
+    .chart-title {
+      margin: 0 0 12px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #fff;
+    }
+
+    .node {
+      fill: #fff;
+      stroke: #000;
+      stroke-width: 2;
+    }
+
+    .line {
+      stroke: #000;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .text {
+      fill: #000;
+      font-size: 14px;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+
+    .small {
+      font-size: 12px;
+    }
+
+    .formula {
+      fill: #000;
+      font-size: 13px;
+      font-family: "Times New Roman", "SimSun", serif;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+
+    .note {
+      margin-top: 16px;
+      padding: 12px;
+      border: 2px solid #000;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+      }
+
+      .page {
+        border: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <h1>人岗匹配与推荐模块流程图</h1>
+    <p class="subtitle">依据当前代码整理：人才/职位输入、五维规则评分、推荐等级、匹配细节与 Top10 排序</p>
+
+    <section class="chart-block">
+      <h2 class="chart-title">图 4-5-1 人岗匹配与推荐处理流程</h2>
+      <svg viewBox="0 0 1120 760" role="img" aria-label="人岗匹配与推荐模块流程图">
+        <defs>
+          <marker id="arrow-rec" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <path d="M0,0 L9,3 L0,6 Z" fill="#000"></path>
+          </marker>
+        </defs>
+
+        <rect class="node" x="460" y="12" width="200" height="46" rx="23"></rect>
+        <text class="text" x="560" y="35">推荐请求入口</text>
+
+        <line class="line" x1="560" y1="58" x2="560" y2="90" marker-end="url(#arrow-rec)"></line>
+        <rect class="node" x="365" y="90" width="390" height="82"></rect>
+        <text class="text" x="560" y="114">推荐接口</text>
+        <text class="text small" x="560" y="136">/jobs-for-talent：根据人才推荐职位</text>
+        <text class="text small" x="560" y="154">/talents-for-job：根据职位推荐人才</text>
+
+        <line class="line" x1="365" y1="131" x2="195" y2="131" marker-end="url(#arrow-rec)"></line>
+        <rect class="node" x="20" y="90" width="175" height="82"></rect>
+        <text class="text" x="107" y="114">人才数据</text>
+        <text class="text small" x="107" y="136">talents 表</text>
+        <text class="text small" x="107" y="154">技能、经验、学历、城市、薪资</text>
+
+        <line class="line" x1="755" y1="131" x2="925" y2="131" marker-end="url(#arrow-rec)"></line>
+        <rect class="node" x="925" y="90" width="175" height="82"></rect>
+        <text class="text" x="1012" y="114">职位数据</text>
+        <text class="text small" x="1012" y="136">jobs 表</text>
+        <text class="text small" x="1012" y="154">技能、等级、地点、薪资、部门</text>
+
+        <line class="line" x1="560" y1="172" x2="560" y2="204" marker-end="url(#arrow-rec)"></line>
+        <rect class="node" x="365" y="204" width="390" height="96"></rect>
+        <text class="text" x="560" y="226">规则加权评分</text>
+        <text class="formula" x="560" y="250">Score=100*(0.50S_skill+0.20S_exp+0.15S_loc+0.10S_edu+0.05S_salary)</text>
+        <text class="text small" x="560" y="274">技能、经验、位置、学历、薪资五个维度综合计算</text>
+
+        <line class="line" x1="365" y1="252" x2="205" y2="252" marker-end="url(#arrow-rec)"></line>
+        <rect class="node" x="20" y="210" width="185" height="84"></rect>
+        <text class="text" x="112" y="232">技能匹配</text>
+        <text class="formula" x="112" y="254">S_skill=matchedWeight/totalWeight</text>
+        <text class="text small" x="112" y="274">Go、Docker、K8s 等技能可设置权重</text>
+
+        <line class="line" x1="755" y1="252" x2="915" y2="252" marker-end="url(#arrow-rec)"></line>
+        <rect class="node" x="915" y="210" width="185" height="84"></rect>
+        <text class="text" x="1007" y="232">经验/位置/学历/薪资</text>
+        <text class="text small" x="1007" y="254">按岗位等级、城市群</text>
+        <text class="text small" x="1007" y="274">学历要求和薪资范围评分</text>
+
+        <line class="line" x1="560" y1="300" x2="560" y2="332" marker-end="url(#arrow-rec)"></line>
+        <rect class="node" x="365" y="332" width="390" height="86"></rect>
+        <text class="text" x="560" y="354">生成推荐等级</text>
+        <text class="text small" x="560" y="376">score >= 80：high / 高度匹配</text>
+        <text class="text small" x="560" y="396">60-79：medium / 中等匹配；40-59：基本匹配</text>
+
+        <line class="line" x1="365" y1="375" x2="205" y2="375" marker-end="url(#arrow-rec)"></line>
+        <rect class="node" x="20" y="332" width="185" height="86"></rect>
+        <text class="text" x="112" y="354">解释字段</text>
+        <text class="text small" x="112" y="376">reason</text>
+        <text class="text small" x="112" y="396">match_details</text>
+
+        <line class="line" x1="755" y1="375" x2="915" y2="375" marker-end="url(#arrow-rec)"></line>
+        <rect class="node" x="915" y="332" width="185" height="86"></rect>
+        <text class="text" x="1007" y="354">推荐结果字段</text>
+        <text class="text small" x="1007" y="376">id、name、score</text>
+        <text class="text small" x="1007" y="396">match_level、details</text>
+
+        <line class="line" x1="560" y1="418" x2="560" y2="450" marker-end="url(#arrow-rec)"></line>
+        <rect class="node" x="365" y="450" width="390" height="82"></rect>
+        <text class="text" x="560" y="474">排序与截断</text>
+        <text class="text small" x="560" y="496">按 score 从高到低排序</text>
+        <text class="text small" x="560" y="514">score 保留一位小数，仅返回 Top10</text>
+
+        <line class="line" x1="560" y1="532" x2="560" y2="564" marker-end="url(#arrow-rec)"></line>
+        <rect class="node" x="365" y="564" width="390" height="82"></rect>
+        <text class="text" x="560" y="588">前端推荐页展示</text>
+        <text class="text small" x="560" y="610">推荐卡片展示分数、等级、原因</text>
+        <text class="text small" x="560" y="628">HR 根据匹配细节进行人工复核</text>
+
+        <line class="line" x1="560" y1="646" x2="560" y2="678" marker-end="url(#arrow-rec)"></line>
+        <rect class="node" x="460" y="678" width="200" height="46" rx="23"></rect>
+        <text class="text" x="560" y="701">形成推荐决策辅助</text>
+      </svg>
+    </section>
+
+    <div class="note">
+      <strong>代码对应关系：</strong>
+      推荐接口与规则加权评分对应 backend/recommendation-service/handlers/recommendation_handler.go；
+      接口路由对应 backend/recommendation-service/main.go。
+      语义匹配、RAG 与归因报告接口在服务中保留为扩展能力，论文 4.5 主体不再展开，避免与 4.4 AI 智能评估模块重复。
+    </div>
+  </main>
+</body>
+</html>

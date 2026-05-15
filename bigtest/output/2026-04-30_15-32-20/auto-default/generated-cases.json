@@ -1,0 +1,1405 @@
+[
+  {
+    "id": "auto-default-1",
+    "profile": "auto-default",
+    "fingerprint": "POST::/api/v1/login::anon::{\n  \"kind\": \"object\",\n  \"keys\": [\n    \"password\",\n    \"username\"\n  ]\n}",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      1
+    ],
+    "request": {
+      "method": "POST",
+      "originalUrl": "http://localhost:5173/api/v1/login",
+      "normalizedPath": "/api/v1/login",
+      "resourceType": "xhr",
+      "requiresAuth": false,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "connection": "keep-alive",
+        "content-length": "42",
+        "content-type": "application/json",
+        "host": "localhost:5173",
+        "origin": "http://localhost:5173",
+        "referer": "http://localhost:5173/login",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": {
+        "username": "admin",
+        "password": "<redacted>"
+      },
+      "bodyShape": {
+        "kind": "object",
+        "keys": [
+          "password",
+          "username"
+        ]
+      }
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": null,
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-2",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/stats/dashboard::auth::",
+    "occurrences": 3,
+    "sourceRequestIds": [
+      2,
+      51,
+      56
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/stats/dashboard",
+      "normalizedPath": "/api/v1/stats/dashboard",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/dashboard",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-3",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/messages/unread-count::auth::",
+    "occurrences": 22,
+    "sourceRequestIds": [
+      3,
+      54,
+      57,
+      65,
+      71,
+      76,
+      83,
+      90,
+      98,
+      105,
+      112,
+      120,
+      127,
+      136,
+      145,
+      152,
+      159,
+      167,
+      175,
+      185,
+      193,
+      204
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/messages/unread-count",
+      "normalizedPath": "/api/v1/messages/unread-count",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/dashboard",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-4",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/messages?page=1&page_size=5::auth::",
+    "occurrences": 3,
+    "sourceRequestIds": [
+      4,
+      53,
+      58
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/messages?page=1&page_size=5",
+      "normalizedPath": "/api/v1/messages?page=1&page_size=5",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/dashboard",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-5",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/talents?page=1&page_size=20::auth::",
+    "occurrences": 3,
+    "sourceRequestIds": [
+      5,
+      52,
+      59
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/talents?page=1&page_size=20",
+      "normalizedPath": "/api/v1/talents?page=1&page_size=20",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/dashboard",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-6",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/jobs?page=1&page_size=5::anon::",
+    "occurrences": 3,
+    "sourceRequestIds": [
+      6,
+      50,
+      60
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs?page=1&page_size=5",
+      "normalizedPath": "/api/v1/jobs?page=1&page_size=5",
+      "resourceType": "fetch",
+      "requiresAuth": false,
+      "headersSanitized": {
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/dashboard",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-7",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/conversations/unread-count::auth::",
+    "occurrences": 63,
+    "sourceRequestIds": [
+      7,
+      14,
+      21,
+      26,
+      32,
+      39,
+      45,
+      63,
+      69,
+      74,
+      80,
+      87,
+      89,
+      95,
+      97,
+      101,
+      103,
+      109,
+      111,
+      115,
+      117,
+      121,
+      124,
+      126,
+      129,
+      132,
+      134,
+      138,
+      141,
+      143,
+      144,
+      148,
+      150,
+      151,
+      155,
+      157,
+      158,
+      160,
+      163,
+      165,
+      166,
+      168,
+      171,
+      173,
+      174,
+      177,
+      180,
+      182,
+      183,
+      186,
+      189,
+      191,
+      192,
+      195,
+      196,
+      199,
+      201,
+      202,
+      205,
+      206,
+      209,
+      211,
+      212
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/conversations/unread-count",
+      "normalizedPath": "/api/v1/conversations/unread-count",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-8",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/jobs?page=1&page_size=10&status=open::auth::",
+    "occurrences": 28,
+    "sourceRequestIds": [
+      8,
+      12,
+      15,
+      22,
+      27,
+      33,
+      40,
+      47,
+      61,
+      67,
+      72,
+      78,
+      85,
+      93,
+      99,
+      107,
+      113,
+      122,
+      130,
+      139,
+      146,
+      153,
+      161,
+      169,
+      178,
+      187,
+      197,
+      207
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs?page=1&page_size=10&status=open",
+      "normalizedPath": "/api/v1/jobs?page=1&page_size=10&status=open",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal/jobs",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-9",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/applications?page=1&page_size=1000&talent_id=me::auth::",
+    "occurrences": 29,
+    "sourceRequestIds": [
+      9,
+      13,
+      16,
+      20,
+      23,
+      28,
+      34,
+      41,
+      48,
+      62,
+      68,
+      73,
+      79,
+      86,
+      94,
+      100,
+      108,
+      114,
+      123,
+      131,
+      140,
+      147,
+      154,
+      162,
+      170,
+      179,
+      188,
+      198,
+      208
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/applications?page=1&page_size=1000&talent_id=me",
+      "normalizedPath": "/api/v1/applications?page=1&page_size=1000&talent_id=me",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal/jobs",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-10",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/conversations::auth::",
+    "occurrences": 17,
+    "sourceRequestIds": [
+      10,
+      11,
+      17,
+      18,
+      24,
+      25,
+      29,
+      30,
+      35,
+      36,
+      42,
+      43,
+      44,
+      46,
+      49,
+      135,
+      137
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/conversations",
+      "normalizedPath": "/api/v1/conversations",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal/chat",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-11",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/jobs/1::auth::",
+    "occurrences": 2,
+    "sourceRequestIds": [
+      19,
+      82
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs/1",
+      "normalizedPath": "/api/v1/jobs/1",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal/jobs/1",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-12",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/applications?page=1&page_size=20::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      31
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/applications?page=1&page_size=20",
+      "normalizedPath": "/api/v1/applications?page=1&page_size=20",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal/my-applications",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-13",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/resumes/online::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      37
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/resumes/online",
+      "normalizedPath": "/api/v1/resumes/online",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal/my-resume",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-14",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/resumes?page_size=10::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      38
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/resumes?page_size=10",
+      "normalizedPath": "/api/v1/resumes?page_size=10",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/portal/my-resume",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": null,
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-15",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/jobs?page_size=100&status=open::auth::",
+    "occurrences": 22,
+    "sourceRequestIds": [
+      55,
+      64,
+      70,
+      75,
+      81,
+      88,
+      91,
+      96,
+      102,
+      110,
+      116,
+      125,
+      133,
+      142,
+      149,
+      156,
+      164,
+      172,
+      181,
+      190,
+      200,
+      210
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs?page_size=100&status=open",
+      "normalizedPath": "/api/v1/jobs?page_size=100&status=open",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/ai-evaluate",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": null,
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-16",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/talents?page=1&page_size=10::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      66
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/talents?page=1&page_size=10&search=&status=&experience=&location=",
+      "normalizedPath": "/api/v1/talents?page=1&page_size=10",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/talents",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-17",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/jobs?page=1&page_size=10::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      77
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs?page=1&page_size=10&search=&status=&type=&location=",
+      "normalizedPath": "/api/v1/jobs?page=1&page_size=10",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/jobs",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-18",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/jobs/1/applications?page=1&page_size=10::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      84
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs/1/applications?page=1&page_size=10",
+      "normalizedPath": "/api/v1/jobs/1/applications?page=1&page_size=10",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/jobs/1",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-19",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/resumes?page=1&page_size=10::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      92
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/resumes?page=1&page_size=10",
+      "normalizedPath": "/api/v1/resumes?page=1&page_size=10",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/resumes",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": null,
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-20",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/jobs?page=1&page_size=20::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      104
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs?page=1&page_size=20",
+      "normalizedPath": "/api/v1/jobs?page=1&page_size=20",
+      "resourceType": "fetch",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/kanban",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-21",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/applications?page=1&page_size=50::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      106
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/applications?page=1&page_size=50",
+      "normalizedPath": "/api/v1/applications?page=1&page_size=50",
+      "resourceType": "fetch",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/kanban",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": null,
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-22",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/interviews/1::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      118
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/interviews/1",
+      "normalizedPath": "/api/v1/interviews/1",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/interviews/1",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-23",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/interviews/1/feedback::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      119
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/interviews/1/feedback",
+      "normalizedPath": "/api/v1/interviews/1/feedback",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/interviews/1",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-24",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/messages?page=1&page_size=10&user_id=1::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      128
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/messages?user_id=1&page=1&page_size=10",
+      "normalizedPath": "/api/v1/messages?page=1&page_size=10&user_id=1",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/messages",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-25",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/logs?page=1&page_size=20::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      176
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/logs?page=1&page_size=20",
+      "normalizedPath": "/api/v1/logs?page=1&page_size=20",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/logs",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message",
+          "warning"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-26",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/notices/1::auth::",
+    "occurrences": 2,
+    "sourceRequestIds": [
+      184,
+      203
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/notices/1",
+      "normalizedPath": "/api/v1/notices/1",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/notices/1/edit",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "auto-default-27",
+    "profile": "auto-default",
+    "fingerprint": "GET::/api/v1/notices?page=1&page_size=10::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      194
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/notices?keyword=&status=&page=1&page_size=10",
+      "normalizedPath": "/api/v1/notices?page=1&page_size=10",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/notices",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  }
+]

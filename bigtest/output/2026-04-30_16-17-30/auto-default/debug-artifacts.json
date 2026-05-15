@@ -1,0 +1,841 @@
+{
+  "consoleErrors": [
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=50  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=35  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=36  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=37  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=38  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=39  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=24  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=25  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=23  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=15  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://localhost:5173/notices/1/edit"
+    },
+    {
+      "type": "error",
+      "text": "[Response Error] /notices/1 Request failed with status code 404",
+      "url": "http://localhost:5173/notices/1/edit"
+    },
+    {
+      "type": "error",
+      "text": "[Response Error] Status: 404 Data: {code: 404, message: Notice not found}",
+      "url": "http://localhost:5173/notices/1/edit"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://localhost:5173/notices/1"
+    },
+    {
+      "type": "error",
+      "text": "[Response Error] /notices/1 Request failed with status code 404",
+      "url": "http://localhost:5173/notices/1"
+    },
+    {
+      "type": "error",
+      "text": "[Response Error] Status: 404 Data: {code: 404, message: Notice not found}",
+      "url": "http://localhost:5173/notices/1"
+    }
+  ],
+  "networkFailures": [],
+  "screenshots": []
+}

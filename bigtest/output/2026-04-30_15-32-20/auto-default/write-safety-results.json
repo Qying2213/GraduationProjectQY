@@ -1,0 +1,1304 @@
+{
+  "testDataPrefix": "BIGTEST_2026-04-30_15-32-20",
+  "registry": {
+    "resources": {
+      "jobs": [],
+      "talents": [],
+      "messages": [],
+      "interviews": [],
+      "notice": []
+    }
+  },
+  "scenarios": [
+    {
+      "name": "job-crud-owned-data",
+      "resourceType": "jobs",
+      "inferred": false,
+      "steps": [
+        {
+          "name": "create",
+          "method": "POST",
+          "path": "/api/v1/jobs",
+          "status": 201,
+          "expectedStatuses": [
+            200,
+            201
+          ],
+          "durationMs": 20,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 64,
+              "created_at": "2026-04-30T15:35:22.295159+08:00",
+              "updated_at": "2026-04-30T15:35:22.295159+08:00",
+              "title": "BIGTEST_2026-04-30_15-32-20_测试职位",
+              "description": "BIGTEST_2026-04-30_15-32-20_自动创建的职位描述",
+              "requirements": [
+                "Go",
+                "Vue",
+                "PostgreSQL"
+              ],
+              "salary": "10k-20k",
+              "location": "远程",
+              "type": "full-time",
+              "status": "open",
+              "created_by": 1,
+              "department": "测试部",
+              "level": "mid",
+              "education": "本科",
+              "skills": [
+                "Go",
+                "Vue"
+              ],
+              "benefits": [
+                "五险一金"
+              ],
+              "headcount": 1
+            },
+            "message": "Job created successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 64,
+              "created_at": "2026-04-30T15:35:22.295159+08:00",
+              "updated_at": "2026-04-30T15:35:22.295159+08:00",
+              "title": "BIGTEST_2026-04-30_15-32-20_测试职位",
+              "description": "BIGTEST_2026-04-30_15-32-20_自动创建的职位描述",
+              "requirements": [
+                "Go",
+                "Vue",
+                "PostgreSQL"
+              ],
+              "salary": "10k-20k",
+              "location": "远程",
+              "type": "full-time",
+              "status": "open",
+              "created_by": 1,
+              "department": "测试部",
+              "level": "mid",
+              "education": "本科",
+              "skills": [
+                "Go",
+                "Vue"
+              ],
+              "benefits": [
+                "五险一金"
+              ],
+              "headcount": 1
+            },
+            "message": "Job created successfully"
+          }
+        },
+        {
+          "name": "verify",
+          "method": "GET",
+          "path": "/api/v1/jobs/64",
+          "status": 200,
+          "expectedStatuses": [
+            200
+          ],
+          "durationMs": 2,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 64,
+              "created_at": "2026-04-30T15:35:22.295159+08:00",
+              "updated_at": "2026-04-30T15:35:22.295159+08:00",
+              "title": "BIGTEST_2026-04-30_15-32-20_测试职位",
+              "description": "BIGTEST_2026-04-30_15-32-20_自动创建的职位描述",
+              "requirements": [
+                "Go",
+                "Vue",
+                "PostgreSQL"
+              ],
+              "salary": "10k-20k",
+              "location": "远程",
+              "type": "full-time",
+              "status": "open",
+              "created_by": 1,
+              "department": "测试部",
+              "level": "mid",
+              "education": "本科",
+              "skills": [
+                "Go",
+                "Vue"
+              ],
+              "benefits": [
+                "五险一金"
+              ],
+              "headcount": 1
+            },
+            "message": "success"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 64,
+              "created_at": "2026-04-30T15:35:22.295159+08:00",
+              "updated_at": "2026-04-30T15:35:22.295159+08:00",
+              "title": "BIGTEST_2026-04-30_15-32-20_测试职位",
+              "description": "BIGTEST_2026-04-30_15-32-20_自动创建的职位描述",
+              "requirements": [
+                "Go",
+                "Vue",
+                "PostgreSQL"
+              ],
+              "salary": "10k-20k",
+              "location": "远程",
+              "type": "full-time",
+              "status": "open",
+              "created_by": 1,
+              "department": "测试部",
+              "level": "mid",
+              "education": "本科",
+              "skills": [
+                "Go",
+                "Vue"
+              ],
+              "benefits": [
+                "五险一金"
+              ],
+              "headcount": 1
+            },
+            "message": "success"
+          }
+        },
+        {
+          "name": "update",
+          "method": "PUT",
+          "path": "/api/v1/jobs/64",
+          "status": 200,
+          "expectedStatuses": [
+            200
+          ],
+          "durationMs": 1,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 64,
+              "created_at": "2026-04-30T15:35:22.295159+08:00",
+              "updated_at": "2026-04-30T15:35:22.302177+08:00",
+              "title": "BIGTEST_2026-04-30_15-32-20_测试职位_已更新",
+              "description": "BIGTEST_2026-04-30_15-32-20_自动更新的职位描述",
+              "requirements": [
+                "Go",
+                "Vue",
+                "Docker"
+              ],
+              "salary": "12k-22k",
+              "location": "上海",
+              "type": "full-time",
+              "status": "open",
+              "created_by": 1,
+              "department": "测试部",
+              "level": "senior",
+              "education": "本科",
+              "skills": [
+                "Go",
+                "Vue",
+                "Docker"
+              ],
+              "benefits": [
+                "五险一金"
+              ],
+              "headcount": 1
+            },
+            "message": "Job updated successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 64,
+              "created_at": "2026-04-30T15:35:22.295159+08:00",
+              "updated_at": "2026-04-30T15:35:22.302177+08:00",
+              "title": "BIGTEST_2026-04-30_15-32-20_测试职位_已更新",
+              "description": "BIGTEST_2026-04-30_15-32-20_自动更新的职位描述",
+              "requirements": [
+                "Go",
+                "Vue",
+                "Docker"
+              ],
+              "salary": "12k-22k",
+              "location": "上海",
+              "type": "full-time",
+              "status": "open",
+              "created_by": 1,
+              "department": "测试部",
+              "level": "senior",
+              "education": "本科",
+              "skills": [
+                "Go",
+                "Vue",
+                "Docker"
+              ],
+              "benefits": [
+                "五险一金"
+              ],
+              "headcount": 1
+            },
+            "message": "Job updated successfully"
+          }
+        },
+        {
+          "name": "delete",
+          "method": "DELETE",
+          "path": "/api/v1/jobs/64",
+          "status": 200,
+          "expectedStatuses": [
+            200,
+            204
+          ],
+          "durationMs": 2,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "message": "Job deleted successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "message": "Job deleted successfully"
+          }
+        }
+      ],
+      "passed": true,
+      "cleanupPassed": true
+    },
+    {
+      "name": "talent-crud-owned-data",
+      "resourceType": "talents",
+      "inferred": false,
+      "steps": [
+        {
+          "name": "create",
+          "method": "POST",
+          "path": "/api/v1/talents",
+          "status": 201,
+          "expectedStatuses": [
+            200,
+            201
+          ],
+          "durationMs": 3,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 117,
+              "created_at": "2026-04-30T15:35:22.304968+08:00",
+              "updated_at": "2026-04-30T15:35:22.304968+08:00",
+              "name": "BIGTEST_2026-04-30_15-32-20_测试人才",
+              "email": "bigtest_2026-04-30_15-32-20@example.com",
+              "phone": "13800000000",
+              "skills": [
+                "Go",
+                "Vue"
+              ],
+              "experience": 3,
+              "education": "本科",
+              "status": "active",
+              "tags": [
+                "BIGTEST"
+              ],
+              "location": "杭州",
+              "salary": "15k-25k",
+              "summary": "BIGTEST_2026-04-30_15-32-20_自动创建的人才摘要",
+              "gender": "未知",
+              "age": 28,
+              "current_company": "BIGTEST 公司",
+              "current_position": "后端工程师",
+              "source": "bigtest"
+            },
+            "message": "Talent created successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 117,
+              "created_at": "2026-04-30T15:35:22.304968+08:00",
+              "updated_at": "2026-04-30T15:35:22.304968+08:00",
+              "name": "BIGTEST_2026-04-30_15-32-20_测试人才",
+              "email": "bigtest_2026-04-30_15-32-20@example.com",
+              "phone": "13800000000",
+              "skills": [
+                "Go",
+                "Vue"
+              ],
+              "experience": 3,
+              "education": "本科",
+              "status": "active",
+              "tags": [
+                "BIGTEST"
+              ],
+              "location": "杭州",
+              "salary": "15k-25k",
+              "summary": "BIGTEST_2026-04-30_15-32-20_自动创建的人才摘要",
+              "gender": "未知",
+              "age": 28,
+              "current_company": "BIGTEST 公司",
+              "current_position": "后端工程师",
+              "source": "bigtest"
+            },
+            "message": "Talent created successfully"
+          }
+        },
+        {
+          "name": "verify",
+          "method": "GET",
+          "path": "/api/v1/talents/117",
+          "status": 200,
+          "expectedStatuses": [
+            200
+          ],
+          "durationMs": 1,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 117,
+              "created_at": "2026-04-30T15:35:22.304968+08:00",
+              "updated_at": "2026-04-30T15:35:22.304968+08:00",
+              "name": "BIGTEST_2026-04-30_15-32-20_测试人才",
+              "email": "bigtest_2026-04-30_15-32-20@example.com",
+              "phone": "13800000000",
+              "skills": [
+                "Go",
+                "Vue"
+              ],
+              "experience": 3,
+              "education": "本科",
+              "status": "active",
+              "tags": [
+                "BIGTEST"
+              ],
+              "location": "杭州",
+              "salary": "15k-25k",
+              "summary": "BIGTEST_2026-04-30_15-32-20_自动创建的人才摘要",
+              "gender": "未知",
+              "age": 28,
+              "current_company": "BIGTEST 公司",
+              "current_position": "后端工程师",
+              "source": "bigtest"
+            },
+            "message": "success"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 117,
+              "created_at": "2026-04-30T15:35:22.304968+08:00",
+              "updated_at": "2026-04-30T15:35:22.304968+08:00",
+              "name": "BIGTEST_2026-04-30_15-32-20_测试人才",
+              "email": "bigtest_2026-04-30_15-32-20@example.com",
+              "phone": "13800000000",
+              "skills": [
+                "Go",
+                "Vue"
+              ],
+              "experience": 3,
+              "education": "本科",
+              "status": "active",
+              "tags": [
+                "BIGTEST"
+              ],
+              "location": "杭州",
+              "salary": "15k-25k",
+              "summary": "BIGTEST_2026-04-30_15-32-20_自动创建的人才摘要",
+              "gender": "未知",
+              "age": 28,
+              "current_company": "BIGTEST 公司",
+              "current_position": "后端工程师",
+              "source": "bigtest"
+            },
+            "message": "success"
+          }
+        },
+        {
+          "name": "update",
+          "method": "PUT",
+          "path": "/api/v1/talents/117",
+          "status": 500,
+          "expectedStatuses": [
+            200
+          ],
+          "durationMs": 3,
+          "passed": false,
+          "body": {
+            "error": "Failed to update talent: ERROR: column \"skills\" is of type text[] but expression is of type record (SQLSTATE 42804)"
+          },
+          "bodyPreview": {
+            "error": "Failed to update talent: ERROR: column \"skills\" is of type text[] but expression is of type record (SQLSTATE 42804)"
+          }
+        },
+        {
+          "name": "delete",
+          "method": "DELETE",
+          "path": "/api/v1/talents/117",
+          "status": 200,
+          "expectedStatuses": [
+            200,
+            204
+          ],
+          "durationMs": 1,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "message": "Talent deleted successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "message": "Talent deleted successfully"
+          }
+        }
+      ],
+      "passed": false,
+      "cleanupPassed": true
+    },
+    {
+      "name": "message-create-query-delete-owned-data",
+      "resourceType": "messages",
+      "inferred": false,
+      "steps": [
+        {
+          "name": "create",
+          "method": "POST",
+          "path": "/api/v1/messages",
+          "status": 201,
+          "expectedStatuses": [
+            200,
+            201
+          ],
+          "durationMs": 15,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 43,
+              "created_at": "2026-04-30T15:35:22.321565+08:00",
+              "updated_at": "2026-04-30T15:35:22.321565+08:00",
+              "sender_id": null,
+              "receiver_id": 1,
+              "title": "BIGTEST_2026-04-30_15-32-20_测试消息",
+              "content": "BIGTEST_2026-04-30_15-32-20_自动创建的消息内容",
+              "type": "system",
+              "is_read": false
+            },
+            "message": "Message sent successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 43,
+              "created_at": "2026-04-30T15:35:22.321565+08:00",
+              "updated_at": "2026-04-30T15:35:22.321565+08:00",
+              "sender_id": null,
+              "receiver_id": 1,
+              "title": "BIGTEST_2026-04-30_15-32-20_测试消息",
+              "content": "BIGTEST_2026-04-30_15-32-20_自动创建的消息内容",
+              "type": "system",
+              "is_read": false
+            },
+            "message": "Message sent successfully"
+          }
+        },
+        {
+          "name": "verify",
+          "method": "GET",
+          "path": "/api/v1/messages",
+          "status": 200,
+          "expectedStatuses": [
+            200
+          ],
+          "durationMs": 8,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "messages": [
+                {
+                  "id": 43,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "BIGTEST_2026-04-30_15-32-20_测试消息",
+                  "content": "BIGTEST_2026-04-30_15-32-20_自动创建的消息内容",
+                  "type": "system",
+                  "is_read": false,
+                  "sender_name": "系统",
+                  "created_at": "2026-04-30 15:35:22"
+                },
+                {
+                  "id": 35,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "新的职位申请",
+                  "content": "候选人张伟向高级Go后端工程师职位投递了最新简历，请及时查看。",
+                  "type": "application",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-04-02 12:07:36"
+                },
+                {
+                  "id": 36,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "AI评估完成",
+                  "content": "系统已完成对朱冠州简历的智能评估，当前匹配度为73.3分。",
+                  "type": "notification",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-04-02 11:53:36"
+                },
+                {
+                  "id": 37,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "推荐结果已刷新",
+                  "content": "岗位“高级Go后端工程师”的推荐结果已更新，新增3名高匹配候选人。",
+                  "type": "notification",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-04-02 11:29:36"
+                },
+                {
+                  "id": 38,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "面试安排提醒",
+                  "content": "您为候选人李娜创建的面试安排将在今天15:00开始，请提前准备。",
+                  "type": "interview",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-04-02 11:03:36"
+                },
+                {
+                  "id": 39,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "数据看板更新",
+                  "content": "今日招聘漏斗与渠道统计数据已刷新，可前往仪表板查看最新趋势。",
+                  "type": "notification",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-04-02 10:30:36"
+                },
+                {
+                  "id": 24,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "面试邀请 - Go开发工程师",
+                  "content": "您好，张三！\n\n您已被邀请参加【Go开发工程师】职位的初试。\n\n面试详情：\n- 面试类型：初试\n- 面试方式：现场面试\n- 面试时间：2026-04-01 14:00\n- 时长：60分钟\n- 面试官：李四\n- 地点/链接：会议室A\n\n请准时参加面试，祝您面试顺利！",
+                  "type": "interview",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-03-31 16:51:36"
+                },
+                {
+                  "id": 25,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "面试改期通知 - Go开发",
+                  "content": "您好，张三！\n\n您的【Go开发】职位面试时间已调整。\n\n原时间：2026-12-25 14:00\n新时间：2026-04-02 15:30\n改期原因：面试官出差\n\n请按新时间准时参加面试，祝您面试顺利！",
+                  "type": "interview",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-03-31 16:51:36"
+                },
+                {
+                  "id": 23,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "新的职位申请",
+                  "content": "求职者 test 投递了您发布的职位「test」，请及时查看。",
+                  "type": "application",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-03-31 12:01:11"
+                },
+                {
+                  "id": 15,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "新的职位申请",
+                  "content": "求职者 张伟 投递了您发布的职位「audit_job_updated」，请及时查看。",
+                  "type": "application",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-03-02 19:03:56"
+                },
+                {
+                  "id": 9,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "新的职位申请",
+                  "content": "求职者 张伟 投递了您发布的职位「audit_job_updated」，请及时查看。",
+                  "type": "application",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-03-02 19:01:15"
+                },
+                {
+                  "id": 7,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "新的职位申请",
+                  "content": "求职者 张伟 投递了您发布的职位「audit_delete_app_1772448223」，请及时查看。",
+                  "type": "application",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-03-02 18:43:43"
+                },
+                {
+                  "id": 2,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "新的职位申请",
+                  "content": "求职者 张伟 投递了您发布的职位「audit_job_updated」，请及时查看。",
+                  "type": "application",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-03-02 18:42:44"
+                }
+              ],
+              "page": 1,
+              "page_size": 20,
+              "total": 13
+            },
+            "message": "success"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "messages": [
+                {
+                  "id": 43,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "BIGTEST_2026-04-30_15-32-20_测试消息",
+                  "content": "BIGTEST_2026-04-30_15-32-20_自动创建的消息内容",
+                  "type": "system",
+                  "is_read": false,
+                  "sender_name": "系统",
+                  "created_at": "2026-04-30 15:35:22"
+                },
+                {
+                  "id": 35,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "新的职位申请",
+                  "content": "候选人张伟向高级Go后端工程师职位投递了最新简历，请及时查看。",
+                  "type": "application",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-04-02 12:07:36"
+                },
+                {
+                  "id": 36,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "AI评估完成",
+                  "content": "系统已完成对朱冠州简历的智能评估，当前匹配度为73.3分。",
+                  "type": "notification",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-04-02 11:53:36"
+                },
+                {
+                  "id": 37,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "推荐结果已刷新",
+                  "content": "岗位“高级Go后端工程师”的推荐结果已更新，新增3名高匹配候选人。",
+                  "type": "notification",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-04-02 11:29:36"
+                },
+                {
+                  "id": 38,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "面试安排提醒",
+                  "content": "您为候选人李娜创建的面试安排将在今天15:00开始，请提前准备。",
+                  "type": "interview",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-04-02 11:03:36"
+                },
+                {
+                  "id": 39,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "数据看板更新",
+                  "content": "今日招聘漏斗与渠道统计数据已刷新，可前往仪表板查看最新趋势。",
+                  "type": "notification",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-04-02 10:30:36"
+                },
+                {
+                  "id": 24,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "面试邀请 - Go开发工程师",
+                  "content": "您好，张三！\n\n您已被邀请参加【Go开发工程师】职位的初试。\n\n面试详情：\n- 面试类型：初试\n- 面试方式：现场面试\n- 面试时间：2026-04-01 14:00\n- 时长：60分钟\n- 面试官：李四\n- 地点/链接：会议室A\n\n请准时参加面试，祝您面试顺利！",
+                  "type": "interview",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-03-31 16:51:36"
+                },
+                {
+                  "id": 25,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "面试改期通知 - Go开发",
+                  "content": "您好，张三！\n\n您的【Go开发】职位面试时间已调整。\n\n原时间：2026-12-25 14:00\n新时间：2026-04-02 15:30\n改期原因：面试官出差\n\n请按新时间准时参加面试，祝您面试顺利！",
+                  "type": "interview",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-03-31 16:51:36"
+                },
+                {
+                  "id": 23,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "新的职位申请",
+                  "content": "求职者 test 投递了您发布的职位「test」，请及时查看。",
+                  "type": "application",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-03-31 12:01:11"
+                },
+                {
+                  "id": 15,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "新的职位申请",
+                  "content": "求职者 张伟 投递了您发布的职位「audit_job_updated」，请及时查看。",
+                  "type": "application",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-03-02 19:03:56"
+                },
+                {
+                  "id": 9,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "新的职位申请",
+                  "content": "求职者 张伟 投递了您发布的职位「audit_job_updated」，请及时查看。",
+                  "type": "application",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-03-02 19:01:15"
+                },
+                {
+                  "id": 7,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "新的职位申请",
+                  "content": "求职者 张伟 投递了您发布的职位「audit_delete_app_1772448223」，请及时查看。",
+                  "type": "application",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-03-02 18:43:43"
+                },
+                {
+                  "id": 2,
+                  "sender_id": null,
+                  "receiver_id": 1,
+                  "title": "新的职位申请",
+                  "content": "求职者 张伟 投递了您发布的职位「audit_job_updated」，请及时查看。",
+                  "type": "application",
+                  "is_read": true,
+                  "sender_name": "系统",
+                  "created_at": "2026-03-02 18:42:44"
+                }
+              ],
+              "page": 1,
+              "page_size": 20,
+              "total": 13
+            },
+            "message": "success"
+          }
+        },
+        {
+          "name": "delete",
+          "method": "DELETE",
+          "path": "/api/v1/messages/43",
+          "status": 200,
+          "expectedStatuses": [
+            200,
+            204
+          ],
+          "durationMs": 2,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "message": "Message deleted successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "message": "Message deleted successfully"
+          }
+        }
+      ],
+      "passed": true,
+      "cleanupPassed": true
+    },
+    {
+      "name": "interview-crud-owned-data",
+      "resourceType": "interviews",
+      "inferred": false,
+      "steps": [
+        {
+          "name": "create",
+          "method": "POST",
+          "path": "/api/v1/interviews",
+          "status": 201,
+          "expectedStatuses": [
+            200,
+            201
+          ],
+          "durationMs": 9,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 114,
+              "created_at": "2026-04-30T15:35:22.337035+08:00",
+              "updated_at": "2026-04-30T15:35:22.337035+08:00",
+              "candidate_id": 1,
+              "candidate_name": "BIGTEST_2026-04-30_15-32-20_候选人",
+              "position_id": 1,
+              "position": "BIGTEST_2026-04-30_15-32-20_测试职位",
+              "type": "initial",
+              "date": "2026-05-02",
+              "time": "10:00",
+              "duration": 60,
+              "interviewer_id": 1,
+              "interviewer": "BIGTEST 面试官",
+              "method": "video",
+              "location": "线上会议",
+              "status": "scheduled",
+              "notes": "BIGTEST_2026-04-30_15-32-20_自动创建的面试备注",
+              "feedback": "",
+              "rating": 0,
+              "created_by": 1
+            },
+            "message": "Interview scheduled successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 114,
+              "created_at": "2026-04-30T15:35:22.337035+08:00",
+              "updated_at": "2026-04-30T15:35:22.337035+08:00",
+              "candidate_id": 1,
+              "candidate_name": "BIGTEST_2026-04-30_15-32-20_候选人",
+              "position_id": 1,
+              "position": "BIGTEST_2026-04-30_15-32-20_测试职位",
+              "type": "initial",
+              "date": "2026-05-02",
+              "time": "10:00",
+              "duration": 60,
+              "interviewer_id": 1,
+              "interviewer": "BIGTEST 面试官",
+              "method": "video",
+              "location": "线上会议",
+              "status": "scheduled",
+              "notes": "BIGTEST_2026-04-30_15-32-20_自动创建的面试备注",
+              "feedback": "",
+              "rating": 0,
+              "created_by": 1
+            },
+            "message": "Interview scheduled successfully"
+          }
+        },
+        {
+          "name": "verify",
+          "method": "GET",
+          "path": "/api/v1/interviews/114",
+          "status": 200,
+          "expectedStatuses": [
+            200
+          ],
+          "durationMs": 5,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 114,
+              "created_at": "2026-04-30T15:35:22.337035+08:00",
+              "updated_at": "2026-04-30T15:35:22.337035+08:00",
+              "candidate_id": 1,
+              "candidate_name": "BIGTEST_2026-04-30_15-32-20_候选人",
+              "position_id": 1,
+              "position": "BIGTEST_2026-04-30_15-32-20_测试职位",
+              "type": "initial",
+              "date": "2026-05-02",
+              "time": "10:00",
+              "duration": 60,
+              "interviewer_id": 1,
+              "interviewer": "BIGTEST 面试官",
+              "method": "video",
+              "location": "线上会议",
+              "status": "scheduled",
+              "notes": "BIGTEST_2026-04-30_15-32-20_自动创建的面试备注",
+              "feedback": "",
+              "rating": 0,
+              "created_by": 1
+            },
+            "message": "success"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 114,
+              "created_at": "2026-04-30T15:35:22.337035+08:00",
+              "updated_at": "2026-04-30T15:35:22.337035+08:00",
+              "candidate_id": 1,
+              "candidate_name": "BIGTEST_2026-04-30_15-32-20_候选人",
+              "position_id": 1,
+              "position": "BIGTEST_2026-04-30_15-32-20_测试职位",
+              "type": "initial",
+              "date": "2026-05-02",
+              "time": "10:00",
+              "duration": 60,
+              "interviewer_id": 1,
+              "interviewer": "BIGTEST 面试官",
+              "method": "video",
+              "location": "线上会议",
+              "status": "scheduled",
+              "notes": "BIGTEST_2026-04-30_15-32-20_自动创建的面试备注",
+              "feedback": "",
+              "rating": 0,
+              "created_by": 1
+            },
+            "message": "success"
+          }
+        },
+        {
+          "name": "update",
+          "method": "PUT",
+          "path": "/api/v1/interviews/114",
+          "status": 200,
+          "expectedStatuses": [
+            200
+          ],
+          "durationMs": 10,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 114,
+              "created_at": "2026-04-30T15:35:22.337035+08:00",
+              "updated_at": "2026-04-30T15:35:22.352339+08:00",
+              "candidate_id": 1,
+              "candidate_name": "BIGTEST_2026-04-30_15-32-20_候选人",
+              "position_id": 1,
+              "position": "BIGTEST_2026-04-30_15-32-20_测试职位",
+              "type": "second",
+              "date": "2026-05-02",
+              "time": "10:00",
+              "duration": 90,
+              "interviewer_id": 1,
+              "interviewer": "BIGTEST 面试官",
+              "method": "video",
+              "location": "线上会议",
+              "status": "scheduled",
+              "notes": "BIGTEST_2026-04-30_15-32-20_自动更新的面试备注",
+              "feedback": "",
+              "rating": 0,
+              "created_by": 1
+            },
+            "message": "Interview updated successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 114,
+              "created_at": "2026-04-30T15:35:22.337035+08:00",
+              "updated_at": "2026-04-30T15:35:22.352339+08:00",
+              "candidate_id": 1,
+              "candidate_name": "BIGTEST_2026-04-30_15-32-20_候选人",
+              "position_id": 1,
+              "position": "BIGTEST_2026-04-30_15-32-20_测试职位",
+              "type": "second",
+              "date": "2026-05-02",
+              "time": "10:00",
+              "duration": 90,
+              "interviewer_id": 1,
+              "interviewer": "BIGTEST 面试官",
+              "method": "video",
+              "location": "线上会议",
+              "status": "scheduled",
+              "notes": "BIGTEST_2026-04-30_15-32-20_自动更新的面试备注",
+              "feedback": "",
+              "rating": 0,
+              "created_by": 1
+            },
+            "message": "Interview updated successfully"
+          }
+        },
+        {
+          "name": "reschedule 改期测试面试",
+          "method": "POST",
+          "path": "/api/v1/interviews/114/reschedule",
+          "status": 200,
+          "expectedStatuses": [
+            200
+          ],
+          "durationMs": 4,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 114,
+              "created_at": "2026-04-30T15:35:22.337035+08:00",
+              "updated_at": "2026-04-30T15:35:22.359775+08:00",
+              "candidate_id": 1,
+              "candidate_name": "BIGTEST_2026-04-30_15-32-20_候选人",
+              "position_id": 1,
+              "position": "BIGTEST_2026-04-30_15-32-20_测试职位",
+              "type": "second",
+              "date": "2026-05-03",
+              "time": "15:00",
+              "duration": 90,
+              "interviewer_id": 1,
+              "interviewer": "BIGTEST 面试官",
+              "method": "video",
+              "location": "线上会议",
+              "status": "scheduled",
+              "notes": "BIGTEST_2026-04-30_15-32-20_自动更新的面试备注\n[改期] 从 2026-05-02 10:00 改至 2026-05-03 15:00。原因: BIGTEST_2026-04-30_15-32-20_自动化改期验证",
+              "feedback": "",
+              "rating": 0,
+              "created_by": 1
+            },
+            "message": "Interview rescheduled successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 114,
+              "created_at": "2026-04-30T15:35:22.337035+08:00",
+              "updated_at": "2026-04-30T15:35:22.359775+08:00",
+              "candidate_id": 1,
+              "candidate_name": "BIGTEST_2026-04-30_15-32-20_候选人",
+              "position_id": 1,
+              "position": "BIGTEST_2026-04-30_15-32-20_测试职位",
+              "type": "second",
+              "date": "2026-05-03",
+              "time": "15:00",
+              "duration": 90,
+              "interviewer_id": 1,
+              "interviewer": "BIGTEST 面试官",
+              "method": "video",
+              "location": "线上会议",
+              "status": "scheduled",
+              "notes": "BIGTEST_2026-04-30_15-32-20_自动更新的面试备注\n[改期] 从 2026-05-02 10:00 改至 2026-05-03 15:00。原因: BIGTEST_2026-04-30_15-32-20_自动化改期验证",
+              "feedback": "",
+              "rating": 0,
+              "created_by": 1
+            },
+            "message": "Interview rescheduled successfully"
+          }
+        },
+        {
+          "name": "complete 完成测试面试",
+          "method": "POST",
+          "path": "/api/v1/interviews/114/complete",
+          "status": 200,
+          "expectedStatuses": [
+            200
+          ],
+          "durationMs": 5,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "message": "Interview marked as completed"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "message": "Interview marked as completed"
+          }
+        },
+        {
+          "name": "delete",
+          "method": "DELETE",
+          "path": "/api/v1/interviews/114",
+          "status": 200,
+          "expectedStatuses": [
+            200,
+            204
+          ],
+          "durationMs": 2,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "message": "Interview deleted successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "message": "Interview deleted successfully"
+          }
+        }
+      ],
+      "passed": true,
+      "cleanupPassed": true
+    },
+    {
+      "name": "notice-crud-owned-data",
+      "resourceType": "notice",
+      "inferred": false,
+      "steps": [
+        {
+          "name": "create",
+          "method": "POST",
+          "path": "/api/v1/notices",
+          "status": 200,
+          "expectedStatuses": [
+            200,
+            201
+          ],
+          "durationMs": 1,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 31,
+              "created_at": "2026-04-30T15:35:22.367115+08:00",
+              "updated_at": "2026-04-30T15:35:22.367115+08:00",
+              "title": "BIGTEST_2026-04-30_15-32-20_公告",
+              "content": "BIGTEST_2026-04-30_15-32-20_自动创建的公告内容",
+              "status": "draft",
+              "created_by": 1,
+              "is_pinned": false,
+              "priority": "normal"
+            },
+            "message": "Notice created successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 31,
+              "created_at": "2026-04-30T15:35:22.367115+08:00",
+              "updated_at": "2026-04-30T15:35:22.367115+08:00",
+              "title": "BIGTEST_2026-04-30_15-32-20_公告",
+              "content": "BIGTEST_2026-04-30_15-32-20_自动创建的公告内容",
+              "status": "draft",
+              "created_by": 1,
+              "is_pinned": false,
+              "priority": "normal"
+            },
+            "message": "Notice created successfully"
+          }
+        },
+        {
+          "name": "verify",
+          "method": "GET",
+          "path": "/api/v1/notices/31",
+          "status": 200,
+          "expectedStatuses": [
+            200
+          ],
+          "durationMs": 0,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 31,
+              "created_at": "2026-04-30T15:35:22.367115+08:00",
+              "updated_at": "2026-04-30T15:35:22.367115+08:00",
+              "title": "BIGTEST_2026-04-30_15-32-20_公告",
+              "content": "BIGTEST_2026-04-30_15-32-20_自动创建的公告内容",
+              "status": "draft",
+              "created_by": 1,
+              "is_pinned": false,
+              "priority": "normal"
+            },
+            "message": "success"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 31,
+              "created_at": "2026-04-30T15:35:22.367115+08:00",
+              "updated_at": "2026-04-30T15:35:22.367115+08:00",
+              "title": "BIGTEST_2026-04-30_15-32-20_公告",
+              "content": "BIGTEST_2026-04-30_15-32-20_自动创建的公告内容",
+              "status": "draft",
+              "created_by": 1,
+              "is_pinned": false,
+              "priority": "normal"
+            },
+            "message": "success"
+          }
+        },
+        {
+          "name": "update",
+          "method": "PUT",
+          "path": "/api/v1/notices/31",
+          "status": 200,
+          "expectedStatuses": [
+            200
+          ],
+          "durationMs": 2,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 31,
+              "created_at": "2026-04-30T15:35:22.367115+08:00",
+              "updated_at": "2026-04-30T15:35:22.36967+08:00",
+              "title": "BIGTEST_2026-04-30_15-32-20_公告_已更新",
+              "content": "BIGTEST_2026-04-30_15-32-20_自动更新的公告内容",
+              "status": "draft",
+              "created_by": 1,
+              "is_pinned": false,
+              "priority": "normal"
+            },
+            "message": "Notice updated successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 31,
+              "created_at": "2026-04-30T15:35:22.367115+08:00",
+              "updated_at": "2026-04-30T15:35:22.36967+08:00",
+              "title": "BIGTEST_2026-04-30_15-32-20_公告_已更新",
+              "content": "BIGTEST_2026-04-30_15-32-20_自动更新的公告内容",
+              "status": "draft",
+              "created_by": 1,
+              "is_pinned": false,
+              "priority": "normal"
+            },
+            "message": "Notice updated successfully"
+          }
+        },
+        {
+          "name": "delete",
+          "method": "DELETE",
+          "path": "/api/v1/notices/31",
+          "status": 200,
+          "expectedStatuses": [
+            200,
+            204
+          ],
+          "durationMs": 2,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "message": "Notice deleted successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "message": "Notice deleted successfully"
+          }
+        }
+      ],
+      "passed": true,
+      "cleanupPassed": true
+    }
+  ]
+}

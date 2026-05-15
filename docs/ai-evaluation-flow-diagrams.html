@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 智能评估模块流程图</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 32px;
+      color: #000;
+      background: #fff;
+      font-family: "Songti SC", "SimSun", "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    .page {
+      width: 1120px;
+      margin: 0 auto;
+      padding: 28px;
+      border: 2px solid #000;
+      background: #fff;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      text-align: center;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      margin: 0 0 24px;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    .chart-block {
+      margin-top: 24px;
+      padding: 18px;
+      border: 2px solid #000;
+      background: #fff;
+    }
+
+    .chart-block:first-of-type {
+      margin-top: 0;
+    }
+
+    .chart-title {
+      margin: 0 0 12px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #fff;
+    }
+
+    .node {
+      fill: #fff;
+      stroke: #000;
+      stroke-width: 2;
+    }
+
+    .line {
+      stroke: #000;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .text {
+      fill: #000;
+      font-size: 14px;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+
+    .small {
+      font-size: 12px;
+    }
+
+    .label {
+      fill: #000;
+      font-size: 13px;
+      text-anchor: middle;
+    }
+
+    .formula {
+      fill: #000;
+      font-size: 13px;
+      font-family: "Times New Roman", "SimSun", serif;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+
+    .note {
+      margin-top: 18px;
+      padding: 12px;
+      border: 2px solid #000;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+      }
+
+      .page {
+        border: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <h1>AI 智能评估模块流程图</h1>
+    <p class="subtitle">依据当前代码整理：OCR、Embedding、RAG、Coze 工作流、结果入库与过程追踪</p>
+
+    <section class="chart-block">
+      <h2 class="chart-title">图 4-2-1 AI 智能评估主流程</h2>
+      <svg viewBox="0 0 1040 760" role="img" aria-label="AI 智能评估主流程图">
+        <defs>
+          <marker id="arrow-ai-1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <path d="M0,0 L9,3 L0,6 Z" fill="#000"></path>
+          </marker>
+        </defs>
+
+        <rect class="node" x="430" y="10" width="180" height="46" rx="23"></rect>
+        <text class="text" x="520" y="33">开始 AI 评估</text>
+
+        <line class="line" x1="520" y1="56" x2="520" y2="88" marker-end="url(#arrow-ai-1)"></line>
+        <polygon class="node" points="520,88 610,150 520,212 430,150"></polygon>
+        <text class="text" x="520" y="142">Coze 是否配置</text>
+        <text class="text small" x="520" y="163">COZE_TOKEN / COZE_WORKFLOW_ID</text>
+
+        <line class="line" x1="430" y1="150" x2="250" y2="150" marker-end="url(#arrow-ai-1)"></line>
+        <text class="label" x="340" y="137">否</text>
+        <rect class="node" x="40" y="115" width="210" height="70"></rect>
+        <text class="text" x="145" y="140">返回 503</text>
+        <text class="text small" x="145" y="162">AI 服务未配置</text>
+
+        <line class="line" x1="520" y1="212" x2="520" y2="244" marker-end="url(#arrow-ai-1)"></line>
+        <text class="label" x="540" y="228">是</text>
+        <rect class="node" x="390" y="244" width="260" height="70"></rect>
+        <text class="text" x="520" y="268">读取 resumes 记录</text>
+        <text class="text small" x="520" y="290">resume_id、file_path、job_id</text>
+
+        <line class="line" x1="520" y1="314" x2="520" y2="346" marker-end="url(#arrow-ai-1)"></line>
+        <rect class="node" x="390" y="346" width="260" height="72"></rect>
+        <text class="text" x="520" y="371">获取 JD 文本</text>
+        <text class="text small" x="520" y="393">优先请求参数；否则按 job_id 读取 jobs 表</text>
+
+        <line class="line" x1="520" y1="418" x2="520" y2="450" marker-end="url(#arrow-ai-1)"></line>
+        <rect class="node" x="390" y="450" width="260" height="70"></rect>
+        <text class="text" x="520" y="474">OCR / 文本抽取</text>
+        <text class="text small" x="520" y="496">ExtractTextFromFile，记录页数、置信度、预览</text>
+
+        <line class="line" x1="520" y1="520" x2="520" y2="552" marker-end="url(#arrow-ai-1)"></line>
+        <polygon class="node" points="520,552 610,614 520,676 430,614"></polygon>
+        <text class="text" x="520" y="606">RAG 是否可用</text>
+        <text class="text small" x="520" y="627">ARK_API_KEY 且 OCR 文本不为空</text>
+
+        <line class="line" x1="430" y1="614" x2="250" y2="614" marker-end="url(#arrow-ai-1)"></line>
+        <text class="label" x="340" y="601">否</text>
+        <rect class="node" x="40" y="579" width="210" height="70"></rect>
+        <text class="text" x="145" y="603">跳过 Embedding/RAG</text>
+        <text class="text small" x="145" y="625">直接使用原始 JD</text>
+
+        <line class="line" x1="610" y1="614" x2="790" y2="614" marker-end="url(#arrow-ai-1)"></line>
+        <text class="label" x="700" y="601">是</text>
+        <rect class="node" x="790" y="570" width="220" height="88"></rect>
+        <text class="text" x="900" y="592">Embedding + RAG</text>
+        <text class="text small" x="900" y="614">生成向量，检索相似简历/人才</text>
+        <text class="text small" x="900" y="636">把上下文追加到 JD</text>
+
+        <line class="line" x1="520" y1="676" x2="520" y2="708" marker-end="url(#arrow-ai-1)"></line>
+        <rect class="node" x="390" y="708" width="260" height="46"></rect>
+        <text class="text" x="520" y="731">调用 Coze 工作流并保存结果</text>
+      </svg>
+    </section>
+
+    <section class="chart-block">
+      <h2 class="chart-title">图 4-2-2 Embedding 与 RAG 检索增强流程</h2>
+      <svg viewBox="0 0 1040 820" role="img" aria-label="Embedding 与 RAG 检索增强流程图">
+        <defs>
+          <marker id="arrow-ai-2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <path d="M0,0 L9,3 L0,6 Z" fill="#000"></path>
+          </marker>
+        </defs>
+
+        <rect class="node" x="430" y="10" width="180" height="46" rx="23"></rect>
+        <text class="text" x="520" y="33">开始语义增强</text>
+
+        <line class="line" x1="520" y1="56" x2="520" y2="88" marker-end="url(#arrow-ai-2)"></line>
+        <rect class="node" x="390" y="88" width="260" height="70"></rect>
+        <text class="text" x="520" y="112">截断 resume_text</text>
+        <text class="text small" x="520" y="134">最长 8000 字符，避免 Embedding 输入过长</text>
+
+        <line class="line" x1="520" y1="158" x2="520" y2="190" marker-end="url(#arrow-ai-2)"></line>
+        <rect class="node" x="390" y="190" width="260" height="82"></rect>
+        <text class="text" x="520" y="214">调用火山引擎 Embedding</text>
+        <text class="text small" x="520" y="236">POST VOLC_ENDPOINT</text>
+        <text class="text small" x="520" y="254">Authorization: Bearer ARK_API_KEY</text>
+
+        <line class="line" x1="390" y1="231" x2="300" y2="231" marker-end="url(#arrow-ai-2)"></line>
+        <rect class="node" x="40" y="188" width="260" height="86"></rect>
+        <text class="text" x="170" y="210">文本向量化公式</text>
+        <text class="formula" x="170" y="234">v = Embedding(resume_text)</text>
+        <text class="text small" x="170" y="254">v 表示简历文本的语义向量</text>
+
+        <line class="line" x1="520" y1="272" x2="520" y2="304" marker-end="url(#arrow-ai-2)"></line>
+        <rect class="node" x="390" y="304" width="260" height="70"></rect>
+        <text class="text" x="520" y="328">得到向量维度</text>
+        <text class="text small" x="520" y="350">写入 ProcessTrace.Embedding</text>
+
+        <line class="line" x1="650" y1="339" x2="740" y2="339" marker-end="url(#arrow-ai-2)"></line>
+        <rect class="node" x="740" y="292" width="270" height="94"></rect>
+        <text class="text" x="875" y="314">相似度计算公式</text>
+        <text class="formula" x="875" y="338">sim(q,d)=sum(q_i*d_i)/(||q||*||d||)</text>
+        <text class="text small" x="875" y="358">代码中使用 CosineSimilarity</text>
+        <text class="text small" x="875" y="376">按 sim 从高到低排序取 TopK</text>
+
+        <line class="line" x1="520" y1="374" x2="520" y2="406" marker-end="url(#arrow-ai-2)"></line>
+        <rect class="node" x="390" y="406" width="260" height="82"></rect>
+        <text class="text" x="520" y="430">调用 RAG 查询接口</text>
+        <text class="text small" x="520" y="452">POST /internal/recommendations/rag/query</text>
+        <text class="text small" x="520" y="470">query=resume_text，type=resume，top_k=3</text>
+
+        <line class="line" x1="390" y1="447" x2="250" y2="447" marker-end="url(#arrow-ai-2)"></line>
+        <rect class="node" x="40" y="410" width="210" height="74"></rect>
+        <text class="text" x="145" y="434">RAG 内部检索</text>
+        <text class="text small" x="145" y="456">查询 resume_embeddings</text>
+        <text class="text small" x="145" y="474">按余弦相似度排序</text>
+
+        <line class="line" x1="650" y1="447" x2="790" y2="447" marker-end="url(#arrow-ai-2)"></line>
+        <rect class="node" x="790" y="410" width="220" height="74"></rect>
+        <text class="text" x="900" y="434">无相似简历时回退</text>
+        <text class="text small" x="900" y="456">type 改为 talent</text>
+        <text class="text small" x="900" y="474">查询 talent_embeddings</text>
+
+        <line class="line" x1="520" y1="488" x2="520" y2="520" marker-end="url(#arrow-ai-2)"></line>
+        <rect class="node" x="390" y="520" width="260" height="82"></rect>
+        <text class="text" x="520" y="544">拼接 RAG 上下文</text>
+        <text class="text small" x="520" y="566">【相似简历/相似人才】+ 相似度 + content</text>
+        <text class="text small" x="520" y="584">记录 ProcessTrace.RAG.Hits</text>
+
+        <line class="line" x1="390" y1="561" x2="320" y2="561" marker-end="url(#arrow-ai-2)"></line>
+        <rect class="node" x="30" y="508" width="290" height="106"></rect>
+        <text class="text" x="175" y="528">RAG 索引内容来源</text>
+        <text class="text small" x="175" y="550">evaluation_results：姓名、学历、学校</text>
+        <text class="text small" x="175" y="568">经历、技能、评估摘要、录用建议</text>
+        <text class="text small" x="175" y="586">resumes：OCR 文本片段约 300 字</text>
+        <text class="text small" x="175" y="604">talents：技能、经验、学历、城市</text>
+
+        <line class="line" x1="650" y1="561" x2="720" y2="561" marker-end="url(#arrow-ai-2)"></line>
+        <rect class="node" x="720" y="508" width="300" height="106"></rect>
+        <text class="text" x="870" y="528">RAG 命中返回数据</text>
+        <text class="text small" x="870" y="550">source_id：命中记录 ID</text>
+        <text class="text small" x="870" y="568">source_type：resume / talent / job</text>
+        <text class="text small" x="870" y="586">similarity：语义相似度百分比</text>
+        <text class="text small" x="870" y="604">content：可解释的业务画像文本</text>
+
+        <line class="line" x1="520" y1="602" x2="520" y2="652" marker-end="url(#arrow-ai-2)"></line>
+        <rect class="node" x="390" y="652" width="260" height="88"></rect>
+        <text class="text" x="520" y="674">增强 JD</text>
+        <text class="text small" x="520" y="696">jd_text +【参考信息-相似人才画像】</text>
+        <text class="text small" x="520" y="716">把相似案例作为 Coze 判断依据</text>
+
+        <line class="line" x1="520" y1="740" x2="520" y2="770" marker-end="url(#arrow-ai-2)"></line>
+        <rect class="node" x="430" y="770" width="180" height="36" rx="18"></rect>
+        <text class="text" x="520" y="788">进入 Coze 评估</text>
+      </svg>
+    </section>
+
+    <section class="chart-block">
+      <h2 class="chart-title">图 4-2-3 Coze 评估、结果解析与持久化流程</h2>
+      <svg viewBox="0 0 1040 880" role="img" aria-label="Coze 评估结果解析和持久化流程图">
+        <defs>
+          <marker id="arrow-ai-3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <path d="M0,0 L9,3 L0,6 Z" fill="#000"></path>
+          </marker>
+        </defs>
+
+        <rect class="node" x="430" y="10" width="180" height="46" rx="23"></rect>
+        <text class="text" x="520" y="33">开始 Coze 评估</text>
+
+        <line class="line" x1="520" y1="56" x2="520" y2="88" marker-end="url(#arrow-ai-3)"></line>
+        <rect class="node" x="390" y="88" width="260" height="70"></rect>
+        <text class="text" x="520" y="112">上传简历文件到 Coze</text>
+        <text class="text small" x="520" y="134">/v1/files/upload，获取 file_id</text>
+
+        <line class="line" x1="520" y1="158" x2="520" y2="190" marker-end="url(#arrow-ai-3)"></line>
+        <rect class="node" x="390" y="190" width="260" height="94"></rect>
+        <text class="text" x="520" y="212">构造 workflow 参数</text>
+        <text class="text small" x="520" y="234">name、enhanced jd_text</text>
+        <text class="text small" x="520" y="252">resume_text 截断到 12000</text>
+        <text class="text small" x="520" y="270">resume_file={file_id}</text>
+
+        <line class="line" x1="520" y1="284" x2="520" y2="316" marker-end="url(#arrow-ai-3)"></line>
+        <rect class="node" x="390" y="316" width="260" height="70"></rect>
+        <text class="text" x="520" y="340">运行 Coze workflow</text>
+        <text class="text small" x="520" y="362">/v1/workflow/run，blocking 模式</text>
+
+        <line class="line" x1="520" y1="386" x2="520" y2="418" marker-end="url(#arrow-ai-3)"></line>
+        <rect class="node" x="390" y="418" width="260" height="86"></rect>
+        <text class="text" x="520" y="440">解析 Coze 返回</text>
+        <text class="text small" x="520" y="462">兼容 data 字符串 / data 对象 / output</text>
+        <text class="text small" x="520" y="482">清理 Markdown 代码块后解析 JSON</text>
+
+        <line class="line" x1="390" y1="461" x2="250" y2="461" marker-end="url(#arrow-ai-3)"></line>
+        <rect class="node" x="40" y="426" width="210" height="70"></rect>
+        <text class="text" x="145" y="450">JSON 失败降级</text>
+        <text class="text small" x="145" y="472">正则提取关键分数</text>
+
+        <line class="line" x1="650" y1="461" x2="790" y2="461" marker-end="url(#arrow-ai-3)"></line>
+        <rect class="node" x="790" y="426" width="220" height="70"></rect>
+        <text class="text" x="900" y="450">恢复面试题目</text>
+        <text class="text small" x="900" y="472">输出截断时尽量恢复完整对象</text>
+
+        <line class="line" x1="520" y1="504" x2="520" y2="536" marker-end="url(#arrow-ai-3)"></line>
+        <rect class="node" x="390" y="536" width="260" height="96"></rect>
+        <text class="text" x="520" y="556">提取结构化结果</text>
+        <text class="text small" x="520" y="578">总分、评级、JD匹配度</text>
+        <text class="text small" x="520" y="596">年龄/经验/学历/公司/技术/项目得分</text>
+        <text class="text small" x="520" y="614">匹配技能、缺失技能、录用建议</text>
+
+        <line class="line" x1="520" y1="632" x2="520" y2="664" marker-end="url(#arrow-ai-3)"></line>
+        <rect class="node" x="390" y="664" width="260" height="80"></rect>
+        <text class="text" x="520" y="687">保存 resumes</text>
+        <text class="text small" x="520" y="709">MatchScore、status=parsed</text>
+        <text class="text small" x="520" y="727">ParsedData、ExtractedText、TalentID</text>
+
+        <line class="line" x1="390" y1="704" x2="250" y2="704" marker-end="url(#arrow-ai-3)"></line>
+        <rect class="node" x="40" y="664" width="210" height="80"></rect>
+        <text class="text" x="145" y="687">同步人才档案</text>
+        <text class="text small" x="145" y="709">姓名、邮箱、电话、学历</text>
+        <text class="text small" x="145" y="727">技能、经验、城市、摘要</text>
+
+        <line class="line" x1="650" y1="704" x2="790" y2="704" marker-end="url(#arrow-ai-3)"></line>
+        <rect class="node" x="790" y="664" width="220" height="80"></rect>
+        <text class="text" x="900" y="687">保存向量索引</text>
+        <text class="text small" x="900" y="709">index-talent / index-resume</text>
+        <text class="text small" x="900" y="727">供后续 RAG 检索</text>
+
+        <line class="line" x1="520" y1="744" x2="520" y2="776" marker-end="url(#arrow-ai-3)"></line>
+        <rect class="node" x="390" y="776" width="260" height="80"></rect>
+        <text class="text" x="520" y="798">保存 evaluation_results</text>
+        <text class="text small" x="520" y="820">结构化字段、维度分、匹配等级</text>
+        <text class="text small" x="520" y="838">RawResult、ParsedReport、Recommendation</text>
+
+        <line class="line" x1="650" y1="816" x2="790" y2="816" marker-end="url(#arrow-ai-3)"></line>
+        <rect class="node" x="790" y="776" width="220" height="80"></rect>
+        <text class="text" x="900" y="798">保存 ai_process_logs</text>
+        <text class="text small" x="900" y="820">OCR / Embedding / RAG / LLM trace</text>
+        <text class="text small" x="900" y="838">支持 /evaluations/:id/process 回查</text>
+      </svg>
+    </section>
+
+    <div class="note">
+      <strong>代码对应关系</strong>
+      主流程对应 backend/resume-service/handlers/ai_evaluate_handler.go；Coze 工作流调用与结果解析对应 backend/resume-service/evaluator/coze_evaluator.go；RAG 检索与索引对应 backend/recommendation-service/rag 与 handlers/recommendation_handler.go；过程追踪对应 ai_process_logs，最终评估结果对应 evaluation_results。
+    </div>
+  </main>
+</body>
+</html>

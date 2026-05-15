@@ -1,0 +1,335 @@
+{
+  "env": {
+    "frontendBaseUrl": "http://localhost:5173",
+    "replayBaseUrl": "http://localhost:8080"
+  },
+  "browser": {
+    "channel": "chrome"
+  },
+  "debug": {
+    "maxScreenshots": 5,
+    "screenshotOnRouteFailure": true,
+    "screenshotOnButtonFailure": false
+  },
+  "auth": {
+    "loginPath": "/login",
+    "username": "admin",
+    "password": "admin123"
+  },
+  "capture": {
+    "maxEntries": 800,
+    "ignoreUrlPatterns": ["/api/v1/ai", "/api/v1/evaluations", "/upload"]
+  },
+  "replay": {
+    "allowedMethods": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    "ignoreUrlPatterns": ["/api/v1/ai", "/api/v1/evaluations", "/upload"],
+    "throttleMs": 50
+  },
+  "generation": {
+    "autoGenerateOpenApiCases": true,
+    "generateNegativeCases": true,
+    "maxOpenApiCases": 120,
+    "maxNegativeCases": 40
+  },
+  "coverage": {
+    "openApiCandidates": [
+      "../backend/gateway/docs/swagger.json",
+      "../backend/docs/swagger.yaml"
+    ]
+  },
+  "autoExplore": {
+    "enabled": true,
+    "maxRoutes": 120,
+    "maxClicksPerPage": 15,
+    "maxSecondsPerPage": 20,
+    "maxInputsPerPage": 60,
+    "clickRiskLevels": ["safe", "medium", "unknown", "danger", "empty"],
+    "excludePathPatterns": [
+      "/login",
+      "/register",
+      "/dev-logs",
+      "/ai",
+      "/evaluate",
+      "/evaluation",
+      "/upload",
+      "/:pathMatch"
+    ],
+    "safeClickTexts": ["搜索", "查询", "查看", "详情", "查看更多", "返回", "重置", "首页", "职位列表", "企业招聘", "消息"],
+    "mediumRiskClickTexts": ["新增", "添加", "编辑", "保存", "提交", "发布", "确定", "发送", "安排面试", "更新状态", "标记已读", "全部已读"],
+    "dangerClickTexts": ["删除", "移除", "清空", "停用", "上传", "AI", "评估", "退出", "关闭职位", "开放职位", "投递简历", "立即投递"],
+    "inputRules": {
+      "搜索职位名称": "后端",
+      "搜索公告标题": "校园招聘",
+      "搜索消息内容": "面试",
+      "搜索职位": "后端",
+      "搜索": "测试"
+    },
+    "defaultInputValue": "测试"
+  },
+  "writeSafety": {
+    "enabled": true,
+    "inferFromCaptures": true,
+    "maxInferredScenarios": 10,
+    "allowMethods": ["POST", "PUT", "PATCH", "DELETE"],
+    "allowUnsafeReplayWrites": true,
+    "allowDeleteOnlyOwnedResources": true,
+    "autoCleanup": true,
+    "blockedUrlPatterns": ["/api/v1/ai/", "/api/v1/evaluations", "/ai/evaluate", "/evaluate", "/evaluation", "/upload"],
+    "scenarios": [
+      {
+        "name": "job-crud-owned-data",
+        "resourceType": "jobs",
+        "create": {
+          "method": "POST",
+          "path": "/api/v1/jobs",
+          "body": {
+            "title": "${prefix}_测试职位",
+            "description": "${prefix}_自动创建的职位描述",
+            "requirements": ["Go", "Vue", "PostgreSQL"],
+            "salary": "10k-20k",
+            "location": "远程",
+            "type": "full-time",
+            "status": "open",
+            "department": "测试部",
+            "level": "mid",
+            "education": "本科",
+            "skills": ["Go", "Vue"],
+            "benefits": ["五险一金"],
+            "headcount": 1
+          },
+          "idPath": "data.id",
+          "expectedStatuses": [200, 201]
+        },
+        "verify": {
+          "method": "GET",
+          "path": "/api/v1/jobs/${id}",
+          "expectedStatuses": [200]
+        },
+        "update": {
+          "method": "PUT",
+          "path": "/api/v1/jobs/${id}",
+          "body": {
+            "title": "${prefix}_测试职位_已更新",
+            "description": "${prefix}_自动更新的职位描述",
+            "requirements": ["Go", "Vue", "Docker"],
+            "salary": "12k-22k",
+            "location": "上海",
+            "type": "full-time",
+            "status": "open",
+            "department": "测试部",
+            "level": "senior",
+            "education": "本科",
+            "skills": ["Go", "Vue", "Docker"],
+            "benefits": ["五险一金"],
+            "headcount": 1
+          },
+          "expectedStatuses": [200]
+        },
+        "delete": {
+          "method": "DELETE",
+          "path": "/api/v1/jobs/${id}",
+          "expectedStatuses": [200, 204]
+        }
+      },
+      {
+        "name": "talent-crud-owned-data",
+        "resourceType": "talents",
+        "create": {
+          "method": "POST",
+          "path": "/api/v1/talents",
+          "body": {
+            "name": "${prefix}_测试人才",
+            "email": "bigtest_${runId}@example.com",
+            "phone": "13800000000",
+            "skills": ["Go", "Vue"],
+            "experience": 3,
+            "education": "本科",
+            "status": "active",
+            "tags": ["BIGTEST"],
+            "location": "杭州",
+            "salary": "15k-25k",
+            "summary": "${prefix}_自动创建的人才摘要",
+            "gender": "未知",
+            "age": 28,
+            "current_company": "BIGTEST 公司",
+            "current_position": "后端工程师",
+            "source": "bigtest"
+          },
+          "idPath": "data.id",
+          "expectedStatuses": [200, 201]
+        },
+        "verify": {
+          "method": "GET",
+          "path": "/api/v1/talents/${id}",
+          "expectedStatuses": [200]
+        },
+        "update": {
+          "method": "PUT",
+          "path": "/api/v1/talents/${id}",
+          "body": {
+            "name": "${prefix}_测试人才_已更新",
+            "email": "bigtest_${runId}@example.com",
+            "phone": "13800000001",
+            "skills": ["Go", "Vue", "Docker"],
+            "experience": 4,
+            "education": "本科",
+            "location": "上海",
+            "salary": "18k-28k",
+            "current_company": "BIGTEST 公司",
+            "current_position": "高级后端工程师",
+            "summary": "${prefix}_自动更新的人才摘要",
+            "status": "active"
+          },
+          "expectedStatuses": [200]
+        },
+        "delete": {
+          "method": "DELETE",
+          "path": "/api/v1/talents/${id}",
+          "expectedStatuses": [200, 204]
+        }
+      },
+      {
+        "name": "message-create-query-delete-owned-data",
+        "resourceType": "messages",
+        "create": {
+          "method": "POST",
+          "path": "/api/v1/messages",
+          "body": {
+            "receiver_id": 1,
+            "title": "${prefix}_测试消息",
+            "content": "${prefix}_自动创建的消息内容",
+            "type": "system",
+            "is_read": false
+          },
+          "idPath": "data.id",
+          "expectedStatuses": [200, 201]
+        },
+        "verify": {
+          "method": "GET",
+          "path": "/api/v1/messages",
+          "expectedStatuses": [200]
+        },
+        "delete": {
+          "method": "DELETE",
+          "path": "/api/v1/messages/${id}",
+          "expectedStatuses": [200, 204]
+        }
+      },
+      {
+        "name": "interview-crud-owned-data",
+        "resourceType": "interviews",
+        "create": {
+          "method": "POST",
+          "path": "/api/v1/interviews",
+          "body": {
+            "candidate_id": 1,
+            "candidate_name": "${prefix}_候选人",
+            "position_id": 1,
+            "position": "${prefix}_测试职位",
+            "type": "initial",
+            "date": "${futureDate}",
+            "time": "${futureTime}",
+            "duration": 60,
+            "interviewer_id": 1,
+            "interviewer": "BIGTEST 面试官",
+            "method": "video",
+            "location": "线上会议",
+            "notes": "${prefix}_自动创建的面试备注",
+            "created_by": 1
+          },
+          "idPath": "data.id",
+          "expectedStatuses": [200, 201]
+        },
+        "verify": {
+          "method": "GET",
+          "path": "/api/v1/interviews/${id}",
+          "expectedStatuses": [200]
+        },
+        "update": {
+          "method": "PUT",
+          "path": "/api/v1/interviews/${id}",
+          "body": {
+            "type": "second",
+            "date": "${futureDate}",
+            "time": "${futureTime}",
+            "duration": 90,
+            "interviewer_id": 1,
+            "interviewer": "BIGTEST 面试官",
+            "method": "video",
+            "location": "线上会议",
+            "status": "scheduled",
+            "notes": "${prefix}_自动更新的面试备注"
+          },
+          "expectedStatuses": [200]
+        },
+        "steps": [
+          {
+            "name": "reschedule 改期测试面试",
+            "method": "POST",
+            "path": "/api/v1/interviews/${id}/reschedule",
+            "body": {
+              "date": "${futureDate2}",
+              "time": "${futureTime2}",
+              "reason": "${prefix}_自动化改期验证"
+            },
+            "expectedStatuses": [200]
+          },
+          {
+            "name": "complete 完成测试面试",
+            "method": "POST",
+            "path": "/api/v1/interviews/${id}/complete",
+            "body": {
+              "feedback": "${prefix}_自动化完成验证",
+              "rating": 4
+            },
+            "expectedStatuses": [200]
+          }
+        ],
+        "delete": {
+          "method": "DELETE",
+          "path": "/api/v1/interviews/${id}",
+          "expectedStatuses": [200, 204]
+        }
+      },
+      {
+        "name": "notice-crud-owned-data",
+        "resourceType": "notice",
+        "create": {
+          "method": "POST",
+          "path": "/api/v1/notices",
+          "body": {
+            "title": "${prefix}_公告",
+            "content": "${prefix}_自动创建的公告内容",
+            "status": "draft",
+            "is_pinned": false,
+            "priority": "normal"
+          },
+          "idPath": "data.id",
+          "expectedStatuses": [200, 201]
+        },
+        "verify": {
+          "method": "GET",
+          "path": "/api/v1/notices/${id}",
+          "expectedStatuses": [200]
+        },
+        "update": {
+          "method": "PUT",
+          "path": "/api/v1/notices/${id}",
+          "body": {
+            "title": "${prefix}_公告_已更新",
+            "content": "${prefix}_自动更新的公告内容",
+            "status": "draft",
+            "is_pinned": false,
+            "priority": "normal"
+          },
+          "expectedStatuses": [200]
+        },
+        "delete": {
+          "method": "DELETE",
+          "path": "/api/v1/notices/${id}",
+          "expectedStatuses": [200, 204]
+        }
+      }
+    ]
+  }
+}

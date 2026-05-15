@@ -10,32 +10,8 @@ export default defineConfig({
         }
     },
     build: {
-        chunkSizeWarningLimit: 1200,
-        rollupOptions: {
-            output: {
-                manualChunks(id) {
-                    if (!id.includes('node_modules')) {
-                        return
-                    }
-
-                    if (id.includes('echarts')) {
-                        return 'echarts-vendor'
-                    }
-
-                    if (id.includes('xlsx')) {
-                        return 'xlsx-vendor'
-                    }
-
-                    if (id.includes('element-plus') || id.includes('@element-plus/icons-vue')) {
-                        return 'element-plus-vendor'
-                    }
-
-                    if (id.includes('/vue/') || id.includes('/vue-router/') || id.includes('/pinia/')) {
-                        return 'vue-vendor'
-                    }
-                }
-            }
-        }
+        // 交给 Vite/Rollup 自动分包，避免手动拆分 Element Plus 与 Vue 造成循环初始化白屏。
+        chunkSizeWarningLimit: 1200
     },
     server: {
         port: 5173,

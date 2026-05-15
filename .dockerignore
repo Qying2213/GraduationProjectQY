@@ -1,0 +1,16 @@
+*
+!Dockerfile
+!start-services.sh
+!backend/
+!backend/**
+
+.git
+.gitignore
+.DS_Store
+**/.DS_Store
+**/logs/
+**/uploads/
+**/tmp/
+**/node_modules/
+**/dist/
+bigtest/output/

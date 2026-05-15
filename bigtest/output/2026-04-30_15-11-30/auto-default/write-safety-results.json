@@ -1,0 +1,163 @@
+{
+  "testDataPrefix": "BIGTEST_2026-04-30_15-11-30",
+  "registry": {
+    "resources": {
+      "notice": []
+    }
+  },
+  "scenarios": [
+    {
+      "name": "notice-crud-owned-data",
+      "resourceType": "notice",
+      "inferred": false,
+      "steps": [
+        {
+          "name": "create",
+          "method": "POST",
+          "path": "/api/v1/notices",
+          "status": 200,
+          "expectedStatuses": [
+            200,
+            201
+          ],
+          "durationMs": 20,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 29,
+              "created_at": "2026-04-30T15:14:34.197397+08:00",
+              "updated_at": "2026-04-30T15:14:34.197397+08:00",
+              "title": "BIGTEST_2026-04-30_15-11-30_公告",
+              "content": "BIGTEST_2026-04-30_15-11-30_自动创建的公告内容",
+              "status": "draft",
+              "created_by": 1,
+              "is_pinned": false,
+              "priority": "normal"
+            },
+            "message": "Notice created successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 29,
+              "created_at": "2026-04-30T15:14:34.197397+08:00",
+              "updated_at": "2026-04-30T15:14:34.197397+08:00",
+              "title": "BIGTEST_2026-04-30_15-11-30_公告",
+              "content": "BIGTEST_2026-04-30_15-11-30_自动创建的公告内容",
+              "status": "draft",
+              "created_by": 1,
+              "is_pinned": false,
+              "priority": "normal"
+            },
+            "message": "Notice created successfully"
+          }
+        },
+        {
+          "name": "verify",
+          "method": "GET",
+          "path": "/api/v1/notices/29",
+          "status": 200,
+          "expectedStatuses": [
+            200
+          ],
+          "durationMs": 1,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 29,
+              "created_at": "2026-04-30T15:14:34.197397+08:00",
+              "updated_at": "2026-04-30T15:14:34.197397+08:00",
+              "title": "BIGTEST_2026-04-30_15-11-30_公告",
+              "content": "BIGTEST_2026-04-30_15-11-30_自动创建的公告内容",
+              "status": "draft",
+              "created_by": 1,
+              "is_pinned": false,
+              "priority": "normal"
+            },
+            "message": "success"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 29,
+              "created_at": "2026-04-30T15:14:34.197397+08:00",
+              "updated_at": "2026-04-30T15:14:34.197397+08:00",
+              "title": "BIGTEST_2026-04-30_15-11-30_公告",
+              "content": "BIGTEST_2026-04-30_15-11-30_自动创建的公告内容",
+              "status": "draft",
+              "created_by": 1,
+              "is_pinned": false,
+              "priority": "normal"
+            },
+            "message": "success"
+          }
+        },
+        {
+          "name": "update",
+          "method": "PUT",
+          "path": "/api/v1/notices/29",
+          "status": 200,
+          "expectedStatuses": [
+            200
+          ],
+          "durationMs": 2,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "data": {
+              "id": 29,
+              "created_at": "2026-04-30T15:14:34.197397+08:00",
+              "updated_at": "2026-04-30T15:14:34.203859+08:00",
+              "title": "BIGTEST_2026-04-30_15-11-30_公告_已更新",
+              "content": "BIGTEST_2026-04-30_15-11-30_自动更新的公告内容",
+              "status": "draft",
+              "created_by": 1,
+              "is_pinned": false,
+              "priority": "normal"
+            },
+            "message": "Notice updated successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "data": {
+              "id": 29,
+              "created_at": "2026-04-30T15:14:34.197397+08:00",
+              "updated_at": "2026-04-30T15:14:34.203859+08:00",
+              "title": "BIGTEST_2026-04-30_15-11-30_公告_已更新",
+              "content": "BIGTEST_2026-04-30_15-11-30_自动更新的公告内容",
+              "status": "draft",
+              "created_by": 1,
+              "is_pinned": false,
+              "priority": "normal"
+            },
+            "message": "Notice updated successfully"
+          }
+        },
+        {
+          "name": "delete",
+          "method": "DELETE",
+          "path": "/api/v1/notices/29",
+          "status": 200,
+          "expectedStatuses": [
+            200,
+            204
+          ],
+          "durationMs": 1,
+          "passed": true,
+          "body": {
+            "code": 0,
+            "message": "Notice deleted successfully"
+          },
+          "bodyPreview": {
+            "code": 0,
+            "message": "Notice deleted successfully"
+          }
+        }
+      ],
+      "passed": true,
+      "cleanupPassed": true
+    }
+  ]
+}

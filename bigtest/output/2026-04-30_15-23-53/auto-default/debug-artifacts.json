@@ -1,0 +1,1187 @@
+{
+  "consoleErrors": [
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". null at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: validation failed for prop \"type\". Expected one of [\"primary\", \"success\", \"info\", \"warning\", \"danger\"], got value \"\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "warning",
+      "text": "Invalid prop: custom validator check failed for prop \"type\". Proxy(Object) at <ElTag>\nat <PortalJobList>\nat <RouterView>\nat <PortalLayout>\nat <RouterView>\nat <App> [Object, Object, Object, Object, Object, Object]",
+      "url": "http://localhost:5173/portal/jobs"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=35  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=36  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=37  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=38  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=39  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=24  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=25  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=23  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=15  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Invalid prop: type check failed for prop \"modelValue\". Expected Number | String | Boolean, got Array  \n  at <ElCheckbox modelValue= [] onUpdate:modelValue=fn label=9  ... > \n  at <MessageCenter onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <ElMain class=\"main-content\" > \n  at <ElContainer> \n  at <ElContainer> \n  at <MainLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy(Object) > > \n  at <RouterView> \n  at <App>",
+      "url": "http://localhost:5173/messages"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/dev-logs"
+    }
+  ],
+  "networkFailures": [],
+  "screenshots": [
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/talents",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-1.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/talents",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-2.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/talents",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-3.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/talents",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-4.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/talents",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-5.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/talents",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-6.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/talents",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-7.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/talents",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-8.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/talents",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-9.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/talents",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-10.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/talents",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-11.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/talents",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-12.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/talents",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-13.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/talents",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-14.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-15.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-16.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-17.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-18.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-19.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-20.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-21.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-22.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-23.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-24.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-25.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-26.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-27.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-28.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-29.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-30.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-31.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-32.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-33.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-34.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-35.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-36.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-37.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-38.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-39.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/jobs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-40.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/resumes",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-41.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/resumes",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-42.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/resumes",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-43.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/resumes",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-44.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/resumes",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-45.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/resumes",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-46.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/resumes",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-47.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/resumes",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-48.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/resumes",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-49.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/resumes",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-50.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/resumes",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-51.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/resumes",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-52.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/resumes",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-53.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-54.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-55.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-56.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-57.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-58.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-59.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-60.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-61.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-62.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-63.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-64.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-65.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-66.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-67.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-68.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/recommend",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-69.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/kanban",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-70.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/calendar",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-71.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/calendar",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-72.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/calendar",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-73.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/calendar",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-74.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/calendar",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-75.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/calendar",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-76.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/messages",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-77.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/messages",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-78.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/chat",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-79.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/roles",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-80.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/reports",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-81.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/logs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-82.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/logs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-83.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/logs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-84.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/logs",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-85.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/notices/1/edit",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-86.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/notices",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-87.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/notices",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-88.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/notices",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-89.png"
+    },
+    {
+      "type": "button-failed",
+      "route": "http://localhost:5173/notices",
+      "file": "/Users/qinyang/Desktop/GraduationProjectQY/bigtest/output/2026-04-30_15-23-53/auto-default/debug/button-failed-90.png"
+    }
+  ]
+}

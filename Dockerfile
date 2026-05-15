@@ -3,12 +3,12 @@
 # 一个容器运行所有后端微服务
 # ============================================================
 
-FROM golang:1.23-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /build
 
-# 安装必要工具
-RUN apk add --no-cache git
+# 安装必要工具；evaluator-service 依赖 go-sqlite3，需要 CGO 编译环境
+RUN apk add --no-cache git gcc musl-dev
 
 # 复制整个 backend 目录
 COPY backend ./backend
@@ -23,13 +23,13 @@ RUN cd backend/interview-service && go build -o /out/interview-service .
 RUN cd backend/resume-service && go build -o /out/resume-service .
 RUN cd backend/recommendation-service && go build -o /out/recommendation-service .
 RUN cd backend/log-service && go build -o /out/log-service .
-RUN cd backend/evaluator-service && go build -o /out/evaluator-service ./cmd/server
+RUN cd backend/evaluator-service && CGO_ENABLED=1 go build -o /out/evaluator-service ./cmd/server
 
 # 运行阶段
 FROM alpine:latest
 
 RUN apk --no-cache add ca-certificates tzdata python3 py3-pip
-RUN pip3 install --no-cache-dir requests requests-toolbelt pycryptodome urllib3
+RUN pip3 install --break-system-packages --no-cache-dir requests requests-toolbelt pycryptodome urllib3
 ENV TZ=Asia/Shanghai
 
 WORKDIR /app

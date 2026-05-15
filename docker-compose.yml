@@ -4,11 +4,28 @@
 # ============================================================
 
 services:
+  # ==================== 统一入口 / 负载均衡 ====================
+
+  # 对外统一入口：前端页面走 frontend，API 请求走 backend gateway
+  nginx:
+    image: nginx:alpine
+    container_name: talent-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - talent-network
+    restart: unless-stopped
+
   # ==================== 数据库服务 ====================
   
   # PostgreSQL 数据库
   postgres:
-    image: postgres:14-alpine
+    image: postgres:16-alpine
     container_name: talent-postgres
     environment:
       POSTGRES_USER: postgres

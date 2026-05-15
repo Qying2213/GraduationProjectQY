@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"recommendation-service/handlers"
-	"recommendation-service/rag"
 
 	"common/database"
 
@@ -58,7 +57,7 @@ func main() {
 	}
 	log.Println("Database connected")
 
-	if err := db.AutoMigrate(&rag.TalentEmbedding{}, &rag.JobEmbedding{}, &rag.ResumeEmbedding{}); err != nil {
+	if err := ensureRAGTables(db); err != nil {
 		log.Printf("Warning: Failed to ensure RAG tables: %v", err)
 	}
 
@@ -148,4 +147,46 @@ func main() {
 	if err := r.Run(":8087"); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
+}
+
+func ensureRAGTables(db *gorm.DB) error {
+	statements := []string{
+		`CREATE TABLE IF NOT EXISTS talent_embeddings (
+			id SERIAL PRIMARY KEY,
+			talent_id INTEGER REFERENCES talents(id) ON DELETE CASCADE,
+			content TEXT NOT NULL,
+			embedding JSONB NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		)`,
+		`CREATE TABLE IF NOT EXISTS job_embeddings (
+			id SERIAL PRIMARY KEY,
+			job_id INTEGER REFERENCES jobs(id) ON DELETE CASCADE,
+			content TEXT NOT NULL,
+			embedding JSONB NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		)`,
+		`CREATE TABLE IF NOT EXISTS resume_embeddings (
+			id SERIAL PRIMARY KEY,
+			resume_id INTEGER REFERENCES resumes(id) ON DELETE CASCADE,
+			content TEXT NOT NULL,
+			embedding JSONB NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		)`,
+		`ALTER TABLE talent_embeddings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
+		`ALTER TABLE job_embeddings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
+		`ALTER TABLE resume_embeddings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS idx_talent_embeddings_talent_id ON talent_embeddings(talent_id)`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS idx_job_embeddings_job_id ON job_embeddings(job_id)`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS idx_resume_embeddings_resume_id ON resume_embeddings(resume_id)`,
+	}
+
+	for _, statement := range statements {
+		if err := db.Exec(statement).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }

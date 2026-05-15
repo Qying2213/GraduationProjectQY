@@ -1,0 +1,349 @@
+{
+  "exploration": {
+    "routesDiscovered": 36,
+    "routesFromFiles": [
+      "/login",
+      "/register",
+      "/dev-logs",
+      "/portal",
+      "/portal/jobs",
+      "/portal/jobs/1",
+      "/portal/companies",
+      "/portal/login",
+      "/portal/register",
+      "/portal/my-applications",
+      "/portal/my-resume",
+      "/portal/chat",
+      "/data-screen",
+      "/dashboard",
+      "/talents",
+      "/talents/1",
+      "/jobs",
+      "/jobs/1",
+      "/resumes",
+      "/recommend",
+      "/kanban",
+      "/calendar",
+      "/interviews/1",
+      "/messages",
+      "/chat",
+      "/profile",
+      "/roles",
+      "/reports",
+      "/settings",
+      "/logs",
+      "/ai-evaluate",
+      "/ai-process",
+      "/evaluation-results",
+      "/notices/1/edit",
+      "/notices",
+      "/notices/1"
+    ],
+    "routesFromPageDirs": [],
+    "routesFromDom": [
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies"
+    ],
+    "visitedRoutes": [
+      "/portal",
+      "/portal/jobs",
+      "/portal/jobs/1",
+      "/portal/companies",
+      "/portal/my-applications",
+      "/portal/my-resume",
+      "/portal/chat",
+      "/data-screen",
+      "/dashboard",
+      "/talents",
+      "/talents/1",
+      "/jobs",
+      "/jobs/1",
+      "/resumes",
+      "/recommend",
+      "/kanban",
+      "/calendar",
+      "/interviews/1",
+      "/messages",
+      "/chat",
+      "/profile",
+      "/roles",
+      "/reports",
+      "/settings",
+      "/logs",
+      "/notices/1/edit",
+      "/notices",
+      "/notices/1"
+    ],
+    "pagesVisited": 28,
+    "inputsFound": 437,
+    "inputsFilled": 133,
+    "buttonsFound": 542,
+    "buttonsClicked": 160,
+    "skippedButtons": [
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      },
+      {
+        "route": "http://localhost:5173/ai-evaluate",
+        "text": "el-button el-button--primary el-button--large is-disabled 开始AI智能评估 请上传简历并填写职位描述后开始评估 开始AI智能评估 el-button el-button--primary el-button--large is-disabled",
+        "risk": "disabled"
+      }
+    ],
+    "buttonFailures": [],
+    "failedRoutes": [],
+    "dialogsDismissed": 0
+  },
+  "apiCoverage": {
+    "resources": [
+      {
+        "name": "stats",
+        "methods": [
+          "GET"
+        ],
+        "count": 7
+      },
+      {
+        "name": "messages",
+        "methods": [
+          "DELETE",
+          "GET",
+          "POST",
+          "PUT"
+        ],
+        "count": 10
+      },
+      {
+        "name": "talents",
+        "methods": [
+          "DELETE",
+          "GET",
+          "POST",
+          "PUT"
+        ],
+        "count": 26
+      },
+      {
+        "name": "jobs",
+        "methods": [
+          "DELETE",
+          "GET",
+          "POST",
+          "PUT"
+        ],
+        "count": 16
+      },
+      {
+        "name": "conversations",
+        "methods": [
+          "GET",
+          "POST",
+          "PUT"
+        ],
+        "count": 17
+      },
+      {
+        "name": "applications",
+        "methods": [
+          "DELETE",
+          "GET",
+          "POST",
+          "PUT"
+        ],
+        "count": 14
+      },
+      {
+        "name": "resumes",
+        "methods": [
+          "DELETE",
+          "GET",
+          "POST",
+          "PUT"
+        ],
+        "count": 16
+      },
+      {
+        "name": "interviews",
+        "methods": [
+          "DELETE",
+          "GET",
+          "POST",
+          "PUT"
+        ],
+        "count": 20
+      },
+      {
+        "name": "logs",
+        "methods": [
+          "DELETE",
+          "GET"
+        ],
+        "count": 15
+      },
+      {
+        "name": "notices",
+        "methods": [
+          "DELETE",
+          "GET",
+          "POST",
+          "PUT"
+        ],
+        "count": 19
+      },
+      {
+        "name": "ws",
+        "methods": [
+          "GET"
+        ],
+        "count": 3
+      },
+      {
+        "name": "recommendations",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "count": 36
+      },
+      {
+        "name": "online-status",
+        "methods": [
+          "GET"
+        ],
+        "count": 2
+      },
+      {
+        "name": "profile",
+        "methods": [
+          "GET",
+          "PUT"
+        ],
+        "count": 2
+      },
+      {
+        "name": "users",
+        "methods": [
+          "GET"
+        ],
+        "count": 1
+      },
+      {
+        "name": "register",
+        "methods": [
+          "POST"
+        ],
+        "count": 1
+      }
+    ]
+  },
+  "safetyBlocks": {
+    "total": 19,
+    "skippedReplay": 0,
+    "skippedButtons": 19
+  }
+}

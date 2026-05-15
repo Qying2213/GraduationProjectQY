@@ -1,0 +1,427 @@
+[
+  {
+    "id": "admin-smoke-1",
+    "profile": "admin-smoke",
+    "fingerprint": "POST::/api/v1/login::anon::{\n  \"kind\": \"object\",\n  \"keys\": [\n    \"password\",\n    \"username\"\n  ]\n}",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      1
+    ],
+    "request": {
+      "method": "POST",
+      "originalUrl": "http://localhost:5173/api/v1/login",
+      "normalizedPath": "/api/v1/login",
+      "resourceType": "xhr",
+      "requiresAuth": false,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "connection": "keep-alive",
+        "content-length": "42",
+        "content-type": "application/json",
+        "host": "localhost:5173",
+        "origin": "http://localhost:5173",
+        "referer": "http://localhost:5173/login",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": {
+        "username": "admin",
+        "password": "<redacted>"
+      },
+      "bodyShape": {
+        "kind": "object",
+        "keys": [
+          "password",
+          "username"
+        ]
+      }
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": null,
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-2",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/jobs?page=1&page_size=5::anon::",
+    "occurrences": 2,
+    "sourceRequestIds": [
+      2,
+      11
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs?page=1&page_size=5",
+      "normalizedPath": "/api/v1/jobs?page=1&page_size=5",
+      "resourceType": "fetch",
+      "requiresAuth": false,
+      "headersSanitized": {
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/dashboard",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-3",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/stats/dashboard::auth::",
+    "occurrences": 2,
+    "sourceRequestIds": [
+      3,
+      7
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/stats/dashboard",
+      "normalizedPath": "/api/v1/stats/dashboard",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/dashboard",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-4",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/messages/unread-count::auth::",
+    "occurrences": 5,
+    "sourceRequestIds": [
+      4,
+      8,
+      12,
+      14,
+      16
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/messages/unread-count",
+      "normalizedPath": "/api/v1/messages/unread-count",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/dashboard",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-5",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/messages?page=1&page_size=5::auth::",
+    "occurrences": 2,
+    "sourceRequestIds": [
+      5,
+      9
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/messages?page=1&page_size=5",
+      "normalizedPath": "/api/v1/messages?page=1&page_size=5",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/dashboard",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-6",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/talents?page=1&page_size=20::auth::",
+    "occurrences": 2,
+    "sourceRequestIds": [
+      6,
+      10
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/talents?page=1&page_size=20",
+      "normalizedPath": "/api/v1/talents?page=1&page_size=20",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/dashboard",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-7",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/jobs?page=1&page_size=10::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      13
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/jobs?page=1&page_size=10&search=&status=&type=&location=",
+      "normalizedPath": "/api/v1/jobs?page=1&page_size=10",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/jobs",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-8",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/messages?page=1&page_size=10&user_id=1::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      15
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/messages?user_id=1&page=1&page_size=10",
+      "normalizedPath": "/api/v1/messages?page=1&page_size=10&user_id=1",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/messages",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  {
+    "id": "admin-smoke-9",
+    "profile": "admin-smoke",
+    "fingerprint": "GET::/api/v1/notices?page=1&page_size=10::auth::",
+    "occurrences": 1,
+    "sourceRequestIds": [
+      17
+    ],
+    "request": {
+      "method": "GET",
+      "originalUrl": "http://localhost:5173/api/v1/notices?keyword=&status=&page=1&page_size=10",
+      "normalizedPath": "/api/v1/notices?page=1&page_size=10",
+      "resourceType": "xhr",
+      "requiresAuth": true,
+      "headersSanitized": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "authorization": "<redacted>",
+        "connection": "keep-alive",
+        "host": "localhost:5173",
+        "referer": "http://localhost:5173/notices",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "bodySanitized": null,
+      "bodyShape": null
+    },
+    "expected": {
+      "status": 200,
+      "responseShape": {
+        "kind": "object",
+        "keys": [
+          "code",
+          "data",
+          "message"
+        ]
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  }
+]

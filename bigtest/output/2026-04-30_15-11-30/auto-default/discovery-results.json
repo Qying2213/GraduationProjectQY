@@ -1,0 +1,1090 @@
+{
+  "exploration": {
+    "routesDiscovered": 36,
+    "routesFromFiles": [
+      "/login",
+      "/register",
+      "/dev-logs",
+      "/portal",
+      "/portal/jobs",
+      "/portal/jobs/1",
+      "/portal/companies",
+      "/portal/login",
+      "/portal/register",
+      "/portal/my-applications",
+      "/portal/my-resume",
+      "/portal/chat",
+      "/data-screen",
+      "/dashboard",
+      "/talents",
+      "/talents/1",
+      "/jobs",
+      "/jobs/1",
+      "/resumes",
+      "/recommend",
+      "/kanban",
+      "/calendar",
+      "/interviews/1",
+      "/messages",
+      "/chat",
+      "/profile",
+      "/roles",
+      "/reports",
+      "/settings",
+      "/logs",
+      "/ai-evaluate",
+      "/ai-process",
+      "/evaluation-results",
+      "/notices/1/edit",
+      "/notices",
+      "/notices/1"
+    ],
+    "routesFromPageDirs": [],
+    "routesFromDom": [
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies",
+      "/portal",
+      "/portal/jobs",
+      "/portal/companies"
+    ],
+    "visitedRoutes": [
+      "/portal",
+      "/portal/jobs",
+      "/portal/jobs/1",
+      "/portal/companies",
+      "/portal/my-applications",
+      "/portal/my-resume",
+      "/portal/chat",
+      "/data-screen",
+      "/dashboard",
+      "/talents",
+      "/talents/1",
+      "/jobs",
+      "/jobs/1",
+      "/resumes",
+      "/recommend",
+      "/kanban",
+      "/calendar",
+      "/interviews/1",
+      "/messages",
+      "/chat",
+      "/profile",
+      "/roles",
+      "/reports",
+      "/settings",
+      "/logs",
+      "/notices/1/edit",
+      "/notices",
+      "/notices/1"
+    ],
+    "pagesVisited": 28,
+    "inputsFound": 551,
+    "inputsFilled": 98,
+    "buttonsFound": 542,
+    "buttonsClicked": 103,
+    "skippedButtons": [
+      {
+        "route": "http://localhost:5173/dashboard",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/dashboard",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/dashboard",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/dashboard",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/talents",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/talents",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/talents",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/talents",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/talents",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/talents",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/talents",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/talents",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/talents",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/talents",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/talents",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/talents",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/talents",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/talents/1",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/talents/1",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/talents/1",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs/1",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/jobs/1",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/jobs/1",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/jobs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/resumes",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/resumes",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/resumes",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/resumes",
+        "text": "上传简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/resumes",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/resumes",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/resumes",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/resumes",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/resumes",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/resumes",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/recommend",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/recommend",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/recommend",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/recommend",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/recommend",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/recommend",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/recommend",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/recommend",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/recommend",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/recommend",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/recommend",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/recommend",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/kanban",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/calendar",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/calendar",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/calendar",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/calendar",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/calendar",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/calendar",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/calendar",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/interviews/1",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/interviews/1",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/interviews/1",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/calendar",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/calendar",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/calendar",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/calendar",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/calendar",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/messages",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/messages",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/messages",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/messages",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/messages",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/messages",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/messages",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/messages",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/chat",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/chat",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/chat",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/profile",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/profile",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/profile",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/roles",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/roles",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/roles",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/reports",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/reports",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/reports",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/settings",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/settings",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/settings",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/logs",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/logs",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/logs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/logs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/logs",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/notices/1/edit",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/notices/1/edit",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/notices/1/edit",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/notices",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/notices",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/notices",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/notices",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/notices",
+        "text": "删除",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/notices",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/notices",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/notices",
+        "text": "<empty>",
+        "risk": "empty"
+      },
+      {
+        "route": "http://localhost:5173/notices/1",
+        "text": "投递简历",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/notices/1",
+        "text": "AI评估",
+        "risk": "danger"
+      },
+      {
+        "route": "http://localhost:5173/notices/1",
+        "text": "<empty>",
+        "risk": "empty"
+      }
+    ],
+    "failedRoutes": [],
+    "dialogsDismissed": 0
+  },
+  "apiCoverage": {
+    "resources": [
+      {
+        "name": "stats",
+        "methods": [
+          "GET"
+        ],
+        "count": 1
+      },
+      {
+        "name": "messages",
+        "methods": [
+          "GET"
+        ],
+        "count": 3
+      },
+      {
+        "name": "talents",
+        "methods": [
+          "GET"
+        ],
+        "count": 2
+      },
+      {
+        "name": "jobs",
+        "methods": [
+          "GET"
+        ],
+        "count": 8
+      },
+      {
+        "name": "conversations",
+        "methods": [
+          "GET"
+        ],
+        "count": 2
+      },
+      {
+        "name": "applications",
+        "methods": [
+          "GET"
+        ],
+        "count": 3
+      },
+      {
+        "name": "resumes",
+        "methods": [
+          "GET"
+        ],
+        "count": 4
+      },
+      {
+        "name": "interviews",
+        "methods": [
+          "GET"
+        ],
+        "count": 2
+      },
+      {
+        "name": "logs",
+        "methods": [
+          "GET"
+        ],
+        "count": 1
+      },
+      {
+        "name": "notices",
+        "methods": [
+          "GET"
+        ],
+        "count": 4
+      }
+    ]
+  },
+  "safetyBlocks": {
+    "total": 182,
+    "skippedReplay": 1,
+    "skippedButtons": 181
+  }
+}

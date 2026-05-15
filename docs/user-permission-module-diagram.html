@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>用户登录认证与角色校验流程图</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 32px;
+      color: #000;
+      background: #fff;
+      font-family: "Songti SC", "SimSun", "Microsoft YaHei", Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    .page {
+      max-width: 1080px;
+      margin: 0 auto;
+      border: 2px solid #000;
+      padding: 28px;
+      background: #fff;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      margin: 0 0 24px;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    .flow {
+      border: 2px solid #000;
+      padding: 22px;
+    }
+
+    .flow-title {
+      margin: 0 0 14px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: 1fr 34px 1fr 34px 1fr 34px 1fr 34px 1fr 34px 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .step {
+      min-height: 112px;
+      padding: 10px;
+      border: 1.8px solid #000;
+      text-align: center;
+      font-size: 13px;
+      background: #fff;
+    }
+
+    .step-arrow {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .decision {
+      border-radius: 0;
+    }
+
+    .result-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .result {
+      border: 1.8px solid #000;
+      padding: 14px;
+      text-align: center;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    .notes {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .note {
+      border: 2px solid #000;
+      padding: 14px;
+    }
+
+    .note h2 {
+      margin: 0 0 10px;
+      font-size: 17px;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      font-size: 13px;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+      }
+
+      .page {
+        border: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <h1>用户登录认证与角色校验流程图</h1>
+    <p class="subtitle">JWT 登录认证 + 简单角色访问控制</p>
+
+    <section class="flow">
+      <div class="flow-title">受保护接口请求处理流程</div>
+      <div class="steps">
+        <div class="step">1. 用户登录<br>提交用户名或邮箱、密码</div>
+        <div class="step-arrow">→</div>
+        <div class="step">2. 后端校验<br>密码和 active 状态</div>
+        <div class="step-arrow">→</div>
+        <div class="step">3. 生成 JWT<br>写入 user_id、username、role</div>
+        <div class="step-arrow">→</div>
+        <div class="step">4. 前端保存 Token<br>请求时加入 Authorization</div>
+        <div class="step-arrow">→</div>
+        <div class="step decision">5. JWTAuth<br>校验 Token 是否有效</div>
+        <div class="step-arrow">→</div>
+        <div class="step decision">6. RoleAuth<br>判断角色是否允许访问接口</div>
+      </div>
+
+      <div class="result-row">
+        <div class="result">通过：继续访问职位、人才、面试、消息等业务接口</div>
+        <div class="result">不通过：返回 401 未登录或 403 无权限</div>
+      </div>
+    </section>
+
+    <section class="notes">
+      <div class="note">
+        <h2>当前代码中的实际控制点</h2>
+        <ul>
+          <li>登录成功后生成 JWT，Token 中包含用户 ID、用户名和角色。</li>
+          <li>前端 Axios 拦截器自动携带 Authorization 请求头。</li>
+          <li>JWTAuth 负责身份认证，RoleAuth 负责简单角色校验。</li>
+          <li>后台写操作接口主要允许 admin、hr、hr_manager、recruiter 访问。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h2>说明边界</h2>
+        <ul>
+          <li>该模块参考 RBAC 思想，但不是完整的动态 RBAC 权限平台。</li>
+          <li>角色和接口允许范围主要在代码中配置，而不是通过数据库权限表动态维护。</li>
+          <li>前端路由守卫和按钮权限主要用于展示控制，后端中间件提供接口兜底校验。</li>
+          <li>求职者相关接口会根据 JWT 中的 user_id 绑定个人简历和投递数据。</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</body>
+
+</html>
