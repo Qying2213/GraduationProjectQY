@@ -426,7 +426,11 @@ import {
 } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
-// 数据
+// EvaluationResults 是 AI 评估结果管理页。
+// 它读取后端持久化的 evaluation_results 和 ai_process_logs，让 HR 能查看最新评分、
+// 解析字段、维度得分以及每一步 AI 处理过程。
+
+// 页面状态数据
 const loading = ref(false)
 const evaluations = ref<any[]>([])
 const stats = ref<any>({})
@@ -453,7 +457,8 @@ const sortParams = reactive({
   sortOrder: 'desc'
 })
 
-// 加载数据
+// 加载评估结果列表。
+// latest_only=true 表示同一份简历只展示最近一次评估，避免列表被历史调试记录刷屏。
 const loadData = async () => {
   loading.value = true
   try {
@@ -503,7 +508,7 @@ const parseDimensions = (dimensions: any) => {
   }
 }
 
-// 加载统计
+// 加载评估统计，用于页面顶部的概览卡片。
 const loadStats = async () => {
   try {
     const res = await request.get('/evaluations/stats', {

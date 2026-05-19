@@ -1,3 +1,5 @@
+// recommendation-service 负责人岗匹配、语义推荐和 RAG 检索。
+// 前端通过 API Gateway 调用它；resume-service 在 AI 评估链路中会通过内部接口调用它。
 package main
 
 import (
@@ -29,7 +31,8 @@ func main() {
 		log.Println("Warning: .env file not found, using environment variables")
 	}
 
-	// 打印 Embedding 配置状态
+	// 打印 Embedding 配置状态。未配置时会使用 mock embedding，这样本地演示
+	// 不会因为外部 API Key 缺失而完全不可用。
 	arkAPIKey := os.Getenv("ARK_API_KEY")
 	volcModelID := os.Getenv("VOLC_MODEL_ID")
 	if arkAPIKey != "" {
@@ -57,6 +60,7 @@ func main() {
 	}
 	log.Println("Database connected")
 
+	// RAG 索引表在服务启动时自动保证存在，降低本地部署和答辩演示的准备成本。
 	if err := ensureRAGTables(db); err != nil {
 		log.Printf("Warning: Failed to ensure RAG tables: %v", err)
 	}
@@ -115,7 +119,7 @@ func main() {
 		api.POST("/attribution-report", recommendHandler.GenerateAttributionReport)
 		api.POST("/semantic-match", recommendHandler.SemanticMatch)
 
-		// RAG 相关接口
+		// RAG 相关接口：给后台管理页面使用，需要登录和 HR/管理员权限。
 		api.POST("/rag/query", recommendHandler.RAGQuery)
 		api.POST("/rag/index-talent", recommendHandler.IndexTalent)
 		api.POST("/rag/index-job", recommendHandler.IndexJob)
@@ -135,6 +139,8 @@ func main() {
 		c.Next()
 	})
 	{
+		// 内部接口给 resume-service 调用。使用 X-Internal-Token 可以把服务间
+		// 调用和用户 JWT 区分开，避免把后台用户权限直接暴露给内部链路。
 		internal.POST("/rag/query", recommendHandler.RAGQuery)
 		internal.POST("/rag/index-talent", recommendHandler.IndexTalent)
 		internal.POST("/rag/index-job", recommendHandler.IndexJob)
@@ -149,6 +155,9 @@ func main() {
 	}
 }
 
+// ensureRAGTables 创建项目使用的轻量级向量索引表。
+// 当前向量以 JSONB 存储，便于普通 PostgreSQL 环境直接部署；相似度在 Go 中计算，
+// 对毕业设计演示规模已经足够。
 func ensureRAGTables(db *gorm.DB) error {
 	statements := []string{
 		`CREATE TABLE IF NOT EXISTS talent_embeddings (

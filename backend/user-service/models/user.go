@@ -7,6 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// User 是系统账号表模型。
+// 它既服务登录鉴权，也承载后台角色、部门职位和候选人基础资料。
 type User struct {
 	ID         uint           `gorm:"primarykey" json:"id"`
 	CreatedAt  time.Time      `json:"created_at"`
@@ -24,7 +26,8 @@ type User struct {
 	Status     string         `gorm:"size:20;default:'active'" json:"status"` // active, inactive, suspended
 }
 
-// HashPassword 使用 bcrypt 存储密码
+// HashPassword 使用 bcrypt 存储密码。
+// 数据库中不保存明文密码，避免账号数据泄露时直接暴露用户密码。
 
 func (u *User) HashPassword(password string) error {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -35,7 +38,8 @@ func (u *User) HashPassword(password string) error {
 	return nil
 }
 
-// CheckPassword 兼容 bcrypt 与历史明文数据
+// CheckPassword 校验登录密码。
+// 先按 bcrypt 校验，失败后兼容历史明文数据，便于旧数据平滑过渡。
 func (u *User) CheckPassword(password string) bool {
 	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)); err == nil {
 		return true

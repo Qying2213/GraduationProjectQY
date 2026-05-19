@@ -443,7 +443,10 @@ import { usePermissionStore } from '@/store/permission'
 
 const permissionStore = usePermissionStore()
 
-// 权限检查
+// TalentList 是后台人才库主页面。
+// 页面负责人才筛选、表格/卡片切换、新增编辑、导出，并展示后端融合 AI 评估后的匹配分。
+
+// 权限检查：按钮是否展示由前端权限 store 控制，真正接口权限仍由后端 JWT/RBAC 校验。
 const canCreate = computed(() => permissionStore.hasPermission('talent:create'))
 const canEdit = computed(() => permissionStore.hasPermission('talent:edit'))
 const canDelete = computed(() => permissionStore.hasPermission('talent:delete'))
@@ -501,7 +504,8 @@ const commonSkills = [
   'Git', 'CI/CD', 'Agile', 'Scrum'
 ]
 
-// 获取人才列表
+// 获取人才列表。
+// 查询参数会直接映射到 talent-service 的筛选条件，返回值中包含人才数据和总数。
 const fetchTalents = async () => {
   loading.value = true
   try {

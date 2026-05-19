@@ -3,7 +3,8 @@ import { ref, computed } from 'vue'
 import type { User } from '@/types'
 import { authApi } from '@/api/auth'
 
-// 安全的 localStorage 操作
+// 安全的 localStorage 操作。
+// 浏览器隐私模式或存储异常时不让应用直接崩溃，而是降级为未持久化登录态。
 const safeStorage = {
     setItem(key: string, value: string) {
         try {
@@ -30,10 +31,12 @@ const safeStorage = {
 }
 
 export const useUserStore = defineStore('user', () => {
+    // user/token 是前端权限判断的核心状态。
+    // token 用于请求拦截器追加 Authorization，user.role 用于路由和菜单分流。
     const user = ref<User | null>(null)
     const token = ref<string>('')
 
-    // 初始化时从localStorage读取
+    // 初始化时从 localStorage 恢复登录态，让刷新页面后仍保持登录。
     const initFromStorage = () => {
         const storedToken = safeStorage.getItem('token')
         const storedUser = safeStorage.getItem('user')
@@ -67,7 +70,7 @@ export const useUserStore = defineStore('user', () => {
     // 是否是候选人
     const isCandidate = computed(() => user.value?.role === 'candidate')
 
-    // 登录
+    // 登录：调用后端 user-service，成功后同时更新内存状态和本地缓存。
     const login = async (username: string, password: string) => {
         console.log('[Login] 开始登录, 用户名:', username)
         try {
@@ -97,13 +100,13 @@ export const useUserStore = defineStore('user', () => {
         }
     }
 
-    // 注册
+    // 注册：供后台注册页和求职端注册流程复用。
     const register = async (data: any) => {
         const res = await authApi.register(data)
         return res.data
     }
 
-    // 登出
+    // 登出：清理内存和 localStorage，后续请求拦截器就不会再带旧 token。
     const logout = () => {
         user.value = null
         token.value = ''
@@ -111,7 +114,7 @@ export const useUserStore = defineStore('user', () => {
         safeStorage.removeItem('user')
     }
 
-    // 更新用户信息
+    // 更新用户信息：资料保存成功后同步刷新本地缓存，避免页面显示旧资料。
     const updateProfile = async (data: Partial<User>) => {
         const res = await authApi.updateProfile(data)
         if (res.data.code === 0 && res.data.data) {

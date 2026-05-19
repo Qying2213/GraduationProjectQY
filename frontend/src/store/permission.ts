@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
-// 权限类型
+// 权限类型。
+// 前端用这些 code 描述菜单和按钮能力，后端仍通过 JWT/RBAC 做最终保护。
 export type Permission =
   | 'dashboard:view'
   | 'talent:view' | 'talent:create' | 'talent:edit' | 'talent:delete' | 'talent:export'
@@ -26,7 +27,8 @@ export interface Role {
   updatedAt: string
 }
 
-// 预定义角色
+// 预定义角色。
+// 当前项目没有独立权限管理后端时，前端先用这份静态配置支撑权限页面和菜单展示。
 export const PREDEFINED_ROLES: Record<string, Role> = {
   admin: {
     id: 1,
@@ -122,7 +124,8 @@ export const PREDEFINED_ROLES: Record<string, Role> = {
   }
 }
 
-// 权限分组（用于权限配置界面）
+// 权限分组（用于权限配置界面）。
+// 分组只影响页面展示，不改变实际接口权限。
 export const PERMISSION_GROUPS = [
   {
     name: '仪表板',

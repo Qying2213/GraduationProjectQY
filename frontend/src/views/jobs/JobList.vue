@@ -405,7 +405,10 @@ import { usePermissionStore } from '@/store/permission'
 
 const permissionStore = usePermissionStore()
 
-// 权限检查
+// JobList 是后台职位管理页。
+// 页面负责职位列表、筛选、新增编辑、删除和导出，对应 job-service 的职位主数据接口。
+
+// 权限检查：前端用于控制按钮展示，后端 JWT/RBAC 仍是最终权限边界。
 const canCreate = computed(() => permissionStore.hasPermission('job:create'))
 const canEdit = computed(() => permissionStore.hasPermission('job:edit'))
 const canDelete = computed(() => permissionStore.hasPermission('job:delete'))
@@ -469,7 +472,8 @@ const commonSkills = [
   'Git', 'CI/CD', '微服务', '分布式系统'
 ]
 
-// 获取职位列表
+// 获取职位列表。
+// 搜索条件会传给 job-service，后端返回分页职位数据和总数。
 const fetchJobs = async () => {
   loading.value = true
   try {

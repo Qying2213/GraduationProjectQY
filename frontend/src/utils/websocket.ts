@@ -9,6 +9,8 @@ export interface WebSocketMessage {
 
 export type MessageHandler = (message: WebSocketMessage) => void
 
+// WebSocketService 封装前端实时通信。
+// 它连接 API Gateway 暴露的 /api/v1/ws，负责自动重连、消息分发和默认通知提示。
 class WebSocketService {
   private ws: WebSocket | null = null
   private url: string
@@ -61,7 +63,7 @@ class WebSocketService {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++
       console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`)
-      // 重连时需要重新获取 token
+      // 重连时重新读取 token，避免使用已经退出登录或过期的旧连接信息。
       const token = localStorage.getItem('token')
       setTimeout(() => this.connect(token || undefined), this.reconnectDelay)
     } else {
@@ -82,10 +84,12 @@ class WebSocketService {
       allHandlers.forEach(handler => handler(message))
     }
 
-    // 默认通知处理
+    // 默认通知处理，页面也可以通过 subscribe 注册自己的业务处理器。
     this.showNotification(message)
   }
 
+  // showNotification 将常见实时事件转换成 Element Plus 通知。
+  // 复杂页面仍可订阅原始消息，自行决定如何刷新列表或变更状态。
   private showNotification(message: WebSocketMessage) {
     switch (message.type) {
       case 'new_message':
@@ -160,10 +164,10 @@ class WebSocketService {
   }
 }
 
-// 单例
+// 单例：整个前端应用共享同一条 WebSocket 连接，避免多个页面重复建立连接。
 export const wsService = new WebSocketService()
 
-// Vue Composable
+// Vue Composable：组件通过 useWebSocket 订阅消息，卸载时自动取消订阅。
 export function useWebSocket() {
   const connected = wsService.connected
 

@@ -53,41 +53,35 @@
 <script setup lang="ts">
 /**
  * ConversationList.vue - 会话列表组件
- * Requirements: 9.1 (Conversation list), 9.2 (Last message preview), 9.3 (Unread count badge)
- * 
- * Displays list of conversations with:
- * - Other user's avatar and name
- * - Last message preview
- * - Unread count badge
- * - Last message time
- * - Online status indicator
+ *
+ * 展示会话列表，包括对方头像和姓名、最后消息预览、未读数、最后消息时间和在线状态。
  */
 import type { ConversationWithDetails, ChatMessage } from '@/api/chat'
 
 defineProps<{
-  /** List of conversations to display */
+  /** 需要展示的会话列表 */
   conversations: ConversationWithDetails[]
-  /** Currently selected conversation ID */
+  /** 当前选中的会话 ID */
   selectedId?: number
 }>()
 
 const emit = defineEmits<{
-  /** Emitted when a conversation is selected */
+  /** 选中会话时触发 */
   (e: 'select', conversation: ConversationWithDetails): void
 }>()
 
 /**
- * Handle conversation selection
- * @param conversation - The selected conversation
+ * 处理会话选择。
+ * @param conversation 被选中的会话
  */
 const handleSelect = (conversation: ConversationWithDetails) => {
   emit('select', conversation)
 }
 
 /**
- * Get avatar background color based on user ID
- * @param userId - User ID for consistent color
- * @returns CSS color string
+ * 根据用户 ID 生成稳定的头像背景色。
+ * @param userId 用户 ID
+ * 返回：CSS 颜色字符串
  */
 const getAvatarColor = (userId: number): string => {
   const colors = [
@@ -104,9 +98,9 @@ const getAvatarColor = (userId: number): string => {
 }
 
 /**
- * Format last message time for display
- * @param timestamp - ISO timestamp string or undefined
- * @returns Formatted time string
+ * 格式化最后一条消息时间。
+ * @param timestamp ISO 时间字符串，可为空
+ * 返回：格式化后的时间文本
  */
 const formatLastTime = (timestamp?: string): string => {
   if (!timestamp) return ''
@@ -117,17 +111,17 @@ const formatLastTime = (timestamp?: string): string => {
   const diffMins = Math.floor(diffMs / 60000)
   const diffDays = Math.floor(diffMs / 86400000)
   
-  // Within 1 minute
+  // 1 分钟内
   if (diffMins < 1) {
     return '刚刚'
   }
   
-  // Within 1 hour
+  // 1 小时内
   if (diffMins < 60) {
     return `${diffMins}分钟前`
   }
   
-  // Today
+  // 今天
   if (date.toDateString() === now.toDateString()) {
     return date.toLocaleTimeString('zh-CN', {
       hour: '2-digit',
@@ -135,20 +129,20 @@ const formatLastTime = (timestamp?: string): string => {
     })
   }
   
-  // Yesterday
+  // 昨天
   const yesterday = new Date(now)
   yesterday.setDate(yesterday.getDate() - 1)
   if (date.toDateString() === yesterday.toDateString()) {
     return '昨天'
   }
   
-  // Within a week
+  // 一周内
   if (diffDays < 7) {
     const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
     return weekdays[date.getDay()]
   }
   
-  // Older
+  // 更早时间
   return date.toLocaleDateString('zh-CN', {
     month: '2-digit',
     day: '2-digit'
@@ -156,21 +150,21 @@ const formatLastTime = (timestamp?: string): string => {
 }
 
 /**
- * Get preview text for last message
- * @param message - Last message or undefined
- * @returns Preview text
+ * 获取最后一条消息的预览文本。
+ * @param message 最后一条消息
+ * 返回：预览文本
  */
 const getLastMessagePreview = (message?: ChatMessage): string => {
   if (!message) return '暂无消息'
   
-  // Handle different message types
+  // 根据消息类型生成不同预览。
   switch (message.message_type) {
     case 'image':
       return '[图片]'
     case 'file':
       return '[文件]'
     default:
-      // Truncate long text messages
+      // 长文本截断，避免会话列表被撑开。
       const maxLength = 30
       if (message.content.length > maxLength) {
         return message.content.substring(0, maxLength) + '...'

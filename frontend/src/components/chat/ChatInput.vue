@@ -23,30 +23,27 @@
 <script setup lang="ts">
 /**
  * ChatInput.vue - 聊天输入框组件
- * Requirements: 8.2 (Send messages), 9.1 (Chat input)
- * 
- * Text input with send button. Supports Enter key to send.
- * Emits event when message is sent.
+ *
+ * 文本输入框和发送按钮组件，支持回车发送，并在发送时向父组件抛出事件。
  */
 import { ref } from 'vue'
 import { Promotion } from '@element-plus/icons-vue'
 
 defineProps<{
-  /** Whether the input is disabled */
+  /** 是否禁用输入框 */
   disabled?: boolean
 }>()
 
 const emit = defineEmits<{
-  /** Emitted when user sends a message */
+  /** 用户发送消息时触发 */
   (e: 'send', content: string): void
 }>()
 
-/** Current input content */
+/** 当前输入内容 */
 const inputContent = ref('')
 
 /**
- * Handle send action
- * Validates content and emits send event
+ * 处理发送动作：校验非空后触发 send 事件。
  */
 const handleSend = () => {
   const content = inputContent.value.trim()

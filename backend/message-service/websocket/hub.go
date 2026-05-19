@@ -1,3 +1,7 @@
+// Package websocket 实现 message-service 的实时消息层。
+//
+// 网关会把 /api/v1/ws 隧道转发到这里。Hub 负责连接注册、在线状态、会话订阅和
+// 消息分发，Client 负责单个 WebSocket 连接的读写循环。
 package websocket
 
 import (
@@ -8,35 +12,32 @@ import (
 )
 
 // ============================================================================
-// Chat Message Type Constants
-// Requirements: 8.2 (Real-time message delivery), 9.6 (Online status indicator)
+// 聊天消息类型常量
+// 对应实时消息投递、已读回执、在线状态和输入状态等前端交互。
 // ============================================================================
 
 const (
-	// MsgTypeChat is for chat messages
-	// Requirements: 8.2 - Deliver messages in real-time via WebSocket
+	// MsgTypeChat 表示普通聊天消息，通过 WebSocket 实时投递。
 	MsgTypeChat = "chat"
 
-	// MsgTypeChatRead is for message read notifications
-	// Requirements: 9.4 - Mark messages as read
+	// MsgTypeChatRead 表示消息已读通知。
 	MsgTypeChatRead = "chat_read"
 
-	// MsgTypeOnlineStatus is for online status updates
-	// Requirements: 9.6 - Display online status indicator
+	// MsgTypeOnlineStatus 表示用户在线状态变化。
 	MsgTypeOnlineStatus = "online_status"
 
-	// MsgTypeTyping is for typing indicator
+	// MsgTypeTyping 表示正在输入状态。
 	MsgTypeTyping = "typing"
 
-	// MsgTypeSystem is for system notifications (existing)
+	// MsgTypeSystem 表示系统通知。
 	MsgTypeSystem = "system"
 
-	// MsgTypeNotification is for general notifications (existing)
+	// MsgTypeNotification 表示通用通知。
 	MsgTypeNotification = "notification"
 )
 
 // ============================================================================
-// WebSocket Message Structures
+// WebSocket 消息结构
 // ============================================================================
 
 // Message WebSocket消息
@@ -46,8 +47,7 @@ type Message struct {
 	Data   interface{} `json:"data"`
 }
 
-// ChatWebSocketMessage represents a chat message sent via WebSocket
-// Requirements: 8.2 - Real-time message delivery
+// ChatWebSocketMessage 表示通过 WebSocket 推送的聊天消息。
 type ChatWebSocketMessage struct {
 	Type           string `json:"type"`
 	ConversationID uint   `json:"conversation_id"`
@@ -59,8 +59,7 @@ type ChatWebSocketMessage struct {
 	} `json:"message"`
 }
 
-// ChatReadMessage represents a message read notification
-// Requirements: 9.4 - Mark messages as read
+// ChatReadMessage 表示会话消息已读通知。
 type ChatReadMessage struct {
 	Type           string `json:"type"`
 	ConversationID uint   `json:"conversation_id"`
@@ -68,15 +67,14 @@ type ChatReadMessage struct {
 	MarkedCount    int    `json:"marked_count"`
 }
 
-// OnlineStatusMessage represents an online status update
-// Requirements: 9.6 - Display online status indicator
+// OnlineStatusMessage 表示用户在线状态更新。
 type OnlineStatusMessage struct {
 	Type     string `json:"type"`
 	UserID   uint   `json:"user_id"`
 	IsOnline bool   `json:"is_online"`
 }
 
-// TypingMessage represents a typing indicator
+// TypingMessage 表示正在输入提示。
 type TypingMessage struct {
 	Type           string `json:"type"`
 	ConversationID uint   `json:"conversation_id"`
@@ -84,15 +82,17 @@ type TypingMessage struct {
 	IsTyping       bool   `json:"is_typing"`
 }
 
-// UserOnlineInfo stores online status information for a user
+// UserOnlineInfo 保存单个用户的在线状态和最后活跃时间。
 type UserOnlineInfo struct {
 	UserID     uint
 	IsOnline   bool
 	LastSeenAt time.Time
 }
 
-// Hub WebSocket连接管理中心
-// Requirements: 8.2 (Real-time message delivery), 8.4 (Offline message delivery), 9.6 (Online status)
+// Hub WebSocket 连接管理中心。
+//
+// 它相当于进程内的消息分发器：HTTP handler 把事件投递到 channel，Hub 再把事件
+// 推送给在线客户端；离线消息持久化仍然由数据库层的聊天/消息 handler 负责。
 type Hub struct {
 	// 已注册的客户端
 	clients map[*Client]bool
@@ -100,12 +100,10 @@ type Hub struct {
 	// 用户ID到客户端的映射
 	userClients map[uint][]*Client
 
-	// 用户在线状态 (userID -> online info)
-	// Requirements: 9.6 - Display online status indicator
+	// 用户在线状态（userID -> 在线信息）
 	onlineStatus map[uint]*UserOnlineInfo
 
-	// 用户订阅的会话 (conversationID -> userIDs)
-	// Used for broadcasting chat messages to conversation participants
+	// 用户订阅的会话（conversationID -> userIDs），用于向会话成员广播聊天事件。
 	conversationSubscribers map[uint]map[uint]bool
 
 	// 广播消息通道
@@ -114,15 +112,13 @@ type Hub struct {
 	// 定向消息通道
 	unicast chan *Message
 
-	// 聊天消息通道
-	// Requirements: 8.2 - Real-time message delivery
+	// 聊天消息通道，用于实时投递会话消息。
 	chatMessage chan *ChatWebSocketMessage
 
 	// 已读通知通道
 	chatRead chan *ChatReadMessage
 
-	// 在线状态通道
-	// Requirements: 9.6 - Online status indicator
+	// 在线状态通道，用于推送在线/离线变化。
 	onlineStatusChan chan *OnlineStatusMessage
 
 	// 正在输入通道
@@ -156,8 +152,8 @@ func NewHub() *Hub {
 	}
 }
 
-// Run 运行Hub
-// Requirements: 8.2 (Real-time message delivery), 9.6 (Online status)
+// Run 是 Hub 的事件循环。连接注册、注销、广播和定向推送都通过这个 select 循环
+// 统一处理，避免并发修改连接状态导致行为不可控。
 func (h *Hub) Run() {
 	for {
 		select {
@@ -188,8 +184,8 @@ func (h *Hub) Run() {
 	}
 }
 
-// handleRegister handles client registration
-// Requirements: 9.6 - Update online status when user connects
+// handleRegister 处理客户端注册并标记用户在线。
+// 一个用户可能同时有多个连接，例如多个浏览器标签页或多台设备。
 func (h *Hub) handleRegister(client *Client) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -198,7 +194,7 @@ func (h *Hub) handleRegister(client *Client) {
 	if client.UserID > 0 {
 		h.userClients[client.UserID] = append(h.userClients[client.UserID], client)
 
-		// Update online status
+		// 更新在线状态。
 		h.onlineStatus[client.UserID] = &UserOnlineInfo{
 			UserID:     client.UserID,
 			IsOnline:   true,
@@ -207,13 +203,12 @@ func (h *Hub) handleRegister(client *Client) {
 
 		log.Printf("Client registered: user_id=%d, total=%d", client.UserID, len(h.clients))
 
-		// Broadcast online status to other users (non-blocking)
+		// 异步广播在线状态，避免阻塞注册流程。
 		go h.broadcastOnlineStatus(client.UserID, true)
 	}
 }
 
-// handleUnregister handles client unregistration
-// Requirements: 9.6 - Update online status when user disconnects
+// handleUnregister 处理客户端注销，并在用户没有其他连接时标记为离线。
 func (h *Hub) handleUnregister(client *Client) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -232,11 +227,11 @@ func (h *Hub) handleUnregister(client *Client) {
 				}
 			}
 
-			// If no more clients for this user, mark as offline
+			// 如果该用户没有其他连接，则标记为离线。
 			if len(h.userClients[client.UserID]) == 0 {
 				delete(h.userClients, client.UserID)
 
-				// Update online status
+				// 更新在线状态。
 				if info, exists := h.onlineStatus[client.UserID]; exists {
 					info.IsOnline = false
 					info.LastSeenAt = time.Now()
@@ -244,14 +239,14 @@ func (h *Hub) handleUnregister(client *Client) {
 
 				log.Printf("Client unregistered: user_id=%d, total=%d", client.UserID, len(h.clients))
 
-				// Broadcast offline status to other users (non-blocking)
+				// 异步广播离线状态，避免阻塞注销流程。
 				go h.broadcastOnlineStatus(client.UserID, false)
 			}
 		}
 	}
 }
 
-// handleBroadcast handles broadcast messages to all clients
+// handleBroadcast 向所有已连接客户端广播消息。
 func (h *Hub) handleBroadcast(message *Message) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -267,7 +262,7 @@ func (h *Hub) handleBroadcast(message *Message) {
 	}
 }
 
-// handleUnicast handles unicast messages to specific user
+// handleUnicast 向指定用户的所有在线连接发送消息。
 func (h *Hub) handleUnicast(message *Message) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -285,8 +280,7 @@ func (h *Hub) handleUnicast(message *Message) {
 	}
 }
 
-// handleChatMessage handles chat messages
-// Requirements: 8.2 - Deliver messages in real-time via WebSocket
+// handleChatMessage 把聊天消息实时推送给订阅该会话的在线用户。
 func (h *Hub) handleChatMessage(chatMsg *ChatWebSocketMessage) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -297,7 +291,7 @@ func (h *Hub) handleChatMessage(chatMsg *ChatWebSocketMessage) {
 		return
 	}
 
-	// Send to all subscribers of this conversation
+	// 发送给该会话的所有订阅者。
 	if subscribers, ok := h.conversationSubscribers[chatMsg.ConversationID]; ok {
 		for userID := range subscribers {
 			if clients, ok := h.userClients[userID]; ok {
@@ -313,8 +307,7 @@ func (h *Hub) handleChatMessage(chatMsg *ChatWebSocketMessage) {
 	}
 }
 
-// handleChatRead handles chat read notifications
-// Requirements: 9.4 - Mark messages as read
+// handleChatRead 把已读通知推送给会话订阅者。
 func (h *Hub) handleChatRead(readMsg *ChatReadMessage) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -325,7 +318,7 @@ func (h *Hub) handleChatRead(readMsg *ChatReadMessage) {
 		return
 	}
 
-	// Send to all subscribers of this conversation
+	// 发送给该会话的所有订阅者。
 	if subscribers, ok := h.conversationSubscribers[readMsg.ConversationID]; ok {
 		for userID := range subscribers {
 			if clients, ok := h.userClients[userID]; ok {
@@ -341,8 +334,7 @@ func (h *Hub) handleChatRead(readMsg *ChatReadMessage) {
 	}
 }
 
-// handleOnlineStatus handles online status updates
-// Requirements: 9.6 - Display online status indicator
+// handleOnlineStatus 广播用户在线状态变化。
 func (h *Hub) handleOnlineStatus(statusMsg *OnlineStatusMessage) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -353,7 +345,7 @@ func (h *Hub) handleOnlineStatus(statusMsg *OnlineStatusMessage) {
 		return
 	}
 
-	// Broadcast to all connected clients
+	// 广播给所有已连接客户端。
 	for client := range h.clients {
 		select {
 		case client.send <- data:
@@ -363,7 +355,7 @@ func (h *Hub) handleOnlineStatus(statusMsg *OnlineStatusMessage) {
 	}
 }
 
-// handleTyping handles typing indicator messages
+// handleTyping 把“正在输入”状态推送给同一会话的其他成员。
 func (h *Hub) handleTyping(typingMsg *TypingMessage) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -374,10 +366,10 @@ func (h *Hub) handleTyping(typingMsg *TypingMessage) {
 		return
 	}
 
-	// Send to all subscribers of this conversation except the sender
+	// 发送给该会话除发送者之外的所有订阅者。
 	if subscribers, ok := h.conversationSubscribers[typingMsg.ConversationID]; ok {
 		for userID := range subscribers {
-			// Don't send typing indicator back to the sender
+			// 不把输入状态回发给发送者自己。
 			if userID == typingMsg.UserID {
 				continue
 			}
@@ -394,8 +386,7 @@ func (h *Hub) handleTyping(typingMsg *TypingMessage) {
 	}
 }
 
-// broadcastOnlineStatus broadcasts online status change to all connected clients
-// Requirements: 9.6 - Display online status indicator
+// broadcastOnlineStatus 广播指定用户的在线/离线变化。
 func (h *Hub) broadcastOnlineStatus(userID uint, isOnline bool) {
 	h.onlineStatusChan <- &OnlineStatusMessage{
 		Type:     MsgTypeOnlineStatus,
@@ -412,8 +403,8 @@ func (h *Hub) Broadcast(msgType string, data interface{}) {
 	}
 }
 
-// SendToUser 发送消息给指定用户
-// Requirements: 8.4 - Store message and deliver when recipient connects (offline delivery)
+// SendToUser 发送消息给指定用户的在线连接。
+// 离线消息的持久化由聊天 handler 和数据库负责，这里只处理在线投递。
 func (h *Hub) SendToUser(userID uint, msgType string, data interface{}) {
 	h.unicast <- &Message{
 		Type:   msgType,
@@ -422,8 +413,7 @@ func (h *Hub) SendToUser(userID uint, msgType string, data interface{}) {
 	}
 }
 
-// SendChatMessage sends a chat message to conversation participants
-// Requirements: 8.2 - Deliver messages in real-time via WebSocket
+// SendChatMessage 向会话参与者发送聊天消息。
 func (h *Hub) SendChatMessage(conversationID uint, messageID uint, senderID uint, content string, createdAt string) {
 	msg := &ChatWebSocketMessage{
 		Type:           MsgTypeChat,
@@ -437,8 +427,7 @@ func (h *Hub) SendChatMessage(conversationID uint, messageID uint, senderID uint
 	h.chatMessage <- msg
 }
 
-// SendChatReadNotification sends a read notification to conversation participants
-// Requirements: 9.4 - Mark messages as read
+// SendChatReadNotification 向会话参与者发送已读通知。
 func (h *Hub) SendChatReadNotification(conversationID uint, readerID uint, markedCount int) {
 	h.chatRead <- &ChatReadMessage{
 		Type:           MsgTypeChatRead,
@@ -448,7 +437,7 @@ func (h *Hub) SendChatReadNotification(conversationID uint, readerID uint, marke
 	}
 }
 
-// SendTypingIndicator sends a typing indicator to conversation participants
+// SendTypingIndicator 向会话参与者发送“正在输入”状态。
 func (h *Hub) SendTypingIndicator(conversationID uint, userID uint, isTyping bool) {
 	h.typing <- &TypingMessage{
 		Type:           MsgTypeTyping,
@@ -458,8 +447,7 @@ func (h *Hub) SendTypingIndicator(conversationID uint, userID uint, isTyping boo
 	}
 }
 
-// SubscribeToConversation subscribes a user to a conversation for real-time updates
-// Requirements: 8.2 - Real-time message delivery
+// SubscribeToConversation 让用户订阅某个会话的实时更新。
 func (h *Hub) SubscribeToConversation(conversationID uint, userID uint) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -471,7 +459,7 @@ func (h *Hub) SubscribeToConversation(conversationID uint, userID uint) {
 	log.Printf("User %d subscribed to conversation %d", userID, conversationID)
 }
 
-// UnsubscribeFromConversation unsubscribes a user from a conversation
+// UnsubscribeFromConversation 取消用户对某个会话的实时订阅。
 func (h *Hub) UnsubscribeFromConversation(conversationID uint, userID uint) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -492,8 +480,7 @@ func (h *Hub) GetOnlineUsers() int {
 	return len(h.userClients)
 }
 
-// IsUserOnline 检查用户是否在线
-// Requirements: 9.6 - Display online status indicator
+// IsUserOnline 检查用户是否在线。
 func (h *Hub) IsUserOnline(userID uint) bool {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -501,8 +488,7 @@ func (h *Hub) IsUserOnline(userID uint) bool {
 	return ok
 }
 
-// GetUserOnlineStatus returns the online status info for a user
-// Requirements: 9.6 - Display online status indicator
+// GetUserOnlineStatus 返回指定用户的在线状态信息。
 func (h *Hub) GetUserOnlineStatus(userID uint) *UserOnlineInfo {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -516,8 +502,7 @@ func (h *Hub) GetUserOnlineStatus(userID uint) *UserOnlineInfo {
 	}
 }
 
-// GetOnlineUserIDs returns a list of all online user IDs
-// Requirements: 9.6 - Display online status indicator
+// GetOnlineUserIDs 返回所有当前在线用户 ID。
 func (h *Hub) GetOnlineUserIDs() []uint {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -529,7 +514,7 @@ func (h *Hub) GetOnlineUserIDs() []uint {
 	return userIDs
 }
 
-// GetConversationSubscribers returns the list of user IDs subscribed to a conversation
+// GetConversationSubscribers 返回订阅指定会话的用户 ID 列表。
 func (h *Hub) GetConversationSubscribers(conversationID uint) []uint {
 	h.mu.RLock()
 	defer h.mu.RUnlock()

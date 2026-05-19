@@ -19,7 +19,7 @@ const (
 	// 发送ping消息的间隔
 	pingPeriod = (pongWait * 9) / 10
 
-	// 最大消息大小 (increased for chat messages)
+	// 最大消息大小（聊天消息内容可能比普通控制消息更长）
 	maxMessageSize = 4096
 )
 
@@ -42,7 +42,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-// ClientMessage represents an incoming message from a WebSocket client
+// ClientMessage 表示前端通过 WebSocket 发来的控制消息。
 type ClientMessage struct {
 	Type           string `json:"type"`
 	ConversationID uint   `json:"conversation_id,omitempty"`
@@ -63,12 +63,12 @@ type Client struct {
 	// 用户ID
 	UserID uint
 
-	// Message handler callback (optional, for processing incoming messages)
+	// 可选的消息回调，用于处理业务侧自定义的入站消息。
 	OnMessage func(client *Client, message *ClientMessage)
 }
 
-// readPump 从WebSocket连接读取消息
-// Requirements: 8.2 - Handle incoming chat messages
+// readPump 从 WebSocket 连接读取消息。
+// 读循环负责解析前端发来的订阅、取消订阅和输入状态等控制消息。
 func (c *Client) readPump() {
 	defer func() {
 		c.hub.unregister <- c
@@ -93,35 +93,35 @@ func (c *Client) readPump() {
 
 		log.Printf("Received message from user %d: %s", c.UserID, message)
 
-		// Parse the incoming message
+		// 解析前端发来的消息。
 		var clientMsg ClientMessage
 		if err := json.Unmarshal(message, &clientMsg); err != nil {
 			log.Printf("Error parsing client message: %v", err)
 			continue
 		}
 
-		// Handle different message types
+		// 根据消息类型处理订阅、取消订阅和输入状态。
 		switch clientMsg.Type {
 		case MsgTypeTyping:
-			// Handle typing indicator
+			// 处理正在输入状态。
 			if clientMsg.ConversationID > 0 {
 				c.hub.SendTypingIndicator(clientMsg.ConversationID, c.UserID, clientMsg.IsTyping)
 			}
 
 		case "subscribe":
-			// Subscribe to a conversation for real-time updates
+			// 订阅会话，接收该会话的实时消息。
 			if clientMsg.ConversationID > 0 {
 				c.hub.SubscribeToConversation(clientMsg.ConversationID, c.UserID)
 			}
 
 		case "unsubscribe":
-			// Unsubscribe from a conversation
+			// 取消会话订阅。
 			if clientMsg.ConversationID > 0 {
 				c.hub.UnsubscribeFromConversation(clientMsg.ConversationID, c.UserID)
 			}
 
 		default:
-			// Call custom message handler if set
+			// 如果业务层注册了回调，则交给业务层继续处理。
 			if c.OnMessage != nil {
 				c.OnMessage(c, &clientMsg)
 			}
@@ -129,7 +129,8 @@ func (c *Client) readPump() {
 	}
 }
 
-// writePump 向WebSocket连接写入消息
+// writePump 向 WebSocket 连接写入消息。
+// 写循环集中处理服务端推送、消息批量刷出和心跳 ping。
 func (c *Client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
@@ -172,7 +173,7 @@ func (c *Client) writePump() {
 	}
 }
 
-// ServeWs 处理WebSocket连接请求
+// ServeWs 处理 WebSocket 升级请求，并把连接注册到 Hub。
 func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request, userID uint) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {

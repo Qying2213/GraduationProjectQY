@@ -38,7 +38,8 @@ func main() {
 		log.Fatal("Failed to connect database:", err)
 	}
 
-	// 初始化路由
+	// user-service 是身份与用户资料服务，负责注册、登录、个人资料和后台用户列表。
+	// 其他服务只消费 JWT 中的用户信息，不直接承担账号密码校验。
 	r := gin.Default()
 
 	// CORS中间件
@@ -59,14 +60,14 @@ func main() {
 		})
 	})
 
-	// 公开路由
+	// 公开路由：注册和登录不需要 JWT，登录成功后才签发 token。
 	public := r.Group("/api/v1")
 	{
 		public.POST("/register", userHandler.Register)
 		public.POST("/login", userHandler.Login)
 	}
 
-	// 需要认证的路由
+	// 个人资料路由：只允许当前登录用户查看和更新自己的资料。
 	auth := r.Group("/api/v1")
 	auth.Use(middleware.JWTAuth())
 	{
@@ -74,6 +75,7 @@ func main() {
 		auth.PUT("/profile", userHandler.UpdateProfile)
 	}
 
+	// 后台用户列表：仅管理员或招聘侧角色可查看，用于系统管理页面。
 	adminOrHR := r.Group("/api/v1")
 	adminOrHR.Use(middleware.JWTAuth(), middleware.RoleAuth("admin", "hr", "hr_manager", "recruiter"))
 	{

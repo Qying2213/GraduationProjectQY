@@ -18,6 +18,8 @@ func getEnv(key, defaultValue string) string {
 }
 
 func main() {
+	// log-service 是操作审计服务，负责查询各业务服务写入 Elasticsearch 的操作日志。
+	// 它不处理业务写入，只提供日志检索、统计和清理能力。
 	r := gin.Default()
 
 	// CORS中间件
@@ -35,7 +37,7 @@ func main() {
 		c.Next()
 	})
 
-	// 初始化处理器
+	// 初始化日志查询处理器，内部会连接 Elasticsearch 日志服务。
 	logHandler := handlers.NewLogHandler()
 
 	// 健康检查
@@ -47,11 +49,11 @@ func main() {
 		})
 	})
 
-	// 日志查看页面（无需登录）
+	// 日志查看页面（无需登录），方便本地开发和演示快速查看。
 	r.GET("/", logHandler.LogViewerPage)
 	r.GET("/logs", logHandler.LogViewerPage)
 
-	// 日志API
+	// 日志 API：后台审计能力，需要管理员或招聘侧角色。
 	api := r.Group("/api/v1/logs")
 	api.Use(middleware.JWTAuth(), middleware.RoleAuth("admin", "hr", "hr_manager", "recruiter"))
 	{

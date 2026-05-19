@@ -1,3 +1,7 @@
+// gateway 是整个微服务系统的统一对外入口。
+//
+// 前端只需要访问 8080 端口，网关再根据路径把请求转发到用户、职位、简历、
+// 推荐、消息等后端服务，同时集中处理限流、跨域和 Swagger 对外接口文档。
 package main
 
 import (
@@ -320,6 +324,8 @@ func (h *StatsHandler) GetJobRank(c *gin.Context) {
 }
 
 // ==================== 服务注册与代理 ====================
+// 这里使用轻量级静态服务注册表。本地开发通过固定端口定位各微服务，
+// Docker 或部署环境可以通过环境变量覆盖服务地址。
 
 var serviceRegistry = map[string]string{
 	"user":           getEnv("USER_SERVICE_URL", "http://localhost:8081"),
@@ -334,6 +340,8 @@ var serviceRegistry = map[string]string{
 
 var messageWSHost = getEnv("MESSAGE_WS_HOST", "localhost:8085")
 
+// ReverseProxy 将 HTTP 请求转发到目标后端服务，同时保留原始路径、查询参数
+// 和请求头。这样即使后端按领域拆成多个服务，前端仍然只面对稳定的统一 API。
 func ReverseProxy(target string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		remote, err := url.Parse(target)
@@ -343,7 +351,8 @@ func ReverseProxy(target string) gin.HandlerFunc {
 		}
 		proxy := httputil.NewSingleHostReverseProxy(remote)
 
-		// 设置自定义 Transport，增加超时时间到 120 秒（用于 AI 评估等耗时请求）
+		// 设置自定义 Transport，增加超时时间到 120 秒。AI 评估、文件上传和
+		// RAG 检索可能明显慢于普通 CRUD，请求不能按默认短超时处理。
 		proxy.Transport = &http.Transport{
 			DialContext: (&net.Dialer{
 				Timeout:   120 * time.Second,
@@ -357,6 +366,8 @@ func ReverseProxy(target string) gin.HandlerFunc {
 		}
 
 		proxy.Director = func(req *http.Request) {
+			// 保留调用方认证头和业务头，让各业务服务继续使用自己的 JWT/RBAC
+			// 中间件判断权限。
 			req.Header = c.Request.Header
 			req.Host = remote.Host
 			req.URL.Scheme = remote.Scheme
@@ -368,8 +379,11 @@ func ReverseProxy(target string) gin.HandlerFunc {
 	}
 }
 
-// wsProxyHandler 处理 WebSocket 代理
-// 使用 TCP 隧道方式转发 WebSocket 连接
+// wsProxyHandler 处理 WebSocket 代理。
+//
+// 普通 httputil 反向代理对本项目的 WebSocket 握手不够直接，因此这里使用
+// TCP 隧道：网关只负责转发字节流，真正的在线用户、会话订阅和消息推送仍由
+// message-service 管理。
 func wsProxyHandler(c *gin.Context, targetHost string) {
 	// 检查是否是 WebSocket 升级请求
 	if !strings.EqualFold(c.GetHeader("Upgrade"), "websocket") {
@@ -507,22 +521,22 @@ func main() {
 
 	api := r.Group("/api/v1")
 
-	// 用户服务
+	// 用户服务：认证、资料、用户列表。
 	api.Any("/register", ReverseProxy(serviceRegistry["user"]))
 	api.Any("/login", ReverseProxy(serviceRegistry["user"]))
 	api.Any("/profile", ReverseProxy(serviceRegistry["user"]))
 	api.Any("/users", ReverseProxy(serviceRegistry["user"]))
 	api.Any("/users/*path", ReverseProxy(serviceRegistry["user"]))
 
-	// 人才服务
+	// 人才服务：人才库 CRUD、筛选和统计。
 	api.Any("/talents", ReverseProxy(serviceRegistry["talent"]))
 	api.Any("/talents/*path", ReverseProxy(serviceRegistry["talent"]))
 
-	// 职位服务
+	// 职位服务：职位发布、搜索和职位详情。
 	api.Any("/jobs", ReverseProxy(serviceRegistry["job"]))
 	api.Any("/jobs/*path", ReverseProxy(serviceRegistry["job"]))
 
-	// 简历服务
+	// 简历服务：简历上传、投递、AI 评估和评估结果查询。
 	api.Any("/resumes", ReverseProxy(serviceRegistry["resume"]))
 	api.Any("/resumes/*path", ReverseProxy(serviceRegistry["resume"]))
 	api.Any("/applications", ReverseProxy(serviceRegistry["resume"]))
@@ -533,21 +547,19 @@ func main() {
 	api.Any("/evaluations", ReverseProxy(serviceRegistry["resume"]))
 	api.Any("/evaluations/*path", ReverseProxy(serviceRegistry["resume"]))
 
-	// 推荐服务
+	// 推荐服务：规则匹配、语义匹配、RAG 查询和归因报告。
 	api.Any("/recommendations", ReverseProxy(serviceRegistry["recommendation"]))
 	api.Any("/recommendations/*path", ReverseProxy(serviceRegistry["recommendation"]))
 
-	// 消息服务
+	// 消息服务：站内信、公告、会话和实时消息。
 	api.Any("/messages", ReverseProxy(serviceRegistry["message"]))
 	api.Any("/messages/*path", ReverseProxy(serviceRegistry["message"]))
 
-	// 聊天服务 (Chat API - 转发到 message-service)
-	// Requirements: 8.2 (Real-time messaging), 9.1 (Conversation management)
+	// 聊天会话接口：转发到 message-service，处理会话列表、未读数和聊天消息。
 	api.Any("/conversations", ReverseProxy(serviceRegistry["message"]))
 	api.Any("/conversations/*path", ReverseProxy(serviceRegistry["message"]))
 
-	// WebSocket 代理 (转发到 message-service)
-	// Requirements: 8.1 (WebSocket connection), 8.2 (Real-time message delivery)
+	// WebSocket 代理：转发到 message-service，支撑实时聊天和在线状态。
 	api.GET("/ws", func(c *gin.Context) {
 		// WebSocket 需要特殊处理，不能用普通的反向代理
 		wsProxyHandler(c, messageWSHost)
@@ -568,7 +580,8 @@ func main() {
 	api.Any("/notices", ReverseProxy(serviceRegistry["message"]))
 	api.Any("/notices/*path", ReverseProxy(serviceRegistry["message"]))
 
-	// 统计服务（从数据库查真实数据）
+	// 统计服务（从数据库查真实数据）。这些聚合接口放在 gateway 内，减少
+	// 前端为了首页图表跨多个服务请求的复杂度。
 	statsHandler := NewStatsHandler()
 	stats := api.Group("/stats")
 	{

@@ -8,7 +8,8 @@ import (
 	"evaluator-service/internal/models"
 )
 
-// CozeClient 从 Coze 返回的 JSON 数据中解析评估结果
+// CozeClient 从 Coze 返回的 JSON 数据中解析评估结果。
+// 它不负责发起工作流请求，只负责把工作流输出转换成 evaluator-service 的内部评分模型。
 type CozeClient struct {
 	cozeData map[string]interface{}
 }
@@ -88,7 +89,7 @@ func (c *CozeClient) EvaluateJD(resumeMD, jd string) (models.JDMatchResult, erro
 		return models.JDMatchResult{}, fmt.Errorf("coze data is nil")
 	}
 
-	// 解析 output 或 result 字段（JSON 字符串）
+	// Coze 工作流可能把结果放在 output 或 result 字段，这里统一做兼容解析。
 	resultStr, ok := c.cozeData["output"].(string)
 	if !ok {
 		resultStr, ok = c.cozeData["result"].(string)

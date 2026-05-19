@@ -113,19 +113,9 @@
 <script setup lang="ts">
 /**
  * ChatCenter.vue - HR端聊天中心页面
- * Requirements: 8.1 (WebSocket connection), 8.2 (Real-time messaging), 8.3 (Display messages)
- * 
- * Two-column layout with:
- * - Left: Conversation list with candidates
- * - Right: Chat window with messages and input
- * 
- * Features:
- * - Load conversations on mount
- * - Select conversation to view messages
- * - Send messages via API and WebSocket
- * - Receive real-time messages via WebSocket
- * - Mark messages as read when conversation is selected
- * - View candidate profile from chat header
+ *
+ * 两栏布局：左侧候选人会话列表，右侧聊天窗口和输入框。
+ * 页面负责加载会话、切换消息、发送消息、接收 WebSocket 实时推送，并支持从聊天头部查看候选人资料。
  */
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
@@ -137,7 +127,7 @@ import { chatApi, type ConversationWithDetails, type ChatMessage } from '@/api/c
 import { ConversationList, ChatWindow, ChatInput } from '@/components/chat'
 
 // ============================================================================
-// Store, Router and WebSocket Setup
+// Store、Router 和 WebSocket 初始化
 // ============================================================================
 
 const router = useRouter()
@@ -145,53 +135,52 @@ const userStore = useUserStore()
 const { connected: wsConnected, subscribe, connect } = useWebSocket()
 
 // ============================================================================
-// State
+// 页面状态
 // ============================================================================
 
-/** List of conversations */
+/** 会话列表 */
 const conversations = ref<ConversationWithDetails[]>([])
 
-/** Currently selected conversation ID */
+/** 当前选中的会话 ID */
 const selectedConversationId = ref<number | null>(null)
 
-/** Messages in the selected conversation */
+/** 当前会话中的消息 */
 const messages = ref<ChatMessage[]>([])
 
-/** Total unread message count */
+/** 总未读消息数 */
 const totalUnreadCount = ref(0)
 
-/** Loading states */
+/** 加载状态 */
 const loadingConversations = ref(false)
 const loadingMessages = ref(false)
 
-/** Pagination for messages */
+/** 消息分页状态 */
 const messagePage = ref(1)
 const messagePageSize = ref(20)
 const hasMoreMessages = ref(true)
 
-/** Reference to ChatWindow component */
+/** ChatWindow 组件引用 */
 const chatWindowRef = ref<InstanceType<typeof ChatWindow> | null>(null)
 
 // ============================================================================
-// Computed Properties
+// 计算属性
 // ============================================================================
 
-/** Current user ID */
+/** 当前用户 ID */
 const currentUserId = computed(() => userStore.user?.id || 0)
 
-/** Currently selected conversation object */
+/** 当前选中的会话对象 */
 const selectedConversation = computed(() => {
   if (!selectedConversationId.value) return null
   return conversations.value.find(c => c.id === selectedConversationId.value) || null
 })
 
 // ============================================================================
-// API Methods
+// API 方法
 // ============================================================================
 
 /**
- * Load conversation list
- * Requirements: 9.1 (Conversation list sorted by last message time)
+ * 加载会话列表，后端已按最后消息时间排序。
  */
 const loadConversations = async () => {
   loadingConversations.value = true
@@ -199,7 +188,7 @@ const loadConversations = async () => {
     const res = await chatApi.getConversations()
     if (res.data?.code === 0 && res.data.data) {
       conversations.value = res.data.data.conversations || []
-      // Calculate total unread count
+      // 计算总未读数。
       totalUnreadCount.value = conversations.value.reduce(
         (sum, conv) => sum + (conv.unread_count || 0),
         0
@@ -214,8 +203,7 @@ const loadConversations = async () => {
 }
 
 /**
- * Load messages for a conversation
- * Requirements: 8.5 (Chat message persistence), 8.6 (Message pagination)
+ * 加载指定会话的消息，append=true 时用于向上翻页加载历史消息。
  */
 const loadMessages = async (conversationId: number, append = false) => {
   if (!append) {
@@ -234,14 +222,14 @@ const loadMessages = async (conversationId: number, append = false) => {
       const newMessages = res.data.data.messages || []
       
       if (append) {
-        // Prepend older messages (they come in reverse order from API)
+        // 加载历史消息时插入到当前列表前面。
         messages.value = [...newMessages.reverse(), ...messages.value]
       } else {
-        // Initial load - messages come newest first, reverse for display
+        // 首次加载时反转为聊天窗口需要的正序展示。
         messages.value = newMessages.reverse()
       }
 
-      // Check if there are more messages
+      // 判断是否还有更多历史消息。
       hasMoreMessages.value = newMessages.length >= messagePageSize.value
     }
   } catch (error) {
@@ -253,8 +241,7 @@ const loadMessages = async (conversationId: number, append = false) => {
 }
 
 /**
- * Load more messages (infinite scroll)
- * Requirements: 8.6 (Load older messages with pagination)
+ * 加载更多历史消息，用于聊天窗口向上滚动分页。
  */
 const loadMoreMessages = async () => {
   if (!selectedConversationId.value || loadingMessages.value || !hasMoreMessages.value) {
@@ -266,14 +253,13 @@ const loadMoreMessages = async () => {
 }
 
 /**
- * Mark conversation as read
- * Requirements: 9.4 (Mark messages as read when conversation is selected)
+ * 将当前会话标记为已读。
  */
 const markConversationAsRead = async (conversationId: number) => {
   try {
     await chatApi.markAsRead(conversationId)
     
-    // Update local unread count
+    // 同步更新本地未读数，避免等待下一次列表刷新。
     const conversation = conversations.value.find(c => c.id === conversationId)
     if (conversation && conversation.unread_count > 0) {
       totalUnreadCount.value = Math.max(0, totalUnreadCount.value - conversation.unread_count)
@@ -285,29 +271,28 @@ const markConversationAsRead = async (conversationId: number) => {
 }
 
 /**
- * Send a message
- * Requirements: 8.2 (Deliver message in real-time via WebSocket)
+ * 发送消息。
  */
 const handleSendMessage = async (content: string) => {
   if (!selectedConversationId.value || !content.trim()) return
 
   try {
-    // Send via API (which will also broadcast via WebSocket)
+    // 通过 API 保存消息，后端会同时通过 WebSocket 广播。
     const res = await chatApi.sendMessage(selectedConversationId.value, content.trim())
     
     if (res.data?.code === 0 && res.data.data) {
       const newMessage = res.data.data
       
-      // WebSocket may arrive before this HTTP response; dedupe by ID.
+      // WebSocket 可能早于 HTTP 响应到达，因此按消息 ID 去重。
       const exists = messages.value.some(m => m.id === newMessage.id)
       if (!exists) {
         messages.value.push(newMessage)
       }
       
-      // Update conversation's last message
+      // 更新会话最后一条消息。
       updateConversationLastMessage(selectedConversationId.value, newMessage)
       
-      // Scroll to bottom
+      // 发送成功后滚动到底部。
       nextTick(() => {
         chatWindowRef.value?.scrollToBottom()
       })
@@ -319,35 +304,34 @@ const handleSendMessage = async (content: string) => {
 }
 
 // ============================================================================
-// WebSocket Handlers
+// WebSocket 处理器
 // ============================================================================
 
 /**
- * Handle incoming chat message via WebSocket
- * Requirements: 8.3 (Display message immediately in conversation view)
+ * 处理 WebSocket 推来的新聊天消息。
  */
 const handleWebSocketChatMessage = (wsMessage: any) => {
   const { conversation_id, message } = wsMessage.data || {}
   
   if (!message) return
 
-  // If this message is for the currently selected conversation, add it
+  // 如果消息属于当前会话，则直接追加到聊天窗口。
   if (conversation_id === selectedConversationId.value) {
-    // Check if message already exists (avoid duplicates)
+    // 按消息 ID 去重，避免 HTTP 响应和 WebSocket 推送重复插入。
     const exists = messages.value.some(m => m.id === message.id)
     if (!exists) {
       messages.value.push(message)
       
-      // Scroll to bottom for new messages
+      // 新消息进入当前会话后滚动到底部。
       nextTick(() => {
         chatWindowRef.value?.scrollToBottom()
       })
       
-      // Mark as read since we're viewing this conversation
+      // 当前正在查看该会话，因此立即标记为已读。
       markConversationAsRead(conversation_id)
     }
   } else {
-    // Update unread count for other conversations
+    // 其他会话的新消息只更新未读数。
     const conversation = conversations.value.find(c => c.id === conversation_id)
     if (conversation) {
       conversation.unread_count = (conversation.unread_count || 0) + 1
@@ -355,19 +339,18 @@ const handleWebSocketChatMessage = (wsMessage: any) => {
     }
   }
 
-  // Update conversation's last message
+  // 更新会话最后一条消息。
   updateConversationLastMessage(conversation_id, message)
 }
 
 /**
- * Handle message read status update via WebSocket
- * Requirements: 9.4 (Mark messages as read)
+ * 处理 WebSocket 推来的已读状态变更。
  */
 const handleWebSocketReadStatus = (wsMessage: any) => {
   const { conversation_id } = wsMessage.data || {}
   
   if (conversation_id === selectedConversationId.value) {
-    // Mark all messages as read in the current conversation
+    // 将当前会话中自己发送的消息标记为对方已读。
     messages.value.forEach(msg => {
       if (msg.sender_id === currentUserId.value) {
         msg.is_read = true
@@ -377,11 +360,11 @@ const handleWebSocketReadStatus = (wsMessage: any) => {
 }
 
 // ============================================================================
-// Helper Methods
+// 辅助方法
 // ============================================================================
 
 /**
- * Handle conversation selection
+ * 处理会话选择。
  */
 const handleSelectConversation = async (conversation: ConversationWithDetails) => {
   if (selectedConversationId.value === conversation.id) return
@@ -389,17 +372,17 @@ const handleSelectConversation = async (conversation: ConversationWithDetails) =
   selectedConversationId.value = conversation.id
   messages.value = []
   
-  // Load messages for the selected conversation
+  // 加载当前选中会话的消息。
   await loadMessages(conversation.id)
   
-  // Mark as read
+  // 选中后标记为已读。
   if (conversation.unread_count > 0) {
     await markConversationAsRead(conversation.id)
   }
 }
 
 /**
- * Update conversation's last message in the list
+ * 更新会话列表中的最后一条消息。
  */
 const updateConversationLastMessage = (conversationId: number, message: ChatMessage) => {
   const conversation = conversations.value.find(c => c.id === conversationId)
@@ -407,7 +390,7 @@ const updateConversationLastMessage = (conversationId: number, message: ChatMess
     conversation.last_message = message
     conversation.last_message_at = message.created_at
     
-    // Re-sort conversations by last message time
+    // 按最后消息时间重新排序会话。
     conversations.value.sort((a, b) => {
       const timeA = a.last_message_at ? new Date(a.last_message_at).getTime() : 0
       const timeB = b.last_message_at ? new Date(b.last_message_at).getTime() : 0
@@ -417,7 +400,7 @@ const updateConversationLastMessage = (conversationId: number, message: ChatMess
 }
 
 /**
- * Get avatar background color based on user ID
+ * 根据用户 ID 生成头像背景色。
  */
 const getAvatarColor = (userId: number): string => {
   const colors = [
@@ -434,7 +417,7 @@ const getAvatarColor = (userId: number): string => {
 }
 
 /**
- * Get role label for display
+ * 获取角色展示名称。
  */
 const getRoleLabel = (role: string): string => {
   const roleLabels: Record<string, string> = {
@@ -446,37 +429,37 @@ const getRoleLabel = (role: string): string => {
 }
 
 /**
- * Navigate to candidate profile
+ * 跳转到候选人详情页。
  */
 const viewCandidateProfile = () => {
   if (selectedConversation.value?.participant) {
-    // Navigate to talent detail page
+    // 跳转到人才详情页。
     router.push(`/talents/${selectedConversation.value.participant.id}`)
   }
 }
 
 // ============================================================================
-// Lifecycle Hooks
+// 生命周期钩子
 // ============================================================================
 
 onMounted(async () => {
-  // Connect to WebSocket with auth token
+  // 使用登录 token 连接 WebSocket。
   if (userStore.token) {
     connect(userStore.token)
   }
 
-  // Subscribe to WebSocket events
+  // 订阅 WebSocket 事件。
   subscribe('chat', handleWebSocketChatMessage)
   subscribe('chat_read', handleWebSocketReadStatus)
 
-  // Load initial data
+  // 加载初始数据。
   await loadConversations()
 })
 
-// Watch for WebSocket connection changes
+// 监听 WebSocket 连接变化。
 watch(wsConnected, (connected) => {
   if (connected) {
-    // Reload conversations when reconnected
+    // 重连成功后刷新会话列表。
     loadConversations()
   }
 })

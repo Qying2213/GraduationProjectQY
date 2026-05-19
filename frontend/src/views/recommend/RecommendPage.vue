@@ -399,7 +399,10 @@ interface TargetOption {
   name: string
 }
 
-// 状态
+// RecommendPage 是智能推荐演示页。
+// 它用人才/职位两种视角展示匹配结果、匹配维度和推荐理由，对应后端 recommendation-service。
+
+// 页面状态
 const activeMode = ref<'talent' | 'job'>('talent')
 const selectedTarget = ref<number | null>(null)
 const minMatchScore = ref(60)

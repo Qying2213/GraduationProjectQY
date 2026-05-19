@@ -1,3 +1,6 @@
+// Package handlers 包含 resume-service 的 HTTP 处理器。
+// 本文件是毕业设计 AI 评估主链路的编排器：它把简历文件、OCR 文本提取、Embedding、
+// RAG 检索、Coze 工作流评分，以及前端展示用的评估结果/过程记录串起来。
 package handlers
 
 import (
@@ -22,7 +25,11 @@ import (
 	"gorm.io/gorm"
 )
 
-// AIEvaluateHandler AI 评估处理器
+// AIEvaluateHandler 负责简历 AI 评估的完整业务流程。
+//
+// 在系统架构中，它是 resume-service 对业务侧暴露的 AI 入口。它不是简单调用 LLM，
+// 而是会准备 JD 上下文、提取简历文本、按配置引入 RAG 增强、把评分回写到简历/人才
+// 领域，并记录前端可展示的过程追踪信息。
 type AIEvaluateHandler struct {
 	DB              *gorm.DB
 	Evaluator       *evaluator.CozeEvaluator
@@ -30,14 +37,17 @@ type AIEvaluateHandler struct {
 	RAGEnabled      bool
 }
 
-// EmbeddingClient 嵌入向量客户端
+// EmbeddingClient 是当前处理器使用的最小化火山引擎/豆包向量配置。
+// recommendation-service 中有更完整的 Embedding 客户端用于索引和搜索；这里仅需要
+// 把当前简历文本转成查询向量，再调用 RAG。
 type EmbeddingClient struct {
 	Endpoint string
 	APIKey   string
 	ModelID  string
 }
 
-// ProcessTrace 评估链路追踪数据，用于页面展示 OCR/Embedding/RAG/LLM 过程
+// ProcessTrace 记录前端展示的可解释 AI 链路。
+// 持久化这段 JSON 后，答辩和演示时可以说明每一步是否执行、是否成功，而不是只展示最终分数。
 type ProcessTrace struct {
 	GeneratedAt time.Time          `json:"generated_at"`
 	OCR         OCRStepTrace       `json:"ocr"`
@@ -56,6 +66,8 @@ type OCRStepTrace struct {
 	Error       string  `json:"error"`
 }
 
+// EmbeddingStepTrace 记录语义向量化是否真正执行。
+// 当没有配置 ARK_API_KEY 时会主动跳过这一步，保证本地演示仍能通过 Coze 完成评估。
 type EmbeddingStepTrace struct {
 	Enabled   bool   `json:"enabled"`
 	Success   bool   `json:"success"`
@@ -64,6 +76,8 @@ type EmbeddingStepTrace struct {
 	Error     string `json:"error"`
 }
 
+// RAGHit 是给前端展示的简化检索命中结果。
+// 完整向量库在 recommendation-service 中，resume-service 只保留解释评估过程所需的证据。
 type RAGHit struct {
 	SourceID   uint    `json:"source_id"`
 	SourceType string  `json:"source_type"`
@@ -71,6 +85,8 @@ type RAGHit struct {
 	Similarity float64 `json:"similarity"`
 }
 
+// RAGStepTrace 记录用于增强 JD 的检索上下文。
+// 没有命中不是致命错误，系统会降级为普通 JD + 简历文本评估。
 type RAGStepTrace struct {
 	Enabled bool     `json:"enabled"`
 	Success bool     `json:"success"`
@@ -79,15 +95,19 @@ type RAGStepTrace struct {
 	Error   string   `json:"error"`
 }
 
+// LLMStepTrace 记录最终模型/工作流调用状态。
+// 它和 OCR/RAG 分开记录，方便演示和测试时精确定位失败步骤。
 type LLMStepTrace struct {
 	Provider string `json:"provider"`
 	Success  bool   `json:"success"`
 	Error    string `json:"error"`
 }
 
-// NewAIEvaluateHandler 创建 AI 评估处理器
+// NewAIEvaluateHandler 组装 AI 评估依赖，并确保过程追踪所需的表和字段存在。
+// 这样即使复用旧数据库，本地演示环境也能自动补齐必要结构。
 func NewAIEvaluateHandler(db *gorm.DB) *AIEvaluateHandler {
-	// 初始化 Embedding 客户端
+	// Embedding/RAG 是增强能力，不是硬依赖。没有配置 ARK_API_KEY 时，核心 Coze
+	// 评估仍然可以运行，这对没有外部 AI Key 的本地答辩演示很重要。
 	embeddingClient := &EmbeddingClient{
 		Endpoint: getEnvDefault("VOLC_ENDPOINT", "https://ark.cn-beijing.volces.com/api/v3/embeddings/multimodal"),
 		APIKey:   os.Getenv("ARK_API_KEY"),
@@ -114,6 +134,8 @@ func getEnvDefault(key, defaultVal string) string {
 	return defaultVal
 }
 
+// buildJDTextFromJobID 将结构化职位记录转换为纯文本 JD。
+// Coze 工作流和 RAG prompt 更适合接收紧凑的自然语言描述，而不是分散的数据库字段。
 func (h *AIEvaluateHandler) buildJDTextFromJobID(jobID uint) (string, error) {
 	if jobID == 0 {
 		return "", fmt.Errorf("job_id 不能为空")
@@ -408,8 +430,17 @@ func (h *AIEvaluateHandler) GetCurrentTask(c *gin.Context) {
 	})
 }
 
-// EvaluateByResumeID 根据简历ID和JD进行AI评估
-// 完整流程: PDF → OCR提取文本 → Embedding向量化 → RAG检索相似人才 → Coze AI评估
+// EvaluateByResumeID 根据简历 ID 和 JD 进行 AI 评估。
+//
+// 这是毕业设计中最核心的一条后端链路：
+//  1. 根据 resume_id 找到已上传的简历文件；
+//  2. 通过 OCR/文本抽取获得可检索的简历内容；
+//  3. 在配置了 ARK_API_KEY 时生成 Embedding 并调用推荐服务做 RAG 检索；
+//  4. 将 RAG 结果拼回 JD，上送 Coze 工作流完成结构化评分；
+//  5. 将分数、解析字段、人才同步结果和过程追踪落库。
+//
+// 这样设计的目的，是让 AI 能力嵌入招聘主流程，而不是只做一个无法追踪的
+// “黑盒打分”接口。
 func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 	var req struct {
 		ResumeID      uint   `json:"resume_id" binding:"required"`
@@ -438,14 +469,15 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 		return
 	}
 
-	// 更新简历状态为处理中
+	// 先把状态置为 processing，前端轮询时可以区分“已接收任务”和“已完成/失败”。
 	h.DB.Model(&resume).Update("status", "processing")
 
 	// 获取JD文本
 	jdText := req.JDText
 	jobID := req.JobID
 
-	// 如果没有传JD文本，尝试从job_id获取
+	// JD 可以由前端直接传入，也可以通过简历已关联的职位反查。这样 HR 在
+	// 简历列表页和职位详情页触发评估时都能复用同一条后端链路。
 	if jdText == "" && jobID == 0 && resume.JobID != nil {
 		jobID = *resume.JobID
 	}
@@ -488,6 +520,8 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 	}
 
 	// ========== 步骤1: OCR 提取文本 ==========
+	// OCR 是后续 Embedding/RAG 的输入来源。即使 OCR 失败，也保留原始 PDF
+	// 继续交给 Coze，避免扫描件或异常文件直接中断整个评估。
 	fmt.Println("\n========== [AI评估] 步骤1: OCR文本提取 ==========")
 	ocrResult, err := ocr.ExtractTextFromFile(resolveFilePath(resume.FilePath))
 	var resumeText string
@@ -514,6 +548,8 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 	}
 
 	// ========== 步骤2: Embedding 向量化 ==========
+	// Embedding 将简历文本变为语义向量，用于从历史人才/职位/简历中检索相似
+	// 上下文。这里把它设计为可选增强，方便没有外部 API Key 的本地演示降级。
 	var resumeEmbedding []float64
 	var ragContext string
 	if h.RAGEnabled && resumeText != "" {
@@ -530,6 +566,8 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 			fmt.Printf("[Embedding] 成功生成向量，维度: %d\n", len(embedding))
 
 			// ========== 步骤3: RAG 检索相似人才 ==========
+			// RAG 不直接决定最终分数，而是为 LLM 提供“相似人才画像”参考，
+			// 让评分和推荐理由更接近平台已有数据。
 			fmt.Println("\n========== [AI评估] 步骤3: RAG检索相似人才 ==========")
 			ragHitsContext, ragHits, ragErr := h.queryRAG(resumeText, resumeEmbedding)
 			ragContext = ragHitsContext
@@ -553,6 +591,8 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 	}
 
 	// ========== 步骤4: Coze AI 评估 ==========
+	// Coze 工作流负责把 JD、简历文本和原始 PDF 综合成结构化评分。与本地规则
+	// 相比，工作流更适合抽取教育、经历、技能匹配和建议等自然语言信息。
 	fmt.Println("\n========== [AI评估] 步骤4: Coze AI评估 ==========")
 
 	// 读取简历文件（Coze需要原始PDF）
@@ -570,7 +610,8 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 		return
 	}
 
-	// 如果有RAG上下文，将其添加到JD中增强评估
+	// 如果有 RAG 上下文，将其拼到 JD 后面。这样不需要修改 Coze 工作流入参，
+	// 也能让模型在同一个字段里看到职位要求和平台历史参考信息。
 	enhancedJD := jdText
 	if ragContext != "" {
 		enhancedJD = jdText + "\n\n【参考信息-相似人才画像】\n" + ragContext
@@ -594,7 +635,8 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 
 	fmt.Printf("[Coze] 评估完成! 总分: %.1f, 等级: %s\n", result.TotalScore, result.Grade)
 
-	// 更新简历的匹配分数
+	// 评估完成后同时更新 resume、evaluation_result 和 talent 相关数据，
+	// 确保列表页、详情页、人才库和评估结果页看到的是同一份结论。
 	resume.MatchScore = int(result.TotalScore)
 	resume.Status = "parsed"
 	if resultJSON, err := json.Marshal(result); err == nil {
@@ -611,7 +653,7 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 	}
 	h.DB.Save(&resume)
 
-	// 如果有embedding，保存到向量数据库
+	// 保存当前简历向量后，后续 RAG 查询可以把这份简历作为历史样本检索到。
 	if len(resumeEmbedding) > 0 {
 		h.saveResumeEmbedding(&resume, resumeEmbedding)
 	}

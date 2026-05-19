@@ -7,6 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// Job 是招聘系统中的职位主数据。
+// 它描述岗位职责、要求、薪资、地点、状态和发布人，是投递、推荐和 AI 人岗匹配的目标对象。
 type Job struct {
 	ID           uint           `gorm:"primarykey" json:"id"`
 	CreatedAt    time.Time      `json:"created_at"`

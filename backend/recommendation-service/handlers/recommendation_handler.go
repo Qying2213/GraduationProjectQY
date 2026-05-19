@@ -1,3 +1,7 @@
+// Package handlers 暴露 recommendation-service 的推荐相关接口。
+//
+// 该服务把传统规则评分、语义 Embedding 匹配、RAG 检索和 Coze 归因报告结合起来，
+// 对外呈现为 HR 可理解的人岗推荐、推荐理由和语义检索能力。
 package handlers
 
 import (
@@ -25,6 +29,9 @@ type RecommendationHandler struct {
 	RAGEngine       *rag.RAGEngine
 }
 
+// NewRecommendationHandler 统一组装推荐服务依赖。
+// 规则匹配、语义搜索和 RAG 共用同一份数据库与 Embedding 客户端，保证人才、职位、
+// 简历数据口径一致。
 func NewRecommendationHandler(db *gorm.DB) *RecommendationHandler {
 	embClient := embedding.GetClient()
 	return &RecommendationHandler{
@@ -70,7 +77,8 @@ type Recommendation struct {
 	AttributionURL string   `json:"attribution_url,omitempty"` // 归因报告链接
 }
 
-// SkillWeight 技能权重配置
+// SkillWeight 技能权重配置。
+// 权重越高，表示该技能在技术招聘中越关键，精确匹配评分就不会只是简单按数量相加。
 var skillWeights = map[string]float64{
 	"go":         1.2,
 	"python":     1.1,
@@ -97,32 +105,33 @@ var educationScores = map[string]float64{
 	"高中": 0.4,
 }
 
-// calculateAdvancedMatchScore 增强版匹配算法
+// calculateAdvancedMatchScore 是透明可解释的规则匹配基线。
+// 即使不启用语义 AI 能力，系统也能给出稳定分数，便于解释推荐行为。
 func calculateAdvancedMatchScore(talent TalentProfile, job JobProfile) (float64, []string) {
 	var details []string
 	totalScore := 0.0
 
-	// 1. 技能匹配 (50%)
+	// 1. 技能匹配 (50%)：招聘场景中技能命中通常是最重要的硬条件。
 	skillScore, skillDetails := calculateSkillMatch(talent.Skills, job.Skills)
 	totalScore += skillScore * 0.5
 	details = append(details, skillDetails...)
 
-	// 2. 经验匹配 (20%)
+	// 2. 经验匹配 (20%)：避免初级候选人匹配高级岗位，或明显资深过配。
 	expScore, expDetail := calculateExperienceMatch(talent.Experience, job.Level)
 	totalScore += expScore * 0.2
 	details = append(details, expDetail)
 
-	// 3. 地理位置匹配 (15%)
+	// 3. 地理位置匹配 (15%)：本地/同城岗位对到岗概率有影响。
 	locScore, locDetail := calculateLocationMatch(talent.Location, job.Location)
 	totalScore += locScore * 0.15
 	details = append(details, locDetail)
 
-	// 4. 学历匹配 (10%)
+	// 4. 学历匹配 (10%)：作为软约束参与总分，不让学历完全决定结果。
 	eduScore, eduDetail := calculateEducationMatch(talent.Education, job.Level)
 	totalScore += eduScore * 0.1
 	details = append(details, eduDetail)
 
-	// 5. 薪资匹配 (5%)
+	// 5. 薪资匹配 (5%)：薪资只是辅助因素，权重较低。
 	salaryScore, salaryDetail := calculateSalaryMatch(talent.Salary, job.Salary)
 	totalScore += salaryScore * 0.05
 	if salaryDetail != "" {
@@ -657,7 +666,8 @@ func (h *RecommendationHandler) GenerateAttributionReport(c *gin.Context) {
 	})
 }
 
-// SemanticMatch 语义匹配接口
+// SemanticMatch 暴露原始语义相似度能力，方便调试和演示。
+// 它可以证明系统比较的是语义相近程度，而不只是关键词是否完全相等。
 func (h *RecommendationHandler) SemanticMatch(c *gin.Context) {
 	var req struct {
 		Text1 string `json:"text1" binding:"required"`
@@ -711,8 +721,12 @@ func parseSkills(skillsStr string) []string {
 }
 
 // ==================== RAG 相关接口 ====================
+// 这些接口有两类用途：
+//  1. 后台管理员/HR 可以查询或重建 RAG 索引；
+//  2. resume-service 可以在 AI 评估过程中调用内部 RAG 接口。
 
-// RAGQuery RAG检索增强查询
+// RAGQuery 在人才、职位、简历向量索引中做检索，并返回可解释的证据记录。
+// 这里刻意返回原始检索结果，而不是只返回 LLM 答案，方便前端展示 RAG 命中的依据。
 func (h *RecommendationHandler) RAGQuery(c *gin.Context) {
 	var req struct {
 		Query     string `json:"query" binding:"required"`
@@ -743,7 +757,8 @@ func (h *RecommendationHandler) RAGQuery(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	// 直接调用向量搜索，返回简单结果
+	// 直接调用向量搜索，返回简单结果。LLM 生成回答在 RAGEngine.Query 中也有，
+	// 但该接口更适合给评估链路提供稳定、可解释的上下文。
 	var results []rag.SearchResult
 	var err error
 
@@ -805,6 +820,8 @@ func buildResumeRAGContent(resumeRow map[string]any, evaluationRow map[string]an
 	return strings.ToValidUTF8(strings.Join(parts, "\n"), "")
 }
 
+// trimLongText 控制 OCR 片段长度，避免向量索引和接口响应过大。
+// 完整 OCR 文本仍然保存在 resume 记录里。
 func trimLongText(value string, maxLen int) string {
 	if maxLen <= 0 || len(value) <= maxLen {
 		return value
@@ -812,7 +829,8 @@ func trimLongText(value string, maxLen int) string {
 	return value[:maxLen] + "..."
 }
 
-// IndexResume 索引简历到向量数据库
+// IndexResume 将简历写入向量库。
+// 如果调用方没有直接传内容，就从最近一次评估结果和 OCR 片段中拼出简历画像。
 func (h *RecommendationHandler) IndexResume(c *gin.Context) {
 	var req struct {
 		ResumeID uint   `json:"resume_id" binding:"required"`
@@ -868,7 +886,8 @@ func (h *RecommendationHandler) IndexResume(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"code": 0, "message": "索引成功", "data": gin.H{"resume_id": req.ResumeID}})
 }
 
-// IndexTalent 索引人才到向量数据库
+// IndexTalent 将人才画像写入向量库，供 RAG 检索使用。
+// 被索引的内容保持可读文本形式，这样检索命中后可以直接作为解释证据展示。
 func (h *RecommendationHandler) IndexTalent(c *gin.Context) {
 	var req struct {
 		TalentID uint `json:"talent_id" binding:"required"`
@@ -893,7 +912,7 @@ func (h *RecommendationHandler) IndexTalent(c *gin.Context) {
 		return
 	}
 
-	// 构建内容
+	// 构建内容：把结构化字段压缩成一段语义文本，适配通用 Embedding 模型。
 	content := fmt.Sprintf("姓名: %s\n技能: %s\n经验: %d年\n学历: %s\n城市: %s",
 		talent.Name, talent.Skills, talent.Experience, talent.Education, talent.Location)
 
@@ -908,7 +927,7 @@ func (h *RecommendationHandler) IndexTalent(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"code": 0, "message": "索引成功", "data": gin.H{"talent_id": talent.ID}})
 }
 
-// IndexJob 索引职位到向量数据库
+// IndexJob 将职位描述写入向量库，方便人岗匹配时检索相似职位并解释匹配原因。
 func (h *RecommendationHandler) IndexJob(c *gin.Context) {
 	var req struct {
 		JobID uint `json:"job_id" binding:"required"`
@@ -948,7 +967,8 @@ func (h *RecommendationHandler) IndexJob(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"code": 0, "message": "索引成功", "data": gin.H{"job_id": job.ID}})
 }
 
-// IndexAll 批量索引所有人才和职位
+// IndexAll 批量重建主要 RAG 索引。
+// VectorStore 使用 upsert 语义，因此重复调用不会产生重复索引记录。
 func (h *RecommendationHandler) IndexAll(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Minute)
 	defer cancel()
@@ -1003,7 +1023,7 @@ func (h *RecommendationHandler) IndexAll(c *gin.Context) {
 	})
 }
 
-// RAGMatch 使用RAG进行人岗匹配
+// RAGMatch 同时使用人才和职位内容作为检索上下文，再让 RAG 引擎生成可解释的人岗匹配分析。
 func (h *RecommendationHandler) RAGMatch(c *gin.Context) {
 	var req struct {
 		TalentID uint `json:"talent_id" binding:"required"`

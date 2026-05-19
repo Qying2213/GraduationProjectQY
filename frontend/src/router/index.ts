@@ -1,5 +1,8 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import { useUserStore } from "@/store/user";
+
+// 路由表按“后台管理端”和“求职者前台端”两条线组织。
+// requiresAuth 控制是否需要登录，permission 字段则给权限菜单/页面访问控制预留。
 const routes: RouteRecordRaw[] = [
   // 后台管理登录
   {
@@ -259,18 +262,19 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore();
 
-  // 需要登录但未登录
+  // 需要登录但未登录时拦截到后台登录页。
+  // 注意：求职端受保护页面当前也会先进入统一登录判断，具体登录页由业务页面和请求拦截器处理。
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
     next("/login");
     return;
   }
 
-  // 已登录访问登录/注册页，跳转到对应首页
+  // 已登录用户再次访问登录/注册页时，按角色分流到对应首页。
   if (
     (to.path === "/login" || to.path === "/register") &&
     userStore.isLoggedIn
   ) {
-    // 求职者跳转到求职端，其他角色跳转到后台
+    // 求职者跳转到求职端，其他角色跳转到后台。
     if (userStore.role === "candidate") {
       next("/portal");
     } else {
@@ -279,7 +283,7 @@ router.beforeEach((to, from, next) => {
     return;
   }
 
-  // 求职者不能访问后台管理页面（除了 /portal 开头的路由）
+  // 求职者不能访问后台管理页面，避免候选人角色进入 HR 工作台。
   if (userStore.isLoggedIn && userStore.role === "candidate") {
     const isPortalRoute = to.path.startsWith("/portal");
     const isPublicRoute = to.meta.requiresAuth === false;

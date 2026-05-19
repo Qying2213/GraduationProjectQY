@@ -23,6 +23,9 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// Evaluate 处理独立 evaluator-service 的单份简历评估。
+// 它上传临时文件、调用 Coze 工作流，再把结果交给内部评估服务保存为 Candidate。
+// 与毕业设计主链路不同，这里不经过 resume-service 的 OCR/Embedding/RAG 过程。
 func (h *Handlers) Evaluate(c *gin.Context) {
 	file, err := c.FormFile("resume")
 	if err != nil {
@@ -63,7 +66,7 @@ func (h *Handlers) Evaluate(c *gin.Context) {
 	}
 	defer utils.RemoveQuiet(tmpPath)
 
-	// Read PDF bytes and run Coze workflow (single upload also goes through Coze)
+	// 读取 PDF 字节并调用 Coze 工作流；单份上传也走 Coze，保证和批量评估结果格式一致。
 	pdfBytes, err := os.ReadFile(tmpPath)
 	if err != nil {
 		fail(c, err)
@@ -92,7 +95,7 @@ func (h *Handlers) Evaluate(c *gin.Context) {
 			logging.KV("data_keys", getCozeDataKeys(cozeData)))
 	}
 
-	// Continue evaluation using in-memory bytes and Coze data
+	// 使用内存中的文件字节和 Coze 返回数据继续完成内部评分与候选人落库。
 	h.log.Info("Starting resume evaluation")
 	out, err := h.svc.EvaluateSingleBytesWithUser(pdfBytes, file.Filename, jd, "", cozeData, userID)
 	if err != nil {
@@ -141,7 +144,8 @@ const (
 	ResultTypeSkipped     EvaluationResultType = "skipped"     // 跳过
 )
 
-// EvaluateBatch: 使用 SSE 流式响应，实时推送评估进度
+// EvaluateBatch 使用 SSE 流式响应，实时推送批量评估进度。
+// 该接口偏独立后台能力：先通过 Python 脚本抓取外部招聘系统简历，再逐份评估并推送进度。
 func (h *Handlers) EvaluateBatch(c *gin.Context) {
 	jdFromReq := c.PostForm("jd")
 	criteria := c.PostForm("criteria")

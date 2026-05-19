@@ -41,10 +41,12 @@ func main() {
 		log.Fatal("Failed to connect database:", err)
 	}
 
+	// job-service 拥有职位主数据，启动时保证 jobs 表结构可用。
 	if err := db.AutoMigrate(&models.Job{}); err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
 
+	// Redis 是职位详情缓存和热门职位排行的增强依赖；连接失败时仅关闭缓存能力。
 	redisHost := getEnv("REDIS_HOST", "localhost")
 	redisPort := getEnv("REDIS_PORT", "6379")
 	redisPassword := getEnv("REDIS_PASSWORD", "")
@@ -71,6 +73,7 @@ func main() {
 		c.JSON(200, gin.H{"status": "healthy", "service": "job-service", "port": 8082})
 	})
 
+	// 公开职位接口：候选人和未登录用户也可以浏览职位列表、详情和热门职位。
 	api := r.Group("/api/v1/jobs")
 	{
 		api.GET("", jobHandler.ListJobs)
@@ -79,6 +82,7 @@ func main() {
 		api.GET("/:id", jobHandler.GetJob)
 	}
 
+	// 职位管理接口：创建、编辑、删除和查看投递列表，需要招聘侧角色。
 	protected := r.Group("/api/v1/jobs")
 	protected.Use(middleware.JWTAuth(), middleware.RoleAuth("admin", "hr", "hr_manager", "recruiter"))
 	{

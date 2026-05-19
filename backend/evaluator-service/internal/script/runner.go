@@ -46,22 +46,22 @@ type WintalentItem struct {
 	Extra        map[string]interface{} `json:"-"`
 }
 
-// wintalentPagePayload is the new paged JSON payload: { total: number, items: [...] }
-// When python is invoked with --json-out --page-no, it returns this structure.
+// wintalentPagePayload 是新的分页 JSON 结构：{ total: number, items: [...] }。
+// Python 脚本使用 --json-out --page-no 参数时会返回该结构。
 type wintalentPagePayload struct {
 	Total int             `json:"total"`
 	Items []WintalentItem `json:"items"`
 }
 
-// RunWintalentFetch executes the python script and parses its JSON output (single shot, no paging params).
-// scriptRelPath: relative path from repo root to the script (e.g., internal/script/wintalent_fetch.py)
+// RunWintalentFetch 执行 Python 抓取脚本，并解析一次性返回的 JSON 输出。
+// scriptRelPath 是相对仓库根目录的脚本路径，例如 internal/script/wintalent_fetch.py。
 func RunWintalentFetch(ctx context.Context, scriptRelPath string) ([]WintalentItem, error) {
 	return RunWintalentFetchWithEnv(ctx, scriptRelPath, nil)
 }
 
-// RunWintalentFetchWithEnv executes python with optional env vars (e.g., WT_USERNAME, WT_PASSWORD).
+// RunWintalentFetchWithEnv 执行 Python 脚本，并可注入 WT_USERNAME、WT_PASSWORD 等环境变量。
 func RunWintalentFetchWithEnv(ctx context.Context, scriptRelPath string, env map[string]string) ([]WintalentItem, error) {
-	// Resolve possible relative path
+	// 解析相对路径，确保脚本能被当前进程找到。
 	sp := scriptRelPath
 	if !filepath.IsAbs(sp) {
 		abs, err := filepath.Abs(sp)
@@ -81,12 +81,12 @@ func RunWintalentFetchWithEnv(ctx context.Context, scriptRelPath string, env map
 	if err != nil {
 		return nil, fmt.Errorf("run wintalent_fetch.py failed: %w", err)
 	}
-	// Prefer new payload shape { total, items }
+	// 优先解析新的 { total, items } 结构。
 	var payload wintalentPagePayload
 	if err := json.Unmarshal(out, &payload); err == nil && payload.Items != nil {
 		return payload.Items, nil
 	}
-	// Fallback to legacy pure array
+	// 兼容旧版本脚本直接返回数组的格式。
 	var items []WintalentItem
 	if err := json.Unmarshal(out, &items); err != nil {
 		return nil, fmt.Errorf("parse wintalent json failed: %w", err)
@@ -94,9 +94,8 @@ func RunWintalentFetchWithEnv(ctx context.Context, scriptRelPath string, env map
 	return items, nil
 }
 
-// RunWintalentFetchPage executes the python script for a specific page and page size.
-// NOTE: The underlying python currently may fetch page_no and page_no+1 together.
-// To mitigate duplication at caller side, consider slicing to pageSize items.
+// RunWintalentFetchPage 按指定页码和页大小执行 Python 抓取脚本。
+// 注意：底层 Python 当前可能同时抓取 page_no 和 page_no+1，调用方可按 pageSize 截断去重。
 func RunWintalentFetchPage(ctx context.Context, scriptRelPath string, pageNo int, pageSize int) ([]WintalentItem, error) {
 	if pageNo <= 0 {
 		pageNo = 1
@@ -130,13 +129,13 @@ func RunWintalentFetchPage(ctx context.Context, scriptRelPath string, pageNo int
 	return items, nil
 }
 
-// WithTimeout helper returns a child context with timeout suitable for script runtime.
+// WithTimeout 返回适合脚本运行的带超时 context。
 func WithTimeout(parent context.Context, d time.Duration) (context.Context, context.CancelFunc) {
 	return context.WithTimeout(parent, d)
 }
 
-// RunGraduateFetch executes the graduate_fetch.py script to fetch resumes from graduation project backend.
-// scriptRelPath: relative path from repo root to the script (e.g., internal/script/graduate_fetch.py)
+// RunGraduateFetch 执行 graduate_fetch.py，从毕业设计后端抓取简历数据。
+// scriptRelPath 是相对仓库根目录的脚本路径，例如 internal/script/graduate_fetch.py。
 func RunGraduateFetch(ctx context.Context, scriptRelPath string) ([]WintalentItem, error) {
 	return RunGraduateFetchWithEnv(ctx, scriptRelPath, nil)
 }

@@ -10,6 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// TalentHandler 负责人才库接口。
+// 它维护 HR 视角的人才档案，并把最近一次 AI 评估分数融合进列表匹配分。
 type TalentHandler struct {
 	DB *gorm.DB
 }
@@ -18,7 +20,8 @@ func NewTalentHandler(db *gorm.DB) *TalentHandler {
 	return &TalentHandler{DB: db}
 }
 
-// CreateTalent 创建人才
+// CreateTalent 创建人才档案。
+// 请求体直接绑定 Talent 模型，适合后台管理页面录入或导入人才数据。
 func (h *TalentHandler) CreateTalent(c *gin.Context) {
 	var talent models.Talent
 	if err := c.ShouldBindJSON(&talent); err != nil {
@@ -38,13 +41,15 @@ func (h *TalentHandler) CreateTalent(c *gin.Context) {
 	})
 }
 
-// TalentWithScore 带匹配分数的人才结构
+// TalentWithScore 是列表页使用的人才展示结构。
+// MatchScore 优先使用最近一次 AI 评估分数，否则使用本地规则计算的临时分数。
 type TalentWithScore struct {
 	models.Talent
 	MatchScore float64 `json:"match_score"`
 }
 
-// ListTalents 获取人才列表
+// ListTalents 获取人才列表。
+// 支持状态、关键词、技能、地区和经验筛选，并返回分页结果与匹配分数。
 func (h *TalentHandler) ListTalents(c *gin.Context) {
 	var talents []models.Talent
 
@@ -134,7 +139,8 @@ func (h *TalentHandler) ListTalents(c *gin.Context) {
 	})
 }
 
-// calculateMatchScore 计算人才匹配分数
+// calculateMatchScore 计算人才列表中的规则匹配分。
+// 它不是最终 AI 评分，只用于搜索和筛选场景下给 HR 一个快速排序参考。
 func (h *TalentHandler) calculateMatchScore(talent models.Talent, keyword string, filterSkills []string) float64 {
 	score := 0.0
 	maxScore := 100.0
@@ -212,6 +218,8 @@ func (h *TalentHandler) calculateMatchScore(talent models.Talent, keyword string
 	return score
 }
 
+// latestEvaluationScore 读取该人才关联简历的最新 AI 评估分数。
+// 如果人才尚未绑定简历或没有评估结果，则返回 0，让列表回退到规则分。
 func (h *TalentHandler) latestEvaluationScore(talent models.Talent) float64 {
 	if talent.ResumeID == nil || *talent.ResumeID == 0 {
 		return 0
@@ -232,7 +240,7 @@ func (h *TalentHandler) latestEvaluationScore(talent models.Talent) float64 {
 	return result.MatchScore
 }
 
-// GetTalent 获取单个人才详情
+// GetTalent 获取单个人才详情。
 func (h *TalentHandler) GetTalent(c *gin.Context) {
 	id := c.Param("id")
 	var talent models.Talent
@@ -249,7 +257,8 @@ func (h *TalentHandler) GetTalent(c *gin.Context) {
 	})
 }
 
-// UpdateTalent 更新人才信息
+// UpdateTalent 更新人才信息。
+// 这里使用请求体覆盖模型字段，适合后台编辑页保存完整人才档案。
 func (h *TalentHandler) UpdateTalent(c *gin.Context) {
 	id := c.Param("id")
 	var talent models.Talent

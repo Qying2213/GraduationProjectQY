@@ -1,3 +1,6 @@
+// Package embedding 提供推荐和 RAG 使用的语义向量层。
+// 它把人才、职位和简历转换成可比较的数值向量，让系统不只依赖关键词匹配，
+// 还能用语义相似度解释推荐结果。
 package embedding
 
 import (
@@ -17,7 +20,9 @@ import (
 	"time"
 )
 
-// Client 火山引擎豆包Embedding客户端
+// Client 封装火山引擎/豆包 Embedding API。
+// 它包含简单内存缓存和确定性的 mock 降级能力，因此即使没有配置 ARK_API_KEY，
+// 毕业设计演示也可以继续运行。
 type Client struct {
 	endpoint string
 	apiKey   string // 火山引擎API Key (ARK_API_KEY)
@@ -29,7 +34,8 @@ type Client struct {
 var defaultClient *Client
 var once sync.Once
 
-// GetClient 获取默认客户端（单例）
+// GetClient 返回 recommendation-service 复用的单例 Embedding 客户端。
+// 单例可以避免重复创建 HTTP 客户端，也能让 RAG 索引和查询共享缓存。
 func GetClient() *Client {
 	once.Do(func() {
 		defaultClient = NewClient(&Config{
@@ -97,7 +103,8 @@ type EmbeddingResponse struct {
 	} `json:"usage"`
 }
 
-// getSingleEmbedding 获取单个文本的向量（多模态API每次只能处理一个文本）
+// getSingleEmbedding 调用多模态 Embedding 接口处理单段文本。
+// 即使当前只传文本，也保留多模态请求格式，后续可以扩展到图片或文件向量。
 func (c *Client) getSingleEmbedding(ctx context.Context, text string) ([]float64, error) {
 	// 构建多模态格式的请求
 	reqBody := EmbeddingRequest{
@@ -159,7 +166,9 @@ func (c *Client) getSingleEmbedding(ctx context.Context, text string) ([]float64
 	return apiResp.Data.Embedding, nil
 }
 
-// GetEmbeddings 获取文本向量（批量）
+// GetEmbeddings 批量获取文本向量。
+// 缓存和 mock 降级是刻意的工程设计：真实 API 调用有时间和成本，但推荐/RAG 页面
+// 在本地环境仍应可演示。
 func (c *Client) GetEmbeddings(ctx context.Context, texts []string) ([][]float64, error) {
 	if len(texts) == 0 {
 		return nil, nil
@@ -198,7 +207,8 @@ func (c *Client) GetEmbeddings(ctx context.Context, texts []string) ([][]float64
 
 	fmt.Printf("[Embedding] Processing %d uncached texts (total: %d)\n", len(uncachedTexts), len(texts))
 
-	// 多模态API每次只能处理一个文本，需要逐个调用
+	// 多模态 API 每次只能处理一个文本，需要逐个调用；外层批量接口保留，
+	// 方便业务代码统一处理人才/职位/简历多条内容。
 	for i, text := range uncachedTexts {
 		idx := uncachedIndices[i]
 
@@ -235,7 +245,8 @@ func (c *Client) getCacheKey(text string) string {
 	return hex.EncodeToString(h[:])
 }
 
-// mockEmbedding 生成模拟向量（用于测试或降级）
+// mockEmbedding 生成确定性的模拟向量，用于本地测试或外部 API 不可用时降级。
+// 确定性很重要：同一段文本在多次演示中应得到稳定排序。
 func (c *Client) mockEmbedding(text string) []float64 {
 	// 基于文本内容生成确定性的模拟向量
 	dim := 1024 // Doubao-embedding-large 维度
@@ -253,7 +264,8 @@ func (c *Client) mockEmbedding(text string) []float64 {
 	return NormalizeEmbedding(embedding)
 }
 
-// CosineSimilarity 计算余弦相似度
+// CosineSimilarity 是向量检索的核心评分函数。
+// 分数越高，说明查询文本与索引内容的语义越接近。
 func CosineSimilarity(a, b []float64) float64 {
 	if len(a) != len(b) || len(a) == 0 {
 		return 0
@@ -317,7 +329,8 @@ func RankBySimilarity(target []float64, candidates [][]float64) []SimilarityResu
 	return results
 }
 
-// SkillMatcher 技能匹配器
+// SkillMatcher 用语义方式比较候选人技能和职位技能。
+// 它补充精确关键词匹配，让 “Golang” 与 “Go” 或相关技术词也能贡献匹配分。
 type SkillMatcher struct {
 	client *Client
 }
@@ -327,7 +340,8 @@ func NewSkillMatcher(client *Client) *SkillMatcher {
 	return &SkillMatcher{client: client}
 }
 
-// MatchSkills 匹配技能（使用语义相似度）
+// MatchSkills 返回技能匹配分和可读理由。
+// 对答辩来说，理由和分数同样重要，因为它证明推荐结果是可解释的。
 func (m *SkillMatcher) MatchSkills(ctx context.Context, talentSkills, jobSkills []string) (float64, []string, error) {
 	if len(jobSkills) == 0 {
 		return 0.5, []string{"职位未指定技能要求"}, nil

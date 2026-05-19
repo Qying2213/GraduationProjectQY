@@ -244,14 +244,14 @@ const getGroupPermissionCount = (group: { permissions: { code: string }[] }) => 
   ).length
 }
 
-// Check if all permissions in a group are checked
+// 判断某个权限分组是否已全选。
 const isGroupAllChecked = (group: { permissions: { code: string }[] }) => {
   return group.permissions.every(p =>
     roleForm.value.permissions.includes(p.code as Permission)
   )
 }
 
-// Check if group is indeterminate
+// 判断某个权限分组是否处于半选状态。
 const isGroupIndeterminate = (group: { permissions: { code: string }[] }) => {
   const checkedCount = group.permissions.filter(p =>
     roleForm.value.permissions.includes(p.code as Permission)
@@ -259,7 +259,7 @@ const isGroupIndeterminate = (group: { permissions: { code: string }[] }) => {
   return checkedCount > 0 && checkedCount < group.permissions.length
 }
 
-// Toggle all permissions in a group
+// 切换某个分组下的全部权限。
 const toggleGroupPermissions = (group: { permissions: { code: string }[] }, checked: boolean) => {
   group.permissions.forEach(p => {
     const perm = p.code as Permission
@@ -276,7 +276,7 @@ const toggleGroupPermissions = (group: { permissions: { code: string }[] }, chec
   })
 }
 
-// Toggle single permission
+// 切换单个权限。
 const togglePermission = (permission: Permission, checked: boolean) => {
   if (checked) {
     if (!roleForm.value.permissions.includes(permission)) {
@@ -290,18 +290,18 @@ const togglePermission = (permission: Permission, checked: boolean) => {
   }
 }
 
-// View role detail
+// 查看角色详情。
 const viewRoleDetail = (role: Role) => {
   selectedRole.value = role
 }
 
-// Handle role change
+// 处理当前演示角色切换。
 const handleRoleChange = (code: string) => {
   permissionStore.setRole(code)
   ElMessage.success(`已切换到 ${permissionStore.currentRole?.name} 角色`)
 }
 
-// Open create dialog
+// 打开创建角色弹窗。
 const openCreateDialog = () => {
   isEdit.value = false
   roleForm.value = {
@@ -313,7 +313,7 @@ const openCreateDialog = () => {
   dialogVisible.value = true
 }
 
-// Open edit dialog
+// 打开编辑角色弹窗。
 const openEditDialog = (role: Role) => {
   isEdit.value = true
   roleForm.value = {
@@ -325,7 +325,7 @@ const openEditDialog = (role: Role) => {
   dialogVisible.value = true
 }
 
-// Handle save
+// 保存角色。
 const handleSave = () => {
   if (!roleForm.value.name || !roleForm.value.code) {
     ElMessage.warning('请填写角色名称和编码')
@@ -343,7 +343,7 @@ const handleSave = () => {
       ElMessage.success('角色更新成功')
     }
   } else {
-    // Check if code already exists
+    // 检查角色编码是否已存在。
     if (permissionStore.roles.some(r => r.code === roleForm.value.code)) {
       ElMessage.error('角色编码已存在')
       return
@@ -360,7 +360,7 @@ const handleSave = () => {
   dialogVisible.value = false
 }
 
-// Handle delete role
+// 删除角色。
 const handleDeleteRole = async (id: number) => {
   try {
     await ElMessageBox.confirm('确定要删除这个角色吗？', '确认删除', {

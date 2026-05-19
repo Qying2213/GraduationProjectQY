@@ -439,7 +439,6 @@ func (h *ResumeHandler) DeleteResume(c *gin.Context) {
 // - 检查重复申请（同一求职者不能重复投递同一职位）
 // - 验证求职者是否有简历
 // - 申请创建后自动发送通知给HR
-// Requirements: 2.2, 2.3, 2.4, 2.6
 //
 // 1. 先做业务前置校验
 // 2. 再写 application 记录
@@ -670,7 +669,6 @@ func (h *ResumeHandler) ListApplications(c *gin.Context) {
 // 增强逻辑：
 // - 状态更新时发送通知给求职者
 // - 记录状态变更历史
-// Requirements: 3.2, 6.4
 //
 // 这个接口体现了“状态流转”型业务的常见写法：
 // 1. 先读取旧值
@@ -758,7 +756,6 @@ func (h *ResumeHandler) UpdateApplication(c *gin.Context) {
 
 // sendApplicationStatusNotification 发送申请状态变更通知给求职者。
 // 通知最终是直接写入 messages 表，后续由 message-service 提供查询、已读等能力。
-// Requirements: 3.2, 6.4
 func (h *ResumeHandler) sendApplicationStatusNotification(app *models.Application, oldStatus, newStatus string) {
 	// 获取求职者信息（包括关联的用户ID）
 	var talent struct {

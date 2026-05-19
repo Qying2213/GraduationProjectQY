@@ -10,6 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// NoticeHandler 负责公告管理接口。
+// 公告与个人消息不同，它面向后台统一发布，可按状态、优先级和置顶规则展示。
 type NoticeHandler struct {
 	DB *gorm.DB
 }
@@ -17,6 +19,9 @@ type NoticeHandler struct {
 func NewNoticeHandler(db *gorm.DB) *NoticeHandler {
 	return &NoticeHandler{DB: db}
 }
+
+// ListNotices 查询公告列表。
+// 支持关键词、发布状态、优先级和是否置顶筛选，排序时置顶和高优先级公告优先展示。
 func (h *NoticeHandler) ListNotices(c *gin.Context) {
 	keyword := strings.TrimSpace(c.Query("keyword"))
 	status := strings.TrimSpace(c.Query("status"))
@@ -95,6 +100,8 @@ func (h *NoticeHandler) ListNotices(c *gin.Context) {
 
 }
 
+// CreateNotice 创建公告。
+// 默认创建草稿，只有 draft/published 两种状态，优先级会统一归一化。
 func (h *NoticeHandler) CreateNotice(c *gin.Context) {
 	var req struct {
 		Title    string `json:"title" binding:"required"`
@@ -157,6 +164,8 @@ func (h *NoticeHandler) CreateNotice(c *gin.Context) {
 	})
 
 }
+
+// GetNotice 获取单条公告详情。
 func (h *NoticeHandler) GetNotice(c *gin.Context) {
 	idstr := c.Param("id")
 	id, err := strconv.Atoi(idstr)

@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-// EncryptAESGCM encrypts plaintext with key (16/24/32 bytes) and returns base64(nonce|ciphertext).
+// EncryptAESGCM 使用 AES-GCM 加密明文，并返回 base64(nonce|ciphertext)。
 func EncryptAESGCM(key []byte, plaintext string) (string, error) {
 	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
 		return "", errors.New("invalid AES key length; need 16/24/32 bytes")
@@ -31,7 +31,7 @@ func EncryptAESGCM(key []byte, plaintext string) (string, error) {
 	return base64.StdEncoding.EncodeToString(buf), nil
 }
 
-// DecryptAESGCM decrypts base64(nonce|ciphertext) with key.
+// DecryptAESGCM 使用 AES-GCM 解密 base64(nonce|ciphertext)。
 func DecryptAESGCM(key []byte, b64 string) (string, error) {
 	data, err := base64.StdEncoding.DecodeString(b64)
 	if err != nil {

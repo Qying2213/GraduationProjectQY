@@ -576,7 +576,10 @@ import request from "@/utils/request";
 
 const permissionStore = usePermissionStore();
 
-// 权限检查
+// ResumeList 是后台简历管理页。
+// 页面覆盖简历上传、职位绑定、解析状态、预览下载和 AI 解析入口，对应 resume-service 的简历生命周期接口。
+
+// 权限检查：按钮展示由前端权限控制，接口仍由后端鉴权兜底。
 const canCreate = computed(() =>
   permissionStore.hasPermission("resume:create"),
 );
@@ -674,7 +677,8 @@ const parsedInfo = computed(() => {
   }
 });
 
-// 获取简历列表
+// 获取简历列表。
+// 这里把搜索、状态和排序参数统一传给 resume-service，返回数据再驱动表格和统计卡片。
 const fetchResumes = async () => {
   loading.value = true;
   try {

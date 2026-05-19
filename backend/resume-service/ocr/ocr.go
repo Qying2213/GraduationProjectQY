@@ -1,3 +1,8 @@
+// Package ocr 提供简历评估前置的文本提取能力。
+//
+// 在毕业设计 AI 链路中，它是第一步：把 PDF、图片和 Word 简历转换成统一文本，
+// 让后续 Embedding、RAG 和 Coze 评估都能基于同一种输入工作。这里采用多策略设计，
+// 是因为真实简历可能是原生 PDF、扫描版 PDF、图片或 doc/docx 文件。
 package ocr
 
 import (
@@ -20,7 +25,8 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-// OCRResult OCR识别结果
+// OCRResult 是 AI 解析和评估使用的统一文本提取结果。
+// Confidence 是启发式置信度，主要用于前端解释文本提取质量，不代表严格的模型概率。
 type OCRResult struct {
 	Text       string  `json:"text"`
 	Confidence float64 `json:"confidence"`
@@ -42,7 +48,15 @@ var (
 	tesseractLang     string
 )
 
-// ExtractTextFromPDF 从PDF文件提取文本
+// ExtractTextFromPDF 从 PDF 简历中提取可用文本。
+//
+// 这里会依次尝试多种候选方案：
+//  1. pdftotext 处理原生 PDF；
+//  2. Go PDF 解析作为跨平台降级方案；
+//  3. Tesseract OCR 处理扫描版或噪声较高的 PDF。
+//
+// 最终通过文本质量评分选择最佳结果。真实简历经常带水印、表格或扫描页，因此这种
+// 多策略处理对答辩演示很关键。
 func ExtractTextFromPDF(filePath string) (*OCRResult, error) {
 	numPages := countPDFPages(filePath)
 	candidates := make([]textCandidate, 0, 3)
@@ -64,7 +78,8 @@ func ExtractTextFromPDF(filePath string) (*OCRResult, error) {
 
 	best := pickBestTextCandidate(candidates)
 
-	// 文本很短或噪声比例高时，再尝试图片 OCR。
+	// 文本很短或噪声比例高时，再尝试图片 OCR。这样原生 PDF 走快速路径，
+	// 扫描件再付出较高的 OCR 成本。
 	if shouldFallbackToOCR(best) {
 		if text, err := ocrPDFWithTesseract(filePath); err == nil {
 			if candidate := buildTextCandidate("tesseract", text, 0.82); candidate.Text != "" {
@@ -86,7 +101,8 @@ func ExtractTextFromPDF(filePath string) (*OCRResult, error) {
 	}, nil
 }
 
-// ExtractTextFromImage 从图片文件提取文本（使用tesseract）
+// ExtractTextFromImage 使用 Tesseract 从图片简历中识别文本。
+// 扫描版 PDF 被转换为 PNG 页面后，也会复用这个函数逐页识别。
 func ExtractTextFromImage(imagePath string) (*OCRResult, error) {
 	// 检查tesseract是否可用
 	if !isTesseractAvailable() {
@@ -120,7 +136,8 @@ func ExtractTextFromImage(imagePath string) (*OCRResult, error) {
 	}, nil
 }
 
-// ocrPDFWithTesseract 使用tesseract对PDF进行OCR
+// ocrPDFWithTesseract 先把 PDF 每页渲染成图片，再逐页 OCR。
+// 它比直接文本提取慢，但能让扫描版简历进入后续 AI 链路。
 func ocrPDFWithTesseract(pdfPath string) (string, error) {
 	if !isTesseractAvailable() {
 		return "", fmt.Errorf("tesseract未安装")
@@ -187,7 +204,8 @@ func isPDFInfoAvailable() bool {
 	return cmd.Run() == nil
 }
 
-// ExtractTextFromFile 根据文件类型自动选择提取方法
+// ExtractTextFromFile 是 handler 层统一调用的文本提取入口。
+// 文件类型分发集中在这里，AI 评估代码就不需要关心 PDF、图片和 Word 的实现细节。
 func ExtractTextFromFile(filePath string) (*OCRResult, error) {
 	ext := strings.ToLower(filepath.Ext(filePath))
 
@@ -203,7 +221,8 @@ func ExtractTextFromFile(filePath string) (*OCRResult, error) {
 	}
 }
 
-// extractTextFromWord 从Word文档提取文本
+// extractTextFromWord 从 doc/docx 简历中提取文本。
+// 很多候选人上传的是可编辑 Word 简历而不是 PDF，因此这是 OCR 之外的重要补充。
 func extractTextFromWord(filePath string) (*OCRResult, error) {
 	ext := strings.ToLower(filepath.Ext(filePath))
 

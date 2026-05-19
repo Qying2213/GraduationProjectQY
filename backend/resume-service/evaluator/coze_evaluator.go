@@ -1,3 +1,8 @@
+// Package evaluator 封装 resume-service 使用的 Coze 评估工作流。
+//
+// 外层 handler 负责 OCR、Embedding、RAG 和结果落库；本包只处理外部 LLM 工作流边界：
+// 上传简历文件、运行配置好的工作流，并把返回结果归一化成系统可存储和展示的
+// EvaluationResult。
 package evaluator
 
 import (
@@ -15,20 +20,24 @@ import (
 	"time"
 )
 
-// CozeConfig Coze API 配置
+// CozeConfig 保存调用 Coze 工作流所需的最小外部配置。
+// 明确这些字段，可以让部署和答辩演示前需要配置哪些环境变量一目了然。
 type CozeConfig struct {
 	BaseURL    string
 	Token      string
 	WorkflowID string
 }
 
-// CozeEvaluator Coze AI 简历评估器
+// CozeEvaluator 是内部简历评估流程与 Coze 之间的适配器。
+// 这里设置较长超时时间是有意的：PDF 上传和工作流执行可能持续数分钟，尤其是工作流
+// 还要解析简历内容时。
 type CozeEvaluator struct {
 	config     CozeConfig
 	httpClient *http.Client
 }
 
-// EvaluationResult AI 评估结果
+// EvaluationResult 是返回给 handler 的统一评分结果结构。
+// 它屏蔽 Coze 原始响应格式，为列表页、详情页、报告和人才同步提供稳定字段。
 type EvaluationResult struct {
 	Name            string                 `json:"name"`
 	TotalScore      float64                `json:"total_score"`
@@ -48,7 +57,8 @@ type EvaluationResult struct {
 	RawResult       map[string]interface{} `json:"raw_result"`
 }
 
-// NewCozeEvaluator 创建 Coze 评估器
+// NewCozeEvaluator 根据环境变量创建默认评估器。
+// resume-service 的生产和演示路径都会使用这个构造函数。
 func NewCozeEvaluator() *CozeEvaluator {
 	config := CozeConfig{
 		BaseURL:    getEnv("COZE_BASE_URL", "https://api.coze.cn"),
@@ -70,12 +80,14 @@ func NewCozeEvaluatorWithConfig(config CozeConfig) *CozeEvaluator {
 	}
 }
 
-// IsConfigured 检查是否已配置
+// IsConfigured 检查外部工作流是否具备调用条件。
+// handler 会用它提前返回明确的 503，而不是评估执行到一半才失败。
 func (e *CozeEvaluator) IsConfigured() bool {
 	return e.config.Token != "" && e.config.WorkflowID != ""
 }
 
-// uploadFile 上传文件到 Coze
+// uploadFile 将原始简历 PDF 上传到 Coze，并返回 file_id。
+// 工作流同时接收文本和文件：文本提升稳定性，文件则补充 OCR 可能漏掉的版式或内容。
 func (e *CozeEvaluator) uploadFile(ctx context.Context, filename string, data []byte) (string, error) {
 	url := fmt.Sprintf("%s/v1/files/upload", e.config.BaseURL)
 
@@ -133,7 +145,9 @@ func (e *CozeEvaluator) uploadFile(ctx context.Context, filename string, data []
 	return id, nil
 }
 
-// EvaluateResume 评估简历
+// EvaluateResume 对单份简历运行完整 Coze 评估工作流。
+// 调用方已经准备好 OCR 文本和可选的 RAG 增强 JD；本方法负责把这些值转换为工作流
+// 需要的 API 参数。
 func (e *CozeEvaluator) EvaluateResume(ctx context.Context, name string, jdText string, resumeText string, resumePDF []byte) (*EvaluationResult, error) {
 	if !e.IsConfigured() {
 		return nil, fmt.Errorf("Coze 未配置，请设置 COZE_TOKEN 和 COZE_WORKFLOW_ID 环境变量")
@@ -148,13 +162,13 @@ func (e *CozeEvaluator) EvaluateResume(ctx context.Context, name string, jdText 
 		filename = strings.TrimSuffix(filename, "."+strings.Split(filename, ".")[len(strings.Split(filename, "."))-1]) + ".pdf"
 	}
 
-	// 1. 上传文件获取 file_id
+	// 1. 上传文件获取 file_id。Coze 的 file 类型参数不能直接传二进制。
 	fileID, err := e.uploadFile(ctx, filename, resumePDF)
 	if err != nil {
 		return nil, fmt.Errorf("上传文件失败: %w", err)
 	}
 
-	// 2. 调用工作流
+	// 2. 调用工作流。resume_text 做长度截断，避免超出模型/工作流上下文限制。
 	requestBody := map[string]interface{}{
 		"workflow_id":   e.config.WorkflowID,
 		"response_mode": "blocking",

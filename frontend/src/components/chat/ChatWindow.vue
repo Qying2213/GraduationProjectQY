@@ -49,12 +49,8 @@
 <script setup lang="ts">
 /**
  * ChatWindow.vue - 聊天窗口组件
- * Requirements: 8.3 (Display messages), 8.6 (Infinite scroll pagination)
- * 
- * Displays chat messages for a conversation with:
- * - Message history with infinite scroll (load more on scroll up)
- * - Auto-scroll to bottom on new messages
- * - Date separators between messages
+ *
+ * 展示单个会话的消息历史，支持向上滚动加载更多、新消息自动滚到底部和日期分隔线。
  */
 import { ref, watch, nextTick, onMounted } from 'vue'
 import { Loading } from '@element-plus/icons-vue'
@@ -62,32 +58,32 @@ import MessageItem from './MessageItem.vue'
 import type { ChatMessage } from '@/api/chat'
 
 const props = defineProps<{
-  /** Current conversation ID */
+  /** 当前会话 ID */
   conversationId: number
-  /** List of messages to display */
+  /** 需要展示的消息列表 */
   messages: ChatMessage[]
-  /** Whether messages are being loaded */
+  /** 是否正在加载消息 */
   loading: boolean
-  /** Current user ID for determining message alignment */
+  /** 当前用户 ID，用于判断消息左右对齐 */
   currentUserId: number
 }>()
 
 const emit = defineEmits<{
-  /** Emitted when user scrolls to top to load more messages */
+  /** 用户滚动到顶部并需要加载更多历史消息时触发 */
   (e: 'loadMore'): void
 }>()
 
-/** Reference to the messages container element */
+/** 消息容器 DOM 引用 */
 const messagesContainerRef = ref<HTMLElement | null>(null)
 
-/** Flag to track if we should auto-scroll */
+/** 是否应该自动滚动到底部 */
 const shouldAutoScroll = ref(true)
 
-/** Previous scroll height for maintaining position after loading more */
+/** 加载历史消息前的滚动高度，用于维持滚动位置 */
 const previousScrollHeight = ref(0)
 
 /**
- * Scroll to the bottom of the messages container
+ * 将消息容器滚动到底部。
  */
 const scrollToBottom = () => {
   nextTick(() => {
@@ -98,17 +94,17 @@ const scrollToBottom = () => {
 }
 
 /**
- * Handle scroll event for infinite scroll
+ * 处理滚动事件，用于触发向上加载更多。
  */
 const handleScroll = () => {
   if (!messagesContainerRef.value) return
   
   const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.value
   
-  // Check if user is near bottom (within 100px)
+  // 用户接近底部时才自动滚动，避免打断正在查看历史消息的操作。
   shouldAutoScroll.value = scrollHeight - scrollTop - clientHeight < 100
   
-  // Load more when scrolled to top (within 50px)
+  // 滚动到顶部附近时加载更多历史消息。
   if (scrollTop < 50 && !props.loading && props.messages.length > 0) {
     previousScrollHeight.value = scrollHeight
     emit('loadMore')
@@ -116,7 +112,7 @@ const handleScroll = () => {
 }
 
 /**
- * Maintain scroll position after loading more messages
+ * 加载历史消息后维持原有阅读位置。
  */
 const maintainScrollPosition = () => {
   nextTick(() => {
@@ -130,10 +126,10 @@ const maintainScrollPosition = () => {
 }
 
 /**
- * Check if date separator should be shown before a message
- * @param message - Current message
- * @param index - Message index in array
- * @returns Whether to show date separator
+ * 判断某条消息前是否需要显示日期分隔线。
+ * @param message 当前消息
+ * @param index 消息在数组中的位置
+ * 返回：是否显示日期分隔线
  */
 const shouldShowDateSeparator = (message: ChatMessage, index: number): boolean => {
   if (index === 0) return true
@@ -145,27 +141,27 @@ const shouldShowDateSeparator = (message: ChatMessage, index: number): boolean =
 }
 
 /**
- * Format date for separator display
- * @param timestamp - ISO timestamp string
- * @returns Formatted date string
+ * 格式化日期分隔线文本。
+ * @param timestamp ISO 时间字符串
+ * 返回：日期展示文本
  */
 const formatDateSeparator = (timestamp: string): string => {
   const date = new Date(timestamp)
   const now = new Date()
   
-  // Today
+  // 今天
   if (date.toDateString() === now.toDateString()) {
     return '今天'
   }
   
-  // Yesterday
+  // 昨天
   const yesterday = new Date(now)
   yesterday.setDate(yesterday.getDate() - 1)
   if (date.toDateString() === yesterday.toDateString()) {
     return '昨天'
   }
   
-  // This year
+  // 今年
   if (date.getFullYear() === now.getFullYear()) {
     return date.toLocaleDateString('zh-CN', {
       month: 'long',
@@ -173,7 +169,7 @@ const formatDateSeparator = (timestamp: string): string => {
     })
   }
   
-  // Other years
+  // 其他年份
   return date.toLocaleDateString('zh-CN', {
     year: 'numeric',
     month: 'long',

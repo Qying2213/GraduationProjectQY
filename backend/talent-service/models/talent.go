@@ -7,6 +7,9 @@ import (
 	"gorm.io/gorm"
 )
 
+// Talent 是 HR 人才库中的核心档案模型。
+// 它汇总候选人的基础信息、技能、经历、来源以及关联的用户和简历，
+// 后续推荐、RAG 索引和 AI 评估都会围绕这份人才画像展开。
 type Talent struct {
 	ID              uint           `gorm:"primarykey" json:"id"`
 	CreatedAt       time.Time      `json:"created_at"`

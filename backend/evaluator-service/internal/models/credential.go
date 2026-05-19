@@ -2,9 +2,8 @@ package models
 
 import "time"
 
-// Credential stores third-party credentials for an organization.
-// PasswordCipher is the encrypted form (AES-GCM recommended).
-// NOTE: Do not log plaintext.
+// Credential 保存某个组织的第三方系统凭据。
+// PasswordCipher 是加密后的密码内容，禁止在日志中输出明文。
 type Credential struct {
 	ID             uint      `gorm:"primaryKey" json:"id"`
 	UserID         uint      `json:"user_id" gorm:"index"` // 关联用户，数据隔离

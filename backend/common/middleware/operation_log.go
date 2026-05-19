@@ -1,3 +1,6 @@
+// 操作日志中间件负责把用户行为记录成可写入 Elasticsearch 的结构化日志。
+// 对毕业设计来说，它提供了审计能力：创建职位、更新面试、触发 AI 评估等 HR
+// 操作都可以按用户、路径、状态码和耗时追踪。
 package middleware
 
 import (
@@ -11,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 响应体写入器
+// responseWriter 在开启响应体记录时捕获返回内容，同时仍然把数据正常写回客户端。
 type responseWriter struct {
 	gin.ResponseWriter
 	body *bytes.Buffer
@@ -22,7 +25,8 @@ func (w *responseWriter) Write(b []byte) (int, error) {
 	return w.ResponseWriter.Write(b)
 }
 
-// OperationLogConfig 日志中间件配置
+// OperationLogConfig 控制操作日志记录哪些请求/响应细节。
+// 文件上传会被跳过，因为记录 multipart 内容既影响性能，也可能暴露简历文件。
 type OperationLogConfig struct {
 	ServiceName     string
 	SkipPaths       []string // 跳过的路径
@@ -42,7 +46,8 @@ func DefaultOperationLogConfig(serviceName string) *OperationLogConfig {
 	}
 }
 
-// OperationLog 操作日志中间件
+// OperationLog 在每次请求结束后生成一条结构化操作日志。
+// 最终写入采用异步方式，避免 Elasticsearch 抖动直接拖慢业务接口。
 func OperationLog(config *OperationLogConfig) gin.HandlerFunc {
 	logService := elasticsearch.NewLogService(config.ServiceName)
 
@@ -57,7 +62,8 @@ func OperationLog(config *OperationLogConfig) gin.HandlerFunc {
 
 		start := time.Now()
 
-		// 读取请求体 - 跳过 multipart/form-data（文件上传）
+		// 读取请求体 - 跳过 multipart/form-data（文件上传）。读完普通 JSON 后
+		// 必须把 Body 放回去，否则后续 handler 将读不到请求内容。
 		var requestBody string
 		contentType := c.GetHeader("Content-Type")
 		isMultipart := strings.HasPrefix(contentType, "multipart/form-data")
@@ -99,7 +105,7 @@ func OperationLog(config *OperationLogConfig) gin.HandlerFunc {
 		userID, _ := c.Get("user_id")
 		username, _ := c.Get("username")
 
-		// 确定日志级别
+		// 确定日志级别：根据 HTTP 状态把操作分为 info/warn/error，方便日志页筛选。
 		level := "info"
 		if c.Writer.Status() >= 500 {
 			level = "error"
@@ -146,12 +152,12 @@ func OperationLog(config *OperationLogConfig) gin.HandlerFunc {
 			}
 		}
 
-		// 异步记录日志
+		// 异步记录日志，避免日志系统抖动拖慢业务接口。
 		logService.LogAsync(log)
 	}
 }
 
-// parseActionAndModule 解析操作类型和模块
+// parseActionAndModule 根据 method/path 推断中文操作类型和业务模块，用于操作日志页面展示。
 func parseActionAndModule(method, path string) (action, module string) {
 	// 解析模块
 	parts := strings.Split(strings.Trim(path, "/"), "/")

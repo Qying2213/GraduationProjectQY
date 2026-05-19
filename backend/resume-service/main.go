@@ -102,8 +102,7 @@ func main() {
 			resumes.POST("/risk-check/time-conflict", riskHandler.CheckTimeConflict)
 			resumes.POST("/risk-check/education", riskHandler.CheckEducationFraud)
 
-			// 在线简历接口 (需要JWT认证)
-			// Requirements: 4.3 (持久化), 4.6 (字段验证)
+			// 在线简历接口：需要 JWT 认证，用于候选人维护自己的在线简历。
 			resumes.GET("/online", middleware.JWTAuth(), onlineResumeHandler.GetOnlineResume)
 			resumes.PUT("/online", middleware.JWTAuth(), onlineResumeHandler.SaveOnlineResume)
 		}

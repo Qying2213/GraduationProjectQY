@@ -2,12 +2,12 @@ import request from '@/utils/request'
 import type { ApiResponse } from '@/types'
 
 // ============================================================================
-// TypeScript Interfaces for Chat API
-// Requirements: 8.2 (Real-time Messaging), 9.1 (Conversation Management)
+// 聊天 API 类型定义
+// 这里的类型与 message-service 的会话、消息和未读数接口保持一致。
 // ============================================================================
 
 /**
- * Basic user information for conversation display
+ * 会话展示用的用户基础信息。
  */
 export interface UserInfo {
   id: number
@@ -19,8 +19,7 @@ export interface UserInfo {
 }
 
 /**
- * Chat message in a conversation
- * Requirements: 8.5 (Chat Message Persistence)
+ * 会话中的单条聊天消息。
  */
 export interface ChatMessage {
   id: number
@@ -33,8 +32,7 @@ export interface ChatMessage {
 }
 
 /**
- * Conversation between two users
- * Requirements: 9.1 (Conversation List)
+ * 两个用户之间的一条会话。
  */
 export interface Conversation {
   id: number
@@ -47,8 +45,7 @@ export interface Conversation {
 }
 
 /**
- * Conversation with additional computed fields for display
- * Requirements: 9.1 (Conversation List), 9.2 (Last Message Preview), 9.3 (Unread Count)
+ * 会话列表展示用的增强结构，包含对方用户、最后消息和未读数。
  */
 export interface ConversationWithDetails {
   id: number
@@ -61,7 +58,7 @@ export interface ConversationWithDetails {
 }
 
 /**
- * Response structure for conversation list API
+ * 会话列表接口响应结构。
  */
 export interface ConversationListResponse {
   conversations: ConversationWithDetails[]
@@ -69,7 +66,7 @@ export interface ConversationListResponse {
 }
 
 /**
- * Response structure for message list API
+ * 消息列表接口响应结构。
  */
 export interface MessageListResponse {
   messages: ChatMessage[]
@@ -79,7 +76,7 @@ export interface MessageListResponse {
 }
 
 /**
- * Response structure for creating a conversation
+ * 创建/获取会话接口响应结构。
  */
 export interface CreateConversationResponse {
   conversation: ConversationWithDetails
@@ -87,33 +84,31 @@ export interface CreateConversationResponse {
 }
 
 /**
- * Response structure for unread count API
+ * 总未读数接口响应结构。
  */
 export interface UnreadCountResponse {
   total_unread: number
 }
 
 // ============================================================================
-// Chat API Methods
-// Requirements: 8.2 (Real-time Messaging), 9.1 (Conversation Management)
+// 聊天 API 方法
+// 页面层通过这些方法调用网关下的 message-service 会话接口。
 // ============================================================================
 
 export const chatApi = {
   /**
-   * Get conversation list for current user
-   * Requirements: 9.1 (Conversation List), 9.2 (Last Message Preview), 9.3 (Unread Count)
-   * @param params - Optional pagination parameters
-   * @returns List of conversations with details
+   * 获取当前用户的会话列表。
+   * @param params 可选分页参数
+   * 返回：带详情的会话列表
    */
   getConversations(params?: { page?: number; page_size?: number }) {
     return request.get<ApiResponse<ConversationListResponse>>('/conversations', { params })
   },
 
   /**
-   * Create or get existing conversation with a user
-   * Requirements: 9.1 (Conversation Management)
-   * @param userId - The ID of the user to start conversation with
-   * @returns The conversation (new or existing)
+   * 与指定用户创建或获取已有会话。
+   * @param userId 对方用户 ID
+   * 返回：新建或已存在的会话
    */
   createOrGetConversation(userId: number) {
     return request.post<ApiResponse<CreateConversationResponse>>('/conversations', {
@@ -122,20 +117,18 @@ export const chatApi = {
   },
 
   /**
-   * Get total unread message count for current user
-   * Requirements: 10.1 (Notification Badge), 10.2 (Real-time Unread Count)
-   * @returns Total unread message count
+   * 获取当前用户所有会话的总未读数。
+   * 返回：总未读消息数
    */
   getTotalUnreadCount() {
     return request.get<ApiResponse<UnreadCountResponse>>('/conversations/unread-count')
   },
 
   /**
-   * Get messages in a conversation with pagination
-   * Requirements: 8.5 (Chat Message Persistence), 8.6 (Message Pagination)
-   * @param conversationId - The conversation ID
-   * @param params - Optional pagination parameters
-   * @returns List of messages
+   * 分页获取指定会话的消息列表。
+   * @param conversationId 会话 ID
+   * @param params 可选分页参数
+   * 返回：消息列表
    */
   getMessages(conversationId: number, params?: { page?: number; page_size?: number }) {
     return request.get<ApiResponse<MessageListResponse>>(
@@ -145,12 +138,11 @@ export const chatApi = {
   },
 
   /**
-   * Send a message in a conversation
-   * Requirements: 8.2 (Real-time Messaging), 8.5 (Chat Message Persistence)
-   * @param conversationId - The conversation ID
-   * @param content - Message content
-   * @param messageType - Message type (default: 'text')
-   * @returns The sent message
+   * 在指定会话中发送消息。
+   * @param conversationId 会话 ID
+   * @param content 消息内容
+   * @param messageType 消息类型，默认 text
+   * 返回：已发送的消息
    */
   sendMessage(conversationId: number, content: string, messageType: string = 'text') {
     return request.post<ApiResponse<ChatMessage>>(
@@ -163,10 +155,9 @@ export const chatApi = {
   },
 
   /**
-   * Mark all messages in a conversation as read
-   * Requirements: 9.4 (Mark Messages as Read), 10.6 (Unread Count Update)
-   * @param conversationId - The conversation ID
-   * @returns Success response
+   * 将指定会话中的未读消息标记为已读。
+   * @param conversationId 会话 ID
+   * 返回：成功响应
    */
   markAsRead(conversationId: number) {
     return request.put<ApiResponse<void>>(`/conversations/${conversationId}/read`)

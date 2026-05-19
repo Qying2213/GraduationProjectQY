@@ -1,3 +1,6 @@
+// Package middleware 提供多个 Go 微服务共用的 Gin 中间件。
+// JWT/RBAC 是系统最重要的安全边界：网关只负责转发请求，真正的身份校验和
+// 角色权限判断仍然由各业务服务自己完成。
 package middleware
 
 import (
@@ -39,7 +42,9 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// GenerateToken 生成JWT token
+// GenerateToken 生成 JWT token。
+// token 中携带 user_id、username 和 role，下游服务可以直接根据这些信息做权限
+// 判断，不需要每个请求都回查 user-service。
 func GenerateToken(userID uint, username, role string) (string, error) {
 	claims := Claims{
 		UserID:   userID,
@@ -56,7 +61,8 @@ func GenerateToken(userID uint, username, role string) (string, error) {
 	return token.SignedString(getJWTSecret())
 }
 
-// ParseToken 解析JWT token
+// ParseToken 解析 JWT token，并使用共享密钥校验签名。
+// Swagger 或接口测试中看到的 “Invalid token”，通常就是这里解析或验签失败。
 func ParseToken(tokenString string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return getJWTSecret(), nil
@@ -74,6 +80,9 @@ func ParseToken(tokenString string) (*Claims, error) {
 }
 
 // JWTAuth JWT 认证中间件。
+//
+// 普通 REST 请求从 Authorization 头取 token，WebSocket 握手可从 query 参数取
+// token。校验通过后会把用户信息写入 Gin context，供业务 handler 和 RoleAuth 使用。
 // 读取 token 的优先级：
 // 1. Authorization: Bearer <token>
 // 2. URL 查询参数 token（主要给 WebSocket 握手使用）
@@ -117,6 +126,8 @@ func JWTAuth() gin.HandlerFunc {
 }
 
 // RoleAuth 角色权限中间件。
+// 它实现管理员、HR、招聘者等角色的粗粒度 RBAC 控制，例如创建职位、管理人才、
+// 查看操作日志等后台能力。
 // 它依赖 JWTAuth 先把 role 写进 context，因此通常应当和 JWTAuth 组合使用。
 func RoleAuth(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {

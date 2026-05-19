@@ -5,6 +5,8 @@ import (
 	"evaluator-service/internal/models"
 )
 
+// Client 定义独立 evaluator-service 内部评估流程需要的 AI 能力。
+// 当前主要由 CozeClient 实现，保留接口是为了让 OCR、结构化解析、JD 匹配和评分步骤可替换。
 type Client interface {
 	OCR(images [][]byte) (string, error)
 	Structure(text string) (string, error)

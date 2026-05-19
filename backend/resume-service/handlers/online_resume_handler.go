@@ -22,7 +22,6 @@ func NewOnlineResumeHandler(db *gorm.DB) *OnlineResumeHandler {
 
 // GetOnlineResume 获取当前用户的在线简历
 // GET /resumes/online
-// Requirements: 4.1 - 显示当前简历信息
 // 如果用户没有在线简历，则创建一个空的简历记录
 func (h *OnlineResumeHandler) GetOnlineResume(c *gin.Context) {
 	// 从 JWT 中获取用户 ID
@@ -88,8 +87,7 @@ func (h *OnlineResumeHandler) GetOnlineResume(c *gin.Context) {
 
 // SaveOnlineResume 保存在线简历
 // PUT /resumes/online
-// Requirements: 4.3 - 持久化更新的信息到数据库
-// Requirements: 4.6 - 验证必填字段（name, phone, email）
+// 保存前会校验姓名、手机号和邮箱等必填字段。
 func (h *OnlineResumeHandler) SaveOnlineResume(c *gin.Context) {
 	// 从 JWT 中获取用户 ID
 	jwtUserID, exists := c.Get("user_id")
@@ -143,7 +141,7 @@ func (h *OnlineResumeHandler) SaveOnlineResume(c *gin.Context) {
 	// 从请求更新简历数据
 	resume.FromRequest(req)
 
-	// Requirements 4.6: 验证必填字段（name, phone, email）
+	// 验证必填字段，避免保存缺少基础联系方式的在线简历。
 	if err := resume.Validate(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    400,

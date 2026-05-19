@@ -1,3 +1,6 @@
+// rag_engine.go 是 VectorStore 之上的编排层。
+// 它把原始检索结果组织成 prompt 和匹配分析，让 RAG 能同时服务推荐页面和
+// resume-service 的 AI 评估链路。
 package rag
 
 import (
@@ -9,7 +12,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// RAGEngine RAG检索增强生成引擎
+// RAGEngine 组合向量检索和可选的 LLM 生成。
+// VectorStore 回答“哪些记录相似”，Coze 负责把检索上下文转成可读解释。
 type RAGEngine struct {
 	vectorStore *VectorStore
 	cozeClient  *ai.CozeClient
@@ -44,13 +48,15 @@ type RAGResponse struct {
 	Query            string         `json:"query"`             // 原始查询
 }
 
-// Query 执行RAG查询
+// Query 对人才、职位或简历执行通用 RAG 查询。
+// 它先检索上下文，再让 Coze 基于上下文回答；如果 Coze 不可用，也会降级返回
+// 已检索到的记录。
 func (r *RAGEngine) Query(ctx context.Context, req *RAGRequest) (*RAGResponse, error) {
 	if req.TopK <= 0 {
 		req.TopK = 5
 	}
 
-	// 1. 检索相似文档
+	// 1. 检索相似文档。QueryType 决定检索哪个向量表。
 	var results []SearchResult
 	var err error
 
@@ -66,14 +72,14 @@ func (r *RAGEngine) Query(ctx context.Context, req *RAGRequest) (*RAGResponse, e
 		return nil, fmt.Errorf("检索失败: %w", err)
 	}
 
-	// 2. 构建上下文
+	// 2. 构建上下文。这里保留相似度，便于模型和前端解释检索依据。
 	contextParts := make([]string, 0, len(results))
 	for i, r := range results {
 		contextParts = append(contextParts, fmt.Sprintf("[%d] (相似度: %.2f%%)\n%s", i+1, r.Similarity*100, r.Content))
 	}
 	context := strings.Join(contextParts, "\n\n")
 
-	// 3. 调用LLM生成回答
+	// 3. 调用 LLM 生成回答。RAG 的关键是限制模型只基于检索到的平台数据回答。
 	prompt := fmt.Sprintf(`基于以下检索到的信息，回答用户的问题。
 
 检索到的相关信息：
@@ -96,21 +102,22 @@ func (r *RAGEngine) Query(ctx context.Context, req *RAGRequest) (*RAGResponse, e
 	}, nil
 }
 
-// MatchTalentToJob 使用RAG进行人岗匹配
+// MatchTalentToJob 使用 RAG 支持可解释的人岗匹配。
+// 它会根据职位检索相似人才、根据人才检索相似职位，再让 LLM 总结优势、差距和录用建议。
 func (r *RAGEngine) MatchTalentToJob(ctx context.Context, talentContent, jobContent string) (*MatchResult, error) {
-	// 1. 用职位描述检索相似人才
+	// 1. 用职位描述检索相似人才，作为“历史候选人画像”参考。
 	similarTalents, err := r.vectorStore.SearchSimilarTalents(ctx, jobContent, 10)
 	if err != nil {
 		return nil, err
 	}
 
-	// 2. 用人才信息检索相似职位
+	// 2. 用人才信息检索相似职位，帮助判断候选人更适合哪些岗位方向。
 	similarJobs, err := r.vectorStore.SearchSimilarJobs(ctx, talentContent, 10)
 	if err != nil {
 		return nil, err
 	}
 
-	// 3. 构建匹配上下文
+	// 3. 构建匹配上下文，把目标对象和检索证据放在同一个 prompt 中。
 	contextBuilder := strings.Builder{}
 	contextBuilder.WriteString("【目标人才信息】\n")
 	contextBuilder.WriteString(talentContent)
@@ -131,7 +138,7 @@ func (r *RAGEngine) MatchTalentToJob(ctx context.Context, talentContent, jobCont
 		}
 	}
 
-	// 4. 调用LLM生成匹配分析
+	// 4. 调用 LLM 生成匹配分析，输出可给 HR 直接阅读的建议。
 	prompt := fmt.Sprintf(`作为专业的HR顾问，请分析以下人才与职位的匹配情况：
 
 %s

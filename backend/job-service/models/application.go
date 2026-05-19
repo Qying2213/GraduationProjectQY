@@ -6,7 +6,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// Application represents a job application record
+// Application 表示一次职位投递记录。
+// job-service 查询职位投递列表时会读取这张表，用于 HR 查看某个岗位下的候选人。
 type Application struct {
 	ID          uint           `gorm:"primarykey" json:"id"`
 	CreatedAt   time.Time      `json:"created_at"`
@@ -20,7 +21,8 @@ type Application struct {
 	Notes       string         `gorm:"type:text" json:"notes"`
 }
 
-// Talent represents a candidate/talent record (for joining with applications)
+// Talent 是职位投递查询中用于关联候选人信息的轻量结构。
+// 这里没有复用 talent-service 模型，是为了避免跨服务代码包依赖。
 type Talent struct {
 	ID              uint           `gorm:"primarykey" json:"id"`
 	CreatedAt       time.Time      `json:"created_at"`
@@ -35,7 +37,7 @@ type Talent struct {
 	CurrentPosition string         `gorm:"size:100" json:"current_position"`
 }
 
-// ApplicationWithCandidate represents an application with candidate information
+// ApplicationWithCandidate 是 HR 查看职位投递列表时的聚合返回结构。
 type ApplicationWithCandidate struct {
 	ID             uint      `json:"id"`
 	JobID          uint      `json:"job_id"`

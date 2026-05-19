@@ -6,6 +6,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// Message 是站内信/系统通知模型。
+// 它用于面试通知、系统提醒、offer/反馈等非聊天会话类消息。
 type Message struct {
 	ID         uint           `gorm:"primarykey" json:"id"`
 	CreatedAt  time.Time      `json:"created_at"`

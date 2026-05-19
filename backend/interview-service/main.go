@@ -38,7 +38,8 @@ func main() {
 		log.Fatal("Failed to ensure interview schema:", err)
 	}
 
-	// 初始化处理器
+	// interview-service 负责面试安排、改期、取消、完成、反馈和面试统计。
+	// 它会和 message-service 配合，在创建面试后给候选人发送通知。
 	interviewHandler := handlers.NewInterviewHandler(db)
 
 	// 创建路由
@@ -52,7 +53,7 @@ func main() {
 		c.JSON(200, gin.H{"status": "healthy", "service": "interview-service"})
 	})
 
-	// API 路由
+	// 面试业务路由：招聘侧角色才能管理面试流程。
 	api := r.Group("/api/v1")
 	{
 		interviews := api.Group("/interviews")
@@ -90,6 +91,8 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
+// ensureInterviewSchema 为历史数据库补齐软删除字段和索引。
+// 这里使用轻量 SQL，是为了兼容已有表结构，避免完整 AutoMigrate 影响生产/演示数据。
 func ensureInterviewSchema(db *gorm.DB) error {
 	sqls := []string{
 		"ALTER TABLE interviews ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP",

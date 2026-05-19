@@ -1,7 +1,8 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { ElMessage } from 'element-plus'
 
-// 解析 JWT token 获取过期时间
+// 解析 JWT token 获取过期时间。
+// 前端提前判断过期，可以减少无效请求，也能给用户更明确的重新登录提示。
 function isTokenExpired(token: string): boolean {
     try {
         const payload = token.split('.')[1]
@@ -24,7 +25,8 @@ const instance: AxiosInstance = axios.create({
     }
 })
 
-// Request interceptor
+// 请求拦截器：统一追加 JWT，并处理 FormData 上传时的 Content-Type。
+// 这样页面层只关注业务参数，不需要每个接口重复写认证头。
 instance.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token')
@@ -59,7 +61,8 @@ instance.interceptors.request.use(
     }
 )
 
-// Response interceptor
+// 响应拦截器：统一处理认证失效、权限不足和通用网络错误。
+// 业务校验错误尽量交给具体页面提示，避免重复弹窗。
 instance.interceptors.response.use(
     (response: AxiosResponse) => {
         console.log('[Response]', response.status, response.config.url)

@@ -35,7 +35,8 @@ const (
 	InterviewStatusNoShow    InterviewStatus = "no_show"   // 爽约
 )
 
-// Interview 面试模型
+// Interview 是一次面试安排记录。
+// 它把候选人、职位、面试官、时间、方式和状态放在一起，支撑日程管理和面试流程流转。
 type Interview struct {
 	ID            uint            `json:"id" gorm:"primaryKey"`
 	CreatedAt     time.Time       `json:"created_at"`
@@ -51,15 +52,16 @@ type Interview struct {
 	InterviewerID uint            `json:"interviewer_id" gorm:"index;not null"`
 	Interviewer   string          `json:"interviewer" gorm:"size:100;not null"`
 	Method        InterviewMethod `json:"method" gorm:"size:20;not null;default:'onsite'"`
-	Location      string          `json:"location" gorm:"size:500"`        // 地点或会议链接
+	Location      string          `json:"location" gorm:"size:500"` // 地点或会议链接
 	Status        InterviewStatus `json:"status" gorm:"size:20;not null;default:'scheduled'"`
-	Notes         string          `json:"notes" gorm:"type:text"`          // 备注
-	Feedback      string          `json:"feedback" gorm:"type:text"`       // 面试反馈
-	Rating        int             `json:"rating" gorm:"default:0"`         // 评分 1-5
-	CreatedBy     uint            `json:"created_by" gorm:"not null"`      // 创建人
+	Notes         string          `json:"notes" gorm:"type:text"`     // 备注
+	Feedback      string          `json:"feedback" gorm:"type:text"`  // 面试反馈
+	Rating        int             `json:"rating" gorm:"default:0"`    // 评分 1-5
+	CreatedBy     uint            `json:"created_by" gorm:"not null"` // 创建人
 }
 
-// InterviewFeedback 面试反馈
+// InterviewFeedback 是面试官提交的结构化反馈。
+// 它与 Interview 分表保存，方便多维度记录优势、不足、评分和通过建议。
 type InterviewFeedback struct {
 	ID             uint      `json:"id" gorm:"primaryKey"`
 	CreatedAt      time.Time `json:"created_at"`
@@ -70,10 +72,10 @@ type InterviewFeedback struct {
 	Strengths      string    `json:"strengths" gorm:"type:text"`
 	Weaknesses     string    `json:"weaknesses" gorm:"type:text"`
 	Comments       string    `json:"comments" gorm:"type:text"`
-	Recommendation string `json:"recommendation" gorm:"size:50"` // pass, fail, pending
+	Recommendation string    `json:"recommendation" gorm:"size:50"` // pass, fail, pending
 }
 
-// InterviewScheduleRequest 面试安排请求
+// InterviewScheduleRequest 是创建面试时前端提交的请求结构。
 type InterviewScheduleRequest struct {
 	CandidateID   uint   `json:"candidate_id" binding:"required"`
 	CandidateName string `json:"candidate_name" binding:"required"`

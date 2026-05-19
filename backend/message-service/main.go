@@ -42,13 +42,12 @@ func main() {
 		log.Fatal("Failed to connect database:", err)
 	}
 
-	// Auto-migrate models
+	// 自动迁移消息、通知、会话和聊天消息表，保证本地启动时数据库结构可用。
 	if err := db.AutoMigrate(&models.Message{}, &models.Notice{}, &models.Conversation{}, &models.ChatMessage{}); err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
 
-	// Initialize WebSocket Hub
-	// Requirements: 8.2 (Real-time message delivery), 9.6 (Online status)
+	// 初始化 WebSocket Hub，统一维护在线连接、实时聊天投递和在线状态。
 	hub := websocket.NewHub()
 	go hub.Run()
 
@@ -66,8 +65,7 @@ func main() {
 		c.JSON(200, gin.H{"status": "healthy", "service": "message-service", "port": 8085})
 	})
 
-	// WebSocket endpoint for real-time chat
-	// Requirements: 8.1 (WebSocket connection), 8.2 (Real-time message delivery)
+	// WebSocket 实时聊天入口。JWTAuth 会从 Header 或 query token 中解析用户身份。
 	r.GET("/ws", middleware.JWTAuth(), func(c *gin.Context) {
 		jwtUserID, exists := c.Get("user_id")
 		if !exists {
@@ -82,8 +80,7 @@ func main() {
 		websocket.ServeWs(hub, c.Writer, c.Request, userID)
 	})
 
-	// Online status endpoint
-	// Requirements: 9.6 (Display online status indicator)
+	// 在线用户列表接口，供前端展示当前在线用户总览。
 	r.GET("/api/v1/online-status", middleware.JWTAuth(), func(c *gin.Context) {
 		onlineUsers := hub.GetOnlineUserIDs()
 		c.JSON(200, gin.H{
@@ -96,15 +93,14 @@ func main() {
 		})
 	})
 
-	// Check specific user online status
-	// Requirements: 9.6 (Display online status indicator)
+	// 查询指定用户在线状态，供会话列表或用户卡片显示在线标识。
 	r.GET("/api/v1/online-status/:user_id", middleware.JWTAuth(), func(c *gin.Context) {
 		var userID uint
 		if _, err := c.Params.Get("user_id"); err {
 			c.JSON(400, gin.H{"error": "invalid user_id"})
 			return
 		}
-		// Parse user_id from URL
+		// 从 URL 中解析 user_id。
 		if n, err := parseUint(c.Param("user_id")); err == nil {
 			userID = n
 		} else {
@@ -126,7 +122,7 @@ func main() {
 		})
 	})
 
-	// System messages API (existing)
+	// 站内信接口：处理系统消息、未读数、标记已读和删除等功能。
 	api := r.Group("/api/v1/messages")
 	api.Use(middleware.JWTAuth())
 	{
@@ -138,8 +134,7 @@ func main() {
 		api.DELETE("/:id", messageHandler.DeleteMessage)
 	}
 
-	// Internal API for service-to-service notifications
-	// Uses optional INTERNAL_API_KEY verification when configured.
+	// 服务间通知内部接口：其他服务可通过 X-Internal-Token 写入站内信。
 	r.POST("/internal/messages", func(c *gin.Context) {
 		internalAPIKey := getEnv("INTERNAL_API_KEY", "")
 		if internalAPIKey != "" && c.GetHeader("X-Internal-Token") != internalAPIKey {
@@ -149,47 +144,42 @@ func main() {
 		messageHandler.SendMessage(c)
 	})
 
-	// Chat conversations API (new)
-	// Requirements: 9.1 (Conversation List), 9.2 (Last Message Preview), 9.3 (Unread Count)
+	// 聊天会话接口：提供会话列表、未读数、消息分页、发送消息和已读状态。
 	chatAPI := r.Group("/api/v1/conversations")
 	chatAPI.Use(middleware.JWTAuth())
 	{
-		// GET /conversations - 获取会话列表
-		// Returns conversations sorted by last_message_at DESC with unread count and last message
+		// GET /conversations - 获取会话列表，按最新消息时间排序并带未读数。
 		chatAPI.GET("", chatHandler.GetConversations)
 
 		// POST /conversations - 创建/获取会话
-		// Creates a new conversation or returns existing one with participant
+		// 如果双方会话已存在则复用，否则创建新会话。
 		chatAPI.POST("", chatHandler.CreateOrGetConversation)
 
 		// GET /conversations/unread-count - 获取总未读数
-		// Returns total unread message count across all conversations
+		// 汇总当前用户所有会话的未读消息数量。
 		chatAPI.GET("/unread-count", chatHandler.GetTotalUnreadCount)
 
 		// GET /conversations/:id/messages - 获取会话消息列表（分页）
-		// Returns messages for a conversation with pagination (oldest first for chat display)
-		// Requirements: 8.5 (Chat Message Persistence), 8.6 (Load older messages with pagination)
+		// 分页返回会话消息，按聊天展示需要保持时间顺序。
 		chatAPI.GET("/:id/messages", chatHandler.GetMessages)
 
 		// POST /conversations/:id/messages - 发送消息
-		// Creates a new message in the conversation and updates last_message_id/last_message_at
-		// Requirements: 8.5 (Chat Message Persistence), 8.2 (Real-time delivery via WebSocket)
+		// 持久化新消息，并通过 WebSocket 推送给会话订阅者。
 		chatAPI.POST("/:id/messages", chatHandler.SendMessage)
 
 		// PUT /conversations/:id/read - 标记会话已读
-		// Marks all unread messages from other user as read
-		// Requirements: 9.4 (Mark all messages as read when opening conversation)
+		// 将当前会话中对方发送的未读消息批量标记为已读。
 		chatAPI.PUT("/:id/read", chatHandler.MarkAsRead)
 	}
 	noticeAPI := r.Group("/api/v1/notices")
 	noticeAPI.Use(middleware.JWTAuth(), middleware.RoleAuth("admin", "hr", "hr_manager", "recruiter"))
 	{
 		noticeAPI.GET("", noticeHandler.ListNotices)
-		noticeAPI.GET("/:id",noticeHandler.GetNotice)
+		noticeAPI.GET("/:id", noticeHandler.GetNotice)
 		noticeAPI.POST("", noticeHandler.CreateNotice)
 		noticeAPI.PUT("/:id", noticeHandler.UpdateNotice)
 		noticeAPI.DELETE("/:id", noticeHandler.DeleteNotice)
-	
+
 	}
 
 	log.Println("Message service is running on :8085")
@@ -198,7 +188,7 @@ func main() {
 	}
 }
 
-// parseUint parses a string to uint
+// parseUint 将路径参数中的数字字符串解析为 uint。
 func parseUint(s string) (uint, error) {
 	if s == "" {
 		return 0, fmt.Errorf("empty input")

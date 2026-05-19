@@ -10,20 +10,20 @@ import (
 	"gorm.io/gorm"
 )
 
-// ChatHandler handles chat-related HTTP requests
-// Requirements: 9.1 (Conversation List), 9.2 (Last Message Preview), 9.3 (Unread Count)
+// ChatHandler 处理聊天会话相关 HTTP 接口。
+// 它负责会话列表、未读数、消息分页、发送消息和 WebSocket 实时推送。
 type ChatHandler struct {
 	DB  *gorm.DB
 	Hub *websocket.Hub
 }
 
-// NewChatHandler creates a new ChatHandler instance
+// NewChatHandler 创建聊天处理器，并注入 WebSocket Hub 用于在线消息推送。
 func NewChatHandler(db *gorm.DB, hub *websocket.Hub) *ChatHandler {
 	return &ChatHandler{DB: db, Hub: hub}
 }
 
-// User represents the user model for joining with conversations
-// This is a local struct to avoid importing from user-service
+// User 是聊天查询中用于关联 users 表的本地结构。
+// message-service 不直接依赖 user-service 的代码包，只通过共享数据库读取必要字段。
 type User struct {
 	ID       uint   `gorm:"primarykey" json:"id"`
 	Username string `json:"username"`
@@ -32,17 +32,15 @@ type User struct {
 	Role     string `json:"role"`
 }
 
-// TableName specifies the table name for User
+// TableName 指定本地 User 结构对应 users 表。
 func (User) TableName() string {
 	return "users"
 }
 
-// GetConversations retrieves the list of conversations for the current user
-// GET /conversations
-// Requirements: 9.1 (sorted by last message time), 9.2 (last message preview), 9.3 (unread count)
-// Property 17: Conversation Sorting Order - conversations sorted by last_message_at DESC
+// GetConversations 获取当前用户的会话列表。
+// 会话按最后一条消息时间倒序排列，并附带对方用户信息、最后消息和未读数。
 func (h *ChatHandler) GetConversations(c *gin.Context) {
-	// Get current user ID from JWT
+	// 从 JWT 上下文获取当前用户 ID。
 	jwtUserID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "error": "未授权，请先登录"})
@@ -55,7 +53,7 @@ func (h *ChatHandler) GetConversations(c *gin.Context) {
 		return
 	}
 
-	// Parse pagination parameters
+	// 解析分页参数。
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 	if page < 1 {
@@ -66,18 +64,17 @@ func (h *ChatHandler) GetConversations(c *gin.Context) {
 	}
 	offset := (page - 1) * pageSize
 
-	// Query conversations where current user is a participant
-	// Sorted by last_message_at DESC (Requirement 9.1)
+	// 查询当前用户参与的会话，并按最后消息时间倒序排序。
 	var conversations []models.Conversation
 	query := h.DB.Model(&models.Conversation{}).
 		Where("participant_a = ? OR participant_b = ?", userID, userID).
 		Order("last_message_at DESC NULLS LAST")
 
-	// Get total count
+	// 获取总数。
 	var total int64
 	query.Count(&total)
 
-	// Get paginated results with last message preloaded
+	// 分页查询，并预加载最后一条消息。
 	if err := query.Preload("LastMessage").
 		Offset(offset).
 		Limit(pageSize).
@@ -86,10 +83,10 @@ func (h *ChatHandler) GetConversations(c *gin.Context) {
 		return
 	}
 
-	// Build response with participant info and unread count
+	// 组装对方用户信息、在线状态和未读数。
 	conversationDetails := make([]models.ConversationWithDetails, 0, len(conversations))
 	for _, conv := range conversations {
-		// Determine the other participant
+		// 判断会话中的另一方用户。
 		var otherUserID uint
 		if conv.ParticipantA == userID {
 			otherUserID = conv.ParticipantB
@@ -97,10 +94,10 @@ func (h *ChatHandler) GetConversations(c *gin.Context) {
 			otherUserID = conv.ParticipantA
 		}
 
-		// Get participant info
+		// 查询对方用户基础信息。
 		var participant User
 		if err := h.DB.First(&participant, otherUserID).Error; err != nil {
-			// If user not found, use placeholder
+			// 用户不存在时使用占位信息，避免整个会话列表失败。
 			participant = User{
 				ID:       otherUserID,
 				Username: "Unknown",
@@ -108,24 +105,23 @@ func (h *ChatHandler) GetConversations(c *gin.Context) {
 			}
 		}
 
-		// Count unread messages (messages sent by other user that are not read)
-		// Property 18: Unread Count Accuracy - count messages where is_read=false and sender_id != current user
+		// 只统计对方发送且当前用户未读的消息，保证未读数准确。
 		var unreadCount int64
 		h.DB.Model(&models.ChatMessage{}).
 			Where("conversation_id = ? AND sender_id != ? AND is_read = ?", conv.ID, userID, false).
 			Count(&unreadCount)
 
-		// Build participant info
+		// 构建前端需要的会话参与人信息。
 		participantInfo := &models.UserInfo{
 			ID:       participant.ID,
 			Username: participant.Username,
 			Name:     participant.RealName,
 			Avatar:   participant.Avatar,
 			Role:     participant.Role,
-			IsOnline: h.Hub != nil && h.Hub.IsUserOnline(participant.ID), // Check online status via Hub
+			IsOnline: h.Hub != nil && h.Hub.IsUserOnline(participant.ID), // 通过 Hub 获取在线状态
 		}
 
-		// Use real_name if available, otherwise use username
+		// 优先展示真实姓名，没有时回退到用户名。
 		if participantInfo.Name == "" {
 			participantInfo.Name = participant.Username
 		}
@@ -153,11 +149,10 @@ func (h *ChatHandler) GetConversations(c *gin.Context) {
 	})
 }
 
-// CreateOrGetConversation creates a new conversation or returns an existing one
-// POST /conversations
-// Requirements: 9.1, 9.2, 9.3
+// CreateOrGetConversation 创建或获取一对一会话。
+// 如果两个用户之间已经存在会话，则直接返回旧会话，避免重复创建。
 func (h *ChatHandler) CreateOrGetConversation(c *gin.Context) {
-	// Get current user ID from JWT
+	// 从 JWT 上下文获取当前用户 ID。
 	jwtUserID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "error": "未授权，请先登录"})
@@ -170,26 +165,26 @@ func (h *ChatHandler) CreateOrGetConversation(c *gin.Context) {
 		return
 	}
 
-	// Parse request body
+	// 解析请求体。
 	var req models.CreateConversationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "error": "参数错误: participant_id 是必填项"})
 		return
 	}
 
-	// Validate participant_id
+	// 校验会话参与人。
 	if req.ParticipantID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "error": "参数错误: participant_id 不能为空"})
 		return
 	}
 
-	// Cannot create conversation with self
+	// 不允许和自己创建会话。
 	if req.ParticipantID == userID {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "error": "不能与自己创建会话"})
 		return
 	}
 
-	// Check if participant exists
+	// 检查对方用户是否存在。
 	var participant User
 	if err := h.DB.First(&participant, req.ParticipantID).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -200,14 +195,14 @@ func (h *ChatHandler) CreateOrGetConversation(c *gin.Context) {
 		return
 	}
 
-	// Normalize participant order (smaller ID first) to ensure uniqueness
+	// 固定参与者顺序，保证同一对用户只会生成一个会话。
 	participantA := userID
 	participantB := req.ParticipantID
 	if participantA > participantB {
 		participantA, participantB = participantB, participantA
 	}
 
-	// Try to find existing conversation
+	// 优先查找已存在的会话。
 	var conversation models.Conversation
 	err := h.DB.Where("participant_a = ? AND participant_b = ?", participantA, participantB).
 		Preload("LastMessage").
@@ -216,7 +211,7 @@ func (h *ChatHandler) CreateOrGetConversation(c *gin.Context) {
 	isNew := false
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			// Create new conversation
+			// 不存在时创建新会话。
 			conversation = models.Conversation{
 				ParticipantA: participantA,
 				ParticipantB: participantB,
@@ -232,13 +227,13 @@ func (h *ChatHandler) CreateOrGetConversation(c *gin.Context) {
 		}
 	}
 
-	// Count unread messages
+	// 统计当前会话未读消息。
 	var unreadCount int64
 	h.DB.Model(&models.ChatMessage{}).
 		Where("conversation_id = ? AND sender_id != ? AND is_read = ?", conversation.ID, userID, false).
 		Count(&unreadCount)
 
-	// Build participant info
+	// 构建对方参与人信息。
 	participantInfo := &models.UserInfo{
 		ID:       participant.ID,
 		Username: participant.Username,
@@ -248,7 +243,7 @@ func (h *ChatHandler) CreateOrGetConversation(c *gin.Context) {
 		IsOnline: h.Hub != nil && h.Hub.IsUserOnline(participant.ID), // Check online status via Hub
 	}
 
-	// Use real_name if available, otherwise use username
+	// 优先展示真实姓名，没有时回退到用户名。
 	if participantInfo.Name == "" {
 		participantInfo.Name = participant.Username
 	}
@@ -273,11 +268,9 @@ func (h *ChatHandler) CreateOrGetConversation(c *gin.Context) {
 	})
 }
 
-// GetTotalUnreadCount returns the total unread message count for the current user
-// GET /conversations/unread-count
-// Requirements: 10.1, 10.2
+// GetTotalUnreadCount 获取当前用户所有会话的总未读数。
 func (h *ChatHandler) GetTotalUnreadCount(c *gin.Context) {
-	// Get current user ID from JWT
+	// 从 JWT 上下文获取当前用户 ID。
 	jwtUserID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "error": "未授权，请先登录"})
@@ -290,13 +283,13 @@ func (h *ChatHandler) GetTotalUnreadCount(c *gin.Context) {
 		return
 	}
 
-	// Get all conversation IDs where user is a participant
+	// 找到当前用户参与的所有会话 ID。
 	var conversationIDs []uint
 	h.DB.Model(&models.Conversation{}).
 		Where("participant_a = ? OR participant_b = ?", userID, userID).
 		Pluck("id", &conversationIDs)
 
-	// Count total unread messages across all conversations
+	// 统计所有会话中由对方发送且尚未阅读的消息。
 	var totalUnread int64
 	if len(conversationIDs) > 0 {
 		h.DB.Model(&models.ChatMessage{}).
@@ -313,12 +306,10 @@ func (h *ChatHandler) GetTotalUnreadCount(c *gin.Context) {
 	})
 }
 
-// GetMessages retrieves messages for a conversation with pagination
-// GET /conversations/:id/messages?page=1&page_size=20
-// Requirements: 8.5 (Chat Message Persistence), 8.6 (Load older messages with pagination)
-// Property 15: Chat Message Persistence Round-Trip - messages are persisted and retrievable
+// GetMessages 分页获取指定会话的聊天记录。
+// 只有会话参与者可以读取消息，返回结果按时间正序用于聊天窗口展示。
 func (h *ChatHandler) GetMessages(c *gin.Context) {
-	// Get current user ID from JWT
+	// 从 JWT 上下文获取当前用户 ID。
 	jwtUserID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "error": "未授权，请先登录"})
@@ -331,7 +322,7 @@ func (h *ChatHandler) GetMessages(c *gin.Context) {
 		return
 	}
 
-	// Parse conversation ID from URL
+	// 从 URL 解析会话 ID。
 	conversationIDStr := c.Param("id")
 	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
 	if err != nil {
@@ -339,7 +330,7 @@ func (h *ChatHandler) GetMessages(c *gin.Context) {
 		return
 	}
 
-	// Verify conversation exists and user is a participant
+	// 校验会话存在。
 	var conversation models.Conversation
 	if err := h.DB.First(&conversation, conversationID).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -350,13 +341,13 @@ func (h *ChatHandler) GetMessages(c *gin.Context) {
 		return
 	}
 
-	// Check if user is a participant in this conversation
+	// 校验当前用户确实是会话参与者。
 	if conversation.ParticipantA != userID && conversation.ParticipantB != userID {
 		c.JSON(http.StatusForbidden, gin.H{"code": 403, "error": "权限不足"})
 		return
 	}
 
-	// Parse pagination parameters
+	// 解析分页参数。
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 	if page < 1 {
@@ -367,18 +358,17 @@ func (h *ChatHandler) GetMessages(c *gin.Context) {
 	}
 	offset := (page - 1) * pageSize
 
-	// Query messages for this conversation
-	// Order by created_at ASC (oldest first) for chat display
+	// 查询会话消息，按创建时间正序返回，便于聊天窗口直接展示。
 	var messages []models.ChatMessage
 	query := h.DB.Model(&models.ChatMessage{}).
 		Where("conversation_id = ?", conversationID).
 		Order("created_at ASC")
 
-	// Get total count
+	// 获取总数。
 	var total int64
 	query.Count(&total)
 
-	// Get paginated results
+	// 获取分页结果。
 	if err := query.Offset(offset).Limit(pageSize).Find(&messages).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "error": "获取消息列表失败"})
 		return
@@ -396,12 +386,10 @@ func (h *ChatHandler) GetMessages(c *gin.Context) {
 	})
 }
 
-// SendMessage sends a new message in a conversation
-// POST /conversations/:id/messages
-// Requirements: 8.5 (Chat Message Persistence)
-// Property 15: Chat Message Persistence Round-Trip - messages are persisted and retrievable
+// SendMessage 在指定会话中发送新消息。
+// 消息先持久化到数据库，再通过 WebSocket 推送给双方在线连接。
 func (h *ChatHandler) SendMessage(c *gin.Context) {
-	// Get current user ID from JWT
+	// 从 JWT 上下文获取当前用户 ID。
 	jwtUserID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "error": "未授权，请先登录"})
@@ -414,7 +402,7 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 		return
 	}
 
-	// Parse conversation ID from URL
+	// 从 URL 解析会话 ID。
 	conversationIDStr := c.Param("id")
 	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
 	if err != nil {
@@ -422,7 +410,7 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 		return
 	}
 
-	// Verify conversation exists and user is a participant
+	// 校验会话存在。
 	var conversation models.Conversation
 	if err := h.DB.First(&conversation, conversationID).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -433,32 +421,32 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 		return
 	}
 
-	// Check if user is a participant in this conversation
+	// 校验当前用户确实是会话参与者。
 	if conversation.ParticipantA != userID && conversation.ParticipantB != userID {
 		c.JSON(http.StatusForbidden, gin.H{"code": 403, "error": "权限不足"})
 		return
 	}
 
-	// Parse request body
+	// 解析请求体。
 	var req models.SendMessageRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "error": "参数错误: content 是必填项"})
 		return
 	}
 
-	// Validate content is not empty
+	// 校验消息内容不能为空。
 	if req.Content == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "error": "消息内容不能为空"})
 		return
 	}
 
-	// Set default message type if not provided
+	// 未传消息类型时默认按文本消息处理。
 	messageType := req.MessageType
 	if messageType == "" {
 		messageType = "text"
 	}
 
-	// Create the message
+	// 构建待保存的消息记录。
 	message := models.ChatMessage{
 		ConversationID: uint(conversationID),
 		SenderID:       userID,
@@ -467,21 +455,21 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 		IsRead:         false,
 	}
 
-	// Use transaction to create message and update conversation
+	// 使用事务同时保存消息并更新会话最后消息，保证列表预览一致。
 	tx := h.DB.Begin()
 	if tx.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "error": "创建消息失败"})
 		return
 	}
 
-	// Create the message
+	// 保存消息。
 	if err := tx.Create(&message).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "error": "创建消息失败"})
 		return
 	}
 
-	// Update conversation's last_message_id and last_message_at
+	// 更新会话最后消息和最后消息时间。
 	now := message.CreatedAt
 	if err := tx.Model(&conversation).Updates(map[string]interface{}{
 		"last_message_id": message.ID,
@@ -493,17 +481,15 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 		return
 	}
 
-	// Commit transaction
+	// 提交事务。
 	if err := tx.Commit().Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "error": "创建消息失败"})
 		return
 	}
 
-	// Broadcast message via WebSocket for real-time delivery
-	// Requirements: 8.2 - Deliver messages in real-time via WebSocket
-	// Requirements: 8.4 - Store message and deliver when recipient connects (offline delivery)
+	// 通过 WebSocket 实时推送消息；离线用户后续仍可从数据库读取。
 	if h.Hub != nil {
-		// Determine the recipient (the other participant)
+		// 计算接收方，即会话中的另一位参与者。
 		var recipientID uint
 		if conversation.ParticipantA == userID {
 			recipientID = conversation.ParticipantB
@@ -511,7 +497,7 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 			recipientID = conversation.ParticipantA
 		}
 
-		// Send to recipient via WebSocket if online
+		// 推送到会话订阅者。
 		h.Hub.SendChatMessage(
 			uint(conversationID),
 			message.ID,
@@ -520,13 +506,13 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 			message.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		)
 
-		// Also send to sender (for multi-device sync)
+		// 同步给发送方的其他在线设备。
 		h.Hub.SendToUser(userID, "chat", map[string]interface{}{
 			"conversation_id": conversationID,
 			"message":         message,
 		})
 
-		// Send to recipient
+		// 推送给接收方在线连接。
 		h.Hub.SendToUser(recipientID, "chat", map[string]interface{}{
 			"conversation_id": conversationID,
 			"message":         message,
@@ -540,12 +526,9 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 	})
 }
 
-// MarkAsRead marks all unread messages in a conversation as read
-// PUT /conversations/:id/read
-// Requirements: 9.4 (Mark all messages as read when opening conversation)
-// Property 19: Mark As Read Behavior - all messages where sender_id != current user are marked as read
+// MarkAsRead 将指定会话中对方发来的未读消息标记为已读。
 func (h *ChatHandler) MarkAsRead(c *gin.Context) {
-	// Get current user ID from JWT
+	// 从 JWT 上下文获取当前用户 ID。
 	jwtUserID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "error": "未授权，请先登录"})
@@ -558,7 +541,7 @@ func (h *ChatHandler) MarkAsRead(c *gin.Context) {
 		return
 	}
 
-	// Parse conversation ID from URL
+	// 从 URL 解析会话 ID。
 	conversationIDStr := c.Param("id")
 	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
 	if err != nil {
@@ -566,7 +549,7 @@ func (h *ChatHandler) MarkAsRead(c *gin.Context) {
 		return
 	}
 
-	// Verify conversation exists and user is a participant
+	// 校验会话存在。
 	var conversation models.Conversation
 	if err := h.DB.First(&conversation, conversationID).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -577,20 +560,19 @@ func (h *ChatHandler) MarkAsRead(c *gin.Context) {
 		return
 	}
 
-	// Check if user is a participant in this conversation
+	// 校验当前用户确实是会话参与者。
 	if conversation.ParticipantA != userID && conversation.ParticipantB != userID {
 		c.JSON(http.StatusForbidden, gin.H{"code": 403, "error": "权限不足"})
 		return
 	}
 
-	// Count unread messages before marking as read (for response)
+	// 先统计未读数量，用于响应和已读通知。
 	var unreadCount int64
 	h.DB.Model(&models.ChatMessage{}).
 		Where("conversation_id = ? AND sender_id != ? AND is_read = ?", conversationID, userID, false).
 		Count(&unreadCount)
 
-	// Mark all unread messages from other user as read
-	// Property 19: Only mark messages where sender_id != current user
+	// 只标记对方发送的未读消息，避免把自己发送的消息误算为已读处理对象。
 	result := h.DB.Model(&models.ChatMessage{}).
 		Where("conversation_id = ? AND sender_id != ? AND is_read = ?", conversationID, userID, false).
 		Update("is_read", true)
@@ -600,8 +582,7 @@ func (h *ChatHandler) MarkAsRead(c *gin.Context) {
 		return
 	}
 
-	// Broadcast read notification via WebSocket
-	// Requirements: 9.4 - Mark messages as read
+	// 通过 WebSocket 广播已读通知。
 	if h.Hub != nil && unreadCount > 0 {
 		h.Hub.SendChatReadNotification(uint(conversationID), userID, int(unreadCount))
 	}

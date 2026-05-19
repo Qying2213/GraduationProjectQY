@@ -9,7 +9,10 @@ import './styles/global.scss'
 
 const app = createApp(App)
 
-// 注册所有图标
+// main.ts 是前端应用启动入口。
+// 这里统一挂载 Pinia、Router、Element Plus 和全局样式，所有页面都会共享这些能力。
+
+// 注册 Element Plus 图标，业务页面可以直接使用 <el-icon> 中的图标组件。
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component)
 }

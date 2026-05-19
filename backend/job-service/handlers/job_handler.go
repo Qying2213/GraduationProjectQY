@@ -15,6 +15,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// JobHandler 负责职位服务的接口逻辑。
+// 除了基础 CRUD，它还维护职位详情缓存、浏览热度和投递人数等展示数据。
 type JobHandler struct {
 	DB *gorm.DB
 }
@@ -28,15 +30,19 @@ const (
 	jobHotZSetKey        = "job:hot:zset"
 )
 
+// HotJob 是热门职位接口的返回结构，额外带有 Redis 统计出的浏览次数。
 type HotJob struct {
 	models.Job
 	ViewCount int64 `json:"view_count"`
 }
 
+// buildJobDetailCacheKey 统一生成职位详情缓存键，避免不同接口使用不同 key 规则。
 func buildJobDetailCacheKey(jobID interface{}) string {
 	return cache.BuildKey(jobDetailCachePrefix, jobID)
 }
 
+// incrementJobView 记录职位详情访问次数，用于热门职位排行。
+// Redis 不可用时直接跳过，不影响职位详情主流程。
 func (h *JobHandler) incrementJobView(ctx context.Context, jobID uint) {
 	client := database.GetRedis()
 	if client == nil {
@@ -49,6 +55,7 @@ func (h *JobHandler) incrementJobView(ctx context.Context, jobID uint) {
 	}
 }
 
+// invalidateJobDetailCache 在职位更新或删除后清理详情缓存，避免前端读到旧数据。
 func (h *JobHandler) invalidateJobDetailCache(ctx context.Context, jobID uint) {
 	client := database.GetRedis()
 	if client == nil {
@@ -61,6 +68,7 @@ func (h *JobHandler) invalidateJobDetailCache(ctx context.Context, jobID uint) {
 	}
 }
 
+// removeJobFromHotRanking 在职位删除后从热门排行中移除对应记录。
 func (h *JobHandler) removeJobFromHotRanking(ctx context.Context, jobID uint) {
 	client := database.GetRedis()
 	if client == nil {
@@ -73,6 +81,8 @@ func (h *JobHandler) removeJobFromHotRanking(ctx context.Context, jobID uint) {
 	}
 }
 
+// respondWithFallbackHotJobs 在 Redis 不可用或没有排行数据时返回最新开放职位。
+// 这样热门职位模块不会因为缓存组件异常而空白。
 func (h *JobHandler) respondWithFallbackHotJobs(c *gin.Context) {
 	var jobs []models.Job
 	if err := h.DB.Where("status = ?", "open").Order("created_at DESC").Limit(10).Find(&jobs).Error; err != nil {
@@ -93,7 +103,8 @@ func (h *JobHandler) respondWithFallbackHotJobs(c *gin.Context) {
 	})
 }
 
-// CreateJob 创建职位
+// CreateJob 创建职位。
+// created_by 优先来自 JWT 中的当前用户，保证职位与发布人能正确关联。
 func (h *JobHandler) CreateJob(c *gin.Context) {
 	var job models.Job
 	if err := c.ShouldBindJSON(&job); err != nil {
@@ -151,7 +162,8 @@ func (h *JobHandler) CreateJob(c *gin.Context) {
 	})
 }
 
-// ListJobs 获取职位列表
+// ListJobs 获取职位列表。
+// 支持状态、类型、地区、学历、关键词、级别和经验筛选，并返回每个职位的投递人数。
 func (h *JobHandler) ListJobs(c *gin.Context) {
 	var jobs []models.Job
 
@@ -239,17 +251,17 @@ func (h *JobHandler) ListJobs(c *gin.Context) {
 		models.Job
 		Applicants int64 `json:"applicants"`
 	}
-	
+
 	type ApplicantCount struct {
 		JobID      uint  `json:"job_id"`
 		Applicants int64 `json:"applicants"`
 	}
-	
+
 	jobIDs := make([]uint, 0, len(jobs))
 	for _, job := range jobs {
 		jobIDs = append(jobIDs, job.ID)
 	}
-	
+
 	countMap := make(map[uint]int64)
 	if len(jobIDs) > 0 {
 		var counts []ApplicantCount
@@ -263,12 +275,12 @@ func (h *JobHandler) ListJobs(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch applicant counts"})
 			return
 		}
-	
+
 		for _, item := range counts {
 			countMap[item.JobID] = item.Applicants
 		}
 	}
-	
+
 	jobsWithApplicants := make([]JobWithApplicants, 0, len(jobs))
 	for _, job := range jobs {
 		jobsWithApplicants = append(jobsWithApplicants, JobWithApplicants{
@@ -480,7 +492,6 @@ func (h *JobHandler) GetJobStats(c *gin.Context) {
 // GetJobApplications 获取职位申请列表（HR视角）
 // GET /jobs/:id/applications
 // 支持状态筛选和分页
-// Requirements: 6.1, 6.2
 func (h *JobHandler) GetJobApplications(c *gin.Context) {
 	// 获取职位ID
 	jobID := c.Param("id")

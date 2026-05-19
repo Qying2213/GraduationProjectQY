@@ -47,6 +47,8 @@ func main() {
 	// talents 表由 databaseSQL/schema.sql 管理，避免运行时 AutoMigrate
 	// 在当前 GORM/Postgres 驱动组合下触发数组字段迁移兼容问题。
 
+	// talent-service 是人才库服务，负责人才档案的创建、筛选、搜索、统计和维护。
+	// 只有招聘侧角色可以访问，候选人自助信息会通过 user/resume 服务间接关联到这里。
 	r := gin.Default()
 
 	r.Use(middleware.CORS())
@@ -62,6 +64,7 @@ func main() {
 	api := r.Group("/api/v1/talents")
 	api.Use(middleware.JWTAuth(), middleware.RoleAuth("admin", "hr", "hr_manager", "recruiter"))
 	{
+		// 人才库核心接口：围绕“人才档案”做 CRUD、条件筛选和统计看板数据。
 		api.POST("", talentHandler.CreateTalent)
 		api.GET("", talentHandler.ListTalents)
 		api.GET("/stats", talentHandler.GetTalentStats)

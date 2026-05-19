@@ -1,3 +1,5 @@
+// 本文件提供 resume-service 中较轻量的“AI 解析”能力。
+// 它和完整评估链路共用 OCR 与 Coze 解析，但只产出结构化简历字段，不生成匹配分数。
 package handlers
 
 import (
@@ -20,7 +22,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// AIParseHandler AI解析处理器
+// AIParseHandler 负责解析已有简历记录或临时上传文件，提取文本并返回前端可用的结构化字段。
 type AIParseHandler struct {
 	DB         *gorm.DB
 	CozeClient *ai.CozeClient
@@ -34,7 +36,7 @@ func NewAIParseHandler(db *gorm.DB) *AIParseHandler {
 	}
 }
 
-// AIParseRequest AI解析请求
+// AIParseRequest 同时支持数据库内简历解析和临时上传文件解析。
 type AIParseRequest struct {
 	ResumeID uint   `json:"resume_id" form:"resume_id"`
 	JDText   string `json:"jd_text" form:"jd_text"`
@@ -49,7 +51,8 @@ type parseSource struct {
 	Cleanup  func()
 }
 
-// AIParseResume AI智能解析简历
+// AIParseResume 先执行 OCR，再尝试使用 Coze 做结构化解析。
+// 如果 Coze 不可用，则降级到本地正则提取，保证没有外部凭据时仍可演示。
 func (h *AIParseHandler) AIParseResume(c *gin.Context) {
 	source, ok := h.resolveParseSource(c)
 	if !ok {
@@ -63,7 +66,8 @@ func (h *AIParseHandler) AIParseResume(c *gin.Context) {
 		log.Printf("[AI解析] 开始解析上传文件: 文件=%s", source.FileName)
 	}
 
-	// 1. 使用OCR提取文本
+	// 1. 使用 OCR 提取文本。OCR 失败不立即中断，因为 Coze 仍可能从原文件中
+	// 解析出有效信息。
 	ocrResult, err := ocr.ExtractTextFromFile(source.FilePath)
 	if err != nil {
 		log.Printf("[AI解析] OCR提取失败: %v", err)
@@ -72,7 +76,7 @@ func (h *AIParseHandler) AIParseResume(c *gin.Context) {
 		log.Printf("[AI解析] OCR提取成功: 页数=%d, 文本长度=%d", ocrResult.Pages, len(ocrResult.Text))
 	}
 
-	// 2. 调用Coze AI解析
+	// 2. 调用 Coze AI 解析，失败时降级到本地规则解析。
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 120*time.Second)
 	defer cancel()
 
@@ -94,7 +98,7 @@ func (h *AIParseHandler) AIParseResume(c *gin.Context) {
 		result = h.localParse(ocrResult)
 	}
 
-	// 3. 更新简历状态
+	// 3. 如果来源是数据库中的简历，回写解析结果和 OCR 文本，供后续评估复用。
 	ocrText := ""
 	ocrPages := 0
 	ocrConfidence := 0.0
@@ -132,7 +136,8 @@ func (h *AIParseHandler) AIParseResume(c *gin.Context) {
 	})
 }
 
-// localParse 本地解析（降级方案）
+// localParse 是本地降级解析器。
+// 它只提取最关键字段，因为目标是保证基本可用，而不是替代 LLM 的完整理解能力。
 func (h *AIParseHandler) localParse(ocrResult *ocr.OCRResult) map[string]interface{} {
 	if ocrResult == nil || ocrResult.Text == "" {
 		return map[string]interface{}{
@@ -155,7 +160,8 @@ func (h *AIParseHandler) localParse(ocrResult *ocr.OCRResult) map[string]interfa
 	}
 }
 
-// OCRExtract 单独的OCR提取接口
+// OCRExtract 将 OCR 能力作为独立接口暴露，方便调试和演示。
+// 前端可以通过它展示后续 AI/RAG 步骤实际接收到的文本。
 func (h *AIParseHandler) OCRExtract(c *gin.Context) {
 	source, ok := h.resolveParseSource(c)
 	if !ok {

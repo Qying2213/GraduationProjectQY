@@ -68,7 +68,7 @@ func setupApplicationRouter(handler *ResumeHandler) *gin.Engine {
 }
 
 // TestCreateApplication_Success 测试成功创建申请
-// **Validates: Requirements 2.2**
+// 验证：创建成功后申请状态为 pending。
 func TestCreateApplication_Success(t *testing.T) {
 	db := setupApplicationTestDB()
 	handler := NewResumeHandler(db)
@@ -82,7 +82,7 @@ func TestCreateApplication_Success(t *testing.T) {
 	talent := Talent{ID: 1, Name: "张三", UserID: ptrUint(testCandidateUserID)}
 	db.Create(&talent)
 
-	// 创建简历（满足 Requirement 2.6）
+	// 创建简历，满足“投递前必须有简历”的业务前置条件。
 	talentID := uint(1)
 	resume := models.Resume{ID: 1, TalentID: &talentID, FileName: "resume.pdf"}
 	db.Create(&resume)
@@ -106,15 +106,14 @@ func TestCreateApplication_Success(t *testing.T) {
 		json.Unmarshal(w.Body.Bytes(), &response)
 		assert.Equal(t, float64(0), response["code"])
 
-		// 验证申请状态为 "pending" (Requirement 2.2)
+		// 验证申请状态为 pending。
 		data := response["data"].(map[string]interface{})
 		assert.Equal(t, "pending", data["status"])
 	})
 }
 
 // TestCreateApplication_DuplicatePrevention 测试重复申请检查
-// **Validates: Requirements 2.4**
-// **Property 3: Duplicate Application Prevention**
+// 验证：同一求职者不能重复投递同一职位。
 func TestCreateApplication_DuplicatePrevention(t *testing.T) {
 	db := setupApplicationTestDB()
 	handler := NewResumeHandler(db)
@@ -162,8 +161,7 @@ func TestCreateApplication_DuplicatePrevention(t *testing.T) {
 }
 
 // TestCreateApplication_NoResume 测试无简历时的验证
-// **Validates: Requirements 2.6**
-// **Property 4: Resume Requirement for Application**
+// 验证：没有简历时不能投递职位。
 func TestCreateApplication_NoResume(t *testing.T) {
 	db := setupApplicationTestDB()
 	handler := NewResumeHandler(db)
@@ -198,7 +196,7 @@ func TestCreateApplication_NoResume(t *testing.T) {
 }
 
 // TestCreateApplication_NotificationSent 测试HR通知发送
-// **Validates: Requirements 2.3**
+// 验证：创建投递后会给 HR 发送通知。
 func TestCreateApplication_NotificationSent(t *testing.T) {
 	db := setupApplicationTestDB()
 	handler := NewResumeHandler(db)
@@ -337,14 +335,14 @@ func TestCreateApplication_DifferentJobsSameCandidate(t *testing.T) {
 	})
 }
 
-// TalentWithUser model for testing (with user_id)
+// TalentWithUser 是测试用的人才模型，包含 user_id 字段。
 type TalentWithUser struct {
 	ID     uint   `gorm:"primarykey" json:"id"`
 	Name   string `gorm:"size:100" json:"name"`
 	UserID *uint  `json:"user_id"`
 }
 
-// TableName specifies the table name for TalentWithUser
+// TableName 指定 TalentWithUser 使用 talents 表。
 func (TalentWithUser) TableName() string {
 	return "talents"
 }
@@ -354,8 +352,7 @@ func ptrUint(v uint) *uint {
 }
 
 // TestUpdateApplication_StatusChangeNotification 测试状态更新时发送通知给求职者
-// **Validates: Requirements 3.2, 6.4**
-// **Property 13: Status Update Notification**
+// 验证：状态变更时会给求职者发送通知。
 func TestUpdateApplication_StatusChangeNotification(t *testing.T) {
 	db := setupApplicationTestDB()
 	// 重新创建talents表以包含user_id字段
@@ -417,7 +414,7 @@ func TestUpdateApplication_StatusChangeNotification(t *testing.T) {
 }
 
 // TestUpdateApplication_StatusChangeHistory 测试状态变更历史记录
-// **Validates: Requirements 3.2, 6.4**
+// 验证：状态变更会写入 notes 历史记录。
 func TestUpdateApplication_StatusChangeHistory(t *testing.T) {
 	db := setupApplicationTestDB()
 	// 重新创建talents表以包含user_id字段
@@ -474,7 +471,7 @@ func TestUpdateApplication_StatusChangeHistory(t *testing.T) {
 }
 
 // TestUpdateApplication_MultipleStatusChanges 测试多次状态变更历史累积
-// **Validates: Requirements 3.2, 6.4**
+// 验证：多次状态变更会累积记录并发送多条通知。
 func TestUpdateApplication_MultipleStatusChanges(t *testing.T) {
 	db := setupApplicationTestDB()
 	// 重新创建talents表以包含user_id字段
@@ -547,7 +544,7 @@ func TestUpdateApplication_MultipleStatusChanges(t *testing.T) {
 }
 
 // TestUpdateApplication_InvalidStatus 测试无效状态值
-// **Validates: Requirements 3.3**
+// 验证：无效状态值会被拒绝。
 func TestUpdateApplication_InvalidStatus(t *testing.T) {
 	db := setupApplicationTestDB()
 	handler := NewResumeHandler(db)
@@ -590,7 +587,7 @@ func TestUpdateApplication_InvalidStatus(t *testing.T) {
 }
 
 // TestUpdateApplication_SameStatusNoNotification 测试相同状态不发送通知
-// **Validates: Requirements 3.2, 6.4**
+// 验证：状态未变化时不重复发送通知。
 func TestUpdateApplication_SameStatusNoNotification(t *testing.T) {
 	db := setupApplicationTestDB()
 	// 重新创建talents表以包含user_id字段

@@ -9,6 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// MessageHandler 负责站内信接口。
+// 与 ChatHandler 的实时会话不同，这里主要处理系统通知、面试提醒等收件箱消息。
 type MessageHandler struct {
 	DB *gorm.DB
 }
@@ -17,7 +19,8 @@ func NewMessageHandler(db *gorm.DB) *MessageHandler {
 	return &MessageHandler{DB: db}
 }
 
-// SendMessage 发送消息
+// SendMessage 发送站内信。
+// 该接口既可被前端调用，也可被其他服务通过内部接口复用。
 func (h *MessageHandler) SendMessage(c *gin.Context) {
 	var message models.Message
 	if err := c.ShouldBindJSON(&message); err != nil {
@@ -37,7 +40,8 @@ func (h *MessageHandler) SendMessage(c *gin.Context) {
 	})
 }
 
-// MessageResponse 消息响应结构
+// MessageResponse 是前端消息列表使用的响应结构。
+// 它会补充 sender_name，避免前端再额外请求用户信息。
 type MessageResponse struct {
 	ID         uint   `json:"id"`
 	SenderID   *uint  `json:"sender_id"`
@@ -50,7 +54,8 @@ type MessageResponse struct {
 	CreatedAt  string `json:"created_at"`
 }
 
-// GetMessages 获取消息列表
+// GetMessages 获取当前用户的站内信列表。
+// 支持按消息类型和已读状态筛选，默认按创建时间倒序返回。
 func (h *MessageHandler) GetMessages(c *gin.Context) {
 	// 从 JWT 中获取用户 ID
 	jwtUserID, exists := c.Get("user_id")
@@ -124,7 +129,8 @@ func (h *MessageHandler) GetMessages(c *gin.Context) {
 	})
 }
 
-// MarkAsRead 标记消息为已读
+// MarkAsRead 将单条站内信标记为已读。
+// 条件中带 receiver_id，保证用户只能操作自己的消息。
 func (h *MessageHandler) MarkAsRead(c *gin.Context) {
 	id := c.Param("id")
 
@@ -157,7 +163,7 @@ func (h *MessageHandler) MarkAsRead(c *gin.Context) {
 	})
 }
 
-// GetUnreadCount 获取未读消息数
+// GetUnreadCount 获取当前用户的未读站内信数量。
 func (h *MessageHandler) GetUnreadCount(c *gin.Context) {
 	// 从 JWT 中获取用户 ID
 	jwtUserID, exists := c.Get("user_id")

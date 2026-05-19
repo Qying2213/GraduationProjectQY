@@ -12,7 +12,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// JWT Claims
+// Claims 是 user-service 签发 JWT 时写入的业务载荷。
+// 下游服务会从 token 中读取用户 ID、用户名和角色，用于鉴权和审计。
 type Claims struct {
 	UserID   uint   `json:"user_id"`
 	Username string `json:"username"`
@@ -29,7 +30,8 @@ func getJWTSecret() []byte {
 	return []byte(secret)
 }
 
-// 生成JWT token
+// generateToken 生成登录后的 JWT token。
+// token 有 24 小时有效期，前端后续访问受保护接口时需要放到 Authorization 头中。
 func generateToken(userID uint, username, role string) (string, error) {
 	claims := Claims{
 		UserID:   userID,
@@ -46,6 +48,7 @@ func generateToken(userID uint, username, role string) (string, error) {
 	return token.SignedString(getJWTSecret())
 }
 
+// UserHandler 承担账号相关接口：注册、登录、个人资料和用户列表。
 type UserHandler struct {
 	DB *gorm.DB
 }
@@ -73,7 +76,9 @@ type LoginResponse struct {
 	User  *models.User `json:"user"`
 }
 
-// Register 用户注册
+// Register 用户注册。
+// 候选人注册时会在同一个事务中自动创建 talent 档案，保证候选人后续能直接上传简历、
+// 投递职位，并和人才库数据形成关联。
 func (h *UserHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -152,7 +157,8 @@ func (h *UserHandler) Register(c *gin.Context) {
 	})
 }
 
-// Login 用户登录
+// Login 用户登录。
+// 支持用户名或邮箱登录，密码校验通过后返回 JWT 和用户资料。
 func (h *UserHandler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -193,7 +199,8 @@ func (h *UserHandler) Login(c *gin.Context) {
 	})
 }
 
-// GetProfile 获取用户信息
+// GetProfile 获取当前登录用户信息。
+// 用户 ID 来自 JWTAuth 写入的 Gin context，而不是前端手传，避免越权读取。
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
@@ -214,7 +221,8 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	})
 }
 
-// UpdateProfile 更新用户信息
+// UpdateProfile 更新当前登录用户资料。
+// 只更新请求中明确传入的非空字段，避免把已有资料覆盖为空。
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {

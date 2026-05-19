@@ -18,18 +18,18 @@ import (
 
 var httpClient = &http.Client{Timeout: 300 * time.Second}
 
-// Client wraps Coze API configuration
+// Client 封装 Coze API 调用配置。
 type Client struct {
 	cfg *config.Config
 	log *logging.Logger
 }
 
-// NewClient creates a new Coze client with configuration
+// NewClient 根据配置创建 Coze 客户端。
 func NewClient(cfg *config.Config) *Client {
 	return &Client{cfg: cfg, log: logging.New()}
 }
 
-// uploadFile uploads raw bytes to Coze and returns file_id
+// uploadFile 将文件字节上传到 Coze，并返回后续工作流引用的 file_id。
 func (c *Client) uploadFile(ctx context.Context, filename string, data []byte) (string, error) {
 	url := fmt.Sprintf("%s/v1/files/upload", c.cfg.Coze.BaseURL)
 	c.log.Info("Uploading file to Coze", logging.KV("url", url), logging.KV("filename", filename), logging.KV("size", len(data)))
@@ -99,8 +99,8 @@ func (c *Client) uploadFile(ctx context.Context, filename string, data []byte) (
 	return id, nil
 }
 
-// RunWorkflow uploads the resume to Coze to get file_id, then runs the workflow with that file_id
-// Endpoint: POST {baseURL}/v1/workflow/run (workflow_id in body)
+// RunWorkflow 先上传简历获取 file_id，再携带该 file_id 调用 Coze 工作流。
+// 接口地址为 POST {baseURL}/v1/workflow/run，workflow_id 放在请求体中。
 func (c *Client) RunWorkflow(ctx context.Context, name string, jdText string, resume []byte) (map[string]any, error) {
 	c.log.Info("Coze RunWorkflow started",
 		logging.KV("name", name),
@@ -108,7 +108,7 @@ func (c *Client) RunWorkflow(ctx context.Context, name string, jdText string, re
 		logging.KV("resume_size", len(resume)),
 		logging.KV("workflow_id", c.cfg.Coze.WorkflowID))
 
-	// Ensure filename ends with .pdf
+	// 确保上传文件名以 .pdf 结尾，满足工作流对简历文件类型的预期。
 	filename := name
 	if filename == "" {
 		filename = "resume.pdf"
@@ -118,7 +118,7 @@ func (c *Client) RunWorkflow(ctx context.Context, name string, jdText string, re
 		filename = base + ".pdf"
 	}
 
-	// 1) Upload to get file_id
+	// 1. 上传文件，获取 file_id。
 	fileID, err := c.uploadFile(ctx, filename, resume)
 	if err != nil {
 		c.log.Error("File upload failed", logging.Err(err))
@@ -126,7 +126,7 @@ func (c *Client) RunWorkflow(ctx context.Context, name string, jdText string, re
 	}
 	c.log.Info("File uploaded", logging.KV("file_id", fileID))
 
-	// 2) Run workflow with file_id
+	// 2. 使用 file_id 调用工作流。
 	requestBody := map[string]interface{}{
 		"workflow_id":   c.cfg.Coze.WorkflowID,
 		"response_mode": "blocking",
@@ -188,14 +188,14 @@ func (c *Client) RunWorkflow(ctx context.Context, name string, jdText string, re
 		return nil, fmt.Errorf("coze http %d: %s", resp.StatusCode, string(b))
 	}
 
-	// Coze commonly returns envelope { code, msg, data }
+	// Coze 通常返回 { code, msg, data } 包装结构。
 	var envelope map[string]any
 	if err := json.Unmarshal(b, &envelope); err != nil {
 		c.log.Error("Failed to unmarshal response", logging.Err(err))
 		return map[string]any{"raw": string(b)}, nil
 	}
 
-	// If code exists and is non-zero, return as error with msg
+	// 如果 code 存在且非 0，则按错误处理并返回 msg。
 	if v, ok := envelope["code"]; ok {
 		if f, ok2 := v.(float64); ok2 && int(f) != 0 {
 			msg, _ := envelope["msg"].(string)

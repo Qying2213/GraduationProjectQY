@@ -341,6 +341,9 @@ import {
 } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
+// AIEvaluate 是毕业设计核心演示页。
+// 页面负责把“上传简历 + 选择/输入 JD”组合成一次 AI 评估请求，并展示后端返回的解析、
+// 匹配分、风险项和推荐理由。
 const aiConfigured = ref(false)
 
 // 简历相关
@@ -450,7 +453,8 @@ const handleUploadError = () => {
   ElMessage.error('上传失败，请重试')
 }
 
-// 开始评估
+// 开始评估。
+// 前端只负责提交 resume_id、JD 和可选 job_id；OCR、Embedding、RAG 和 Coze 评分都在后端完成。
 const startEvaluate = async () => {
   if (!uploadedResumeId.value || !jdText.value.trim()) {
     ElMessage.warning('请上传简历并填写职位描述')

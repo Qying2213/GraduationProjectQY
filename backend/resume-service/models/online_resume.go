@@ -171,7 +171,7 @@ func (o *OnlineResume) SetBasicInfo(info BasicInfo) {
 }
 
 // Validate 验证必填字段
-// Requirements 4.6: 验证必填字段（name, phone, email）
+// 当前在线简历至少需要姓名、手机号和邮箱，才能进入后续投递流程。
 func (o *OnlineResume) Validate() error {
 	if o.Name == "" {
 		return errors.New("姓名不能为空")

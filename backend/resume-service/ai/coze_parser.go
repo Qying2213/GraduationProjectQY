@@ -1,3 +1,7 @@
+// Package ai 提供 resume-service 使用的 Coze 简历解析能力。
+//
+// 它和 evaluator 包分开，是因为“解析”和“评分”职责不同：解析负责抽取结构化简历字段，
+// evaluator 负责生成匹配分数和录用建议。
 package ai
 
 import (
@@ -14,7 +18,8 @@ import (
 	"time"
 )
 
-// CozeClient Coze API客户端
+// CozeClient 是 Coze 简历解析工作流的适配器。
+// 该工作流是可选能力；当凭据缺失或外部调用失败时，handler 可以降级到本地正则解析。
 type CozeClient struct {
 	baseURL    string
 	token      string
@@ -44,7 +49,8 @@ func (c *CozeClient) IsConfigured() bool {
 	return c.token != "" && c.workflowID != ""
 }
 
-// ParsedResumeAI AI解析的简历结构
+// ParsedResumeAI 是解析工作流返回的结构化简历画像。
+// 这些字段可用于填充简历/人才信息，为后续更重的评估或推荐逻辑提供基础数据。
 type ParsedResumeAI struct {
 	Name        string           `json:"name"`
 	Phone       string           `json:"phone"`
@@ -77,19 +83,20 @@ type RiskItem struct {
 	Message string `json:"message"`
 }
 
-// ParseResumeWithAI 使用AI解析简历
+// ParseResumeWithAI 上传原始简历，并让 Coze 返回结构化画像。
+// 如果有 JD 文本，也会一起传入，让工作流更关注与岗位相关的技能和经历。
 func (c *CozeClient) ParseResumeWithAI(ctx context.Context, filename string, fileData []byte, jdText string) (*ParsedResumeAI, error) {
 	if !c.IsConfigured() {
 		return nil, fmt.Errorf("Coze API未配置")
 	}
 
-	// 1. 上传文件获取file_id
+	// 1. 上传文件获取 file_id，后续工作流只引用文件标识。
 	fileID, err := c.uploadFile(ctx, filename, fileData)
 	if err != nil {
 		return nil, fmt.Errorf("上传文件失败: %w", err)
 	}
 
-	// 2. 调用工作流
+	// 2. 调用工作流并转换为项目内部的 ParsedResumeAI。
 	result, err := c.runWorkflow(ctx, filename, jdText, fileID)
 	if err != nil {
 		return nil, fmt.Errorf("调用工作流失败: %w", err)
@@ -98,7 +105,7 @@ func (c *CozeClient) ParseResumeWithAI(ctx context.Context, filename string, fil
 	return result, nil
 }
 
-// uploadFile 上传文件到Coze
+// uploadFile 向 handler 层隐藏 Coze multipart 文件上传细节。
 func (c *CozeClient) uploadFile(ctx context.Context, filename string, data []byte) (string, error) {
 	url := c.baseURL + "/v1/files/upload"
 

@@ -14,6 +14,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// InterviewHandler 负责面试流程接口。
+// 它连接面试安排、候选人通知、面试反馈和统计数据，是招聘流程后半段的核心 handler。
 type InterviewHandler struct {
 	DB *gorm.DB
 }
@@ -22,8 +24,8 @@ func NewInterviewHandler(db *gorm.DB) *InterviewHandler {
 	return &InterviewHandler{DB: db}
 }
 
-// CreateInterview 创建面试安排
-// Requirements: 7.1, 7.2, 7.3, 7.5
+// CreateInterview 创建面试安排。
+// 它会校验面试时间必须在未来，落库后异步向候选人发送面试通知。
 func (h *InterviewHandler) CreateInterview(c *gin.Context) {
 	var req struct {
 		models.InterviewScheduleRequest
@@ -38,7 +40,7 @@ func (h *InterviewHandler) CreateInterview(c *gin.Context) {
 		return
 	}
 
-	// Requirement 7.5: 验证面试日期必须是未来时间
+	// 验证面试日期必须是未来时间，避免创建已经过期的面试。
 	interviewDateTime, err := time.ParseInLocation("2006-01-02 15:04", req.Date+" "+req.Time, time.Local)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -92,7 +94,7 @@ func (h *InterviewHandler) CreateInterview(c *gin.Context) {
 		return
 	}
 
-	// Requirement 7.3: 面试安排后发送通知给候选人
+	// 面试安排创建成功后，异步发送通知给候选人。
 	go h.sendInterviewNotification(&interview, req.ApplicationID)
 
 	c.JSON(http.StatusCreated, gin.H{
@@ -102,8 +104,8 @@ func (h *InterviewHandler) CreateInterview(c *gin.Context) {
 	})
 }
 
-// sendInterviewNotification 发送面试通知给候选人
-// Requirement 7.3: 候选人收到面试安排通知
+// sendInterviewNotification 发送面试通知给候选人。
+// 通知通过 message-service 的内部接口落库，后续可由站内信或实时消息展示。
 func (h *InterviewHandler) sendInterviewNotification(interview *models.Interview, applicationID uint) {
 	// 获取候选人的用户ID
 	var userID uint
@@ -182,7 +184,8 @@ func (h *InterviewHandler) sendInterviewNotification(interview *models.Interview
 	h.sendInternalMessage(messageServiceURL, notificationPayload)
 }
 
-// ListInterviews 获取面试列表
+// ListInterviews 获取面试列表。
+// 支持按状态、日期范围、面试官和候选人筛选，用于面试日程页面。
 func (h *InterviewHandler) ListInterviews(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))

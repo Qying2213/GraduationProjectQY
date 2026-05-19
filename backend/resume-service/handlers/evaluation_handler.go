@@ -1,3 +1,6 @@
+// 本文件负责对外暴露已持久化的 AI 评估结果和过程追踪。
+// 昂贵的 AI 执行逻辑在 ai_evaluate_handler.go 中完成；这里主要服务评估列表、
+// 详情页以及前端的 OCR/Embedding/RAG/LLM 流程展示。
 package handlers
 
 import (
@@ -33,6 +36,8 @@ func shouldUseLatestOnly(raw string) bool {
 	}
 }
 
+// latestEvaluationsQuery 让列表页默认只展示每份简历最新一次评估。
+// 同一份简历可能因为调整 JD 或 prompt 被重复评估，但日常看板通常更关心最新结论。
 func (h *EvaluationHandler) latestEvaluationsQuery() *gorm.DB {
 	subQuery := h.DB.Model(&models.EvaluationResult{}).
 		Select("DISTINCT ON (resume_id) *").
@@ -57,7 +62,8 @@ func applyEvaluationFilters(query *gorm.DB, status, evalType, search string) *go
 	return query
 }
 
-// ListEvaluations 获取评估结果列表
+// ListEvaluations 返回 AI 评估结果页使用的分页列表。
+// 它既支持审计式历史记录，也支持 HR 日常使用的“只看最新结果”视图。
 func (h *EvaluationHandler) ListEvaluations(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
@@ -121,7 +127,8 @@ func (h *EvaluationHandler) ListEvaluations(c *gin.Context) {
 	})
 }
 
-// GetEvaluation 获取单个评估结果详情
+// GetEvaluation 返回单条归一化后的评估记录。
+// 格式化步骤会把 PostgreSQL 中存储的 JSON 字符串转换为前端更容易消费的结构。
 func (h *EvaluationHandler) GetEvaluation(c *gin.Context) {
 	id := c.Param("id")
 
@@ -138,7 +145,9 @@ func (h *EvaluationHandler) GetEvaluation(c *gin.Context) {
 	})
 }
 
-// GetEvaluationProcess 获取评估链路详情（OCR/Embedding/RAG/LLM）
+// GetEvaluationProcess 获取评估链路详情（OCR/Embedding/RAG/LLM）。
+// 这个接口是毕业设计中的可解释性展示入口：它不仅返回最终分数，还展示 AI 子步骤
+// 是否执行、是否成功以及失败原因。
 func (h *EvaluationHandler) GetEvaluationProcess(c *gin.Context) {
 	id := c.Param("id")
 
@@ -147,7 +156,8 @@ func (h *EvaluationHandler) GetEvaluationProcess(c *gin.Context) {
 		Order("created_at DESC").
 		First(&processLog).Error
 
-	// 兼容：若没有 evaluation_id 关联记录，则按 resume_id 回查最近一条
+	// 兼容旧数据：若没有 evaluation_id 关联记录，则按 resume_id 回查最近一条。
+	// 这样数据库迁移前产生的评估记录仍能在前端展示过程信息。
 	if err != nil {
 		var eval models.EvaluationResult
 		if e := h.DB.Select("resume_id").First(&eval, id).Error; e == nil && eval.ResumeID > 0 {

@@ -11,10 +11,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// LogHandler 负责操作日志查询接口。
+// 数据源来自各服务通过操作日志中间件写入的 Elasticsearch 索引。
 type LogHandler struct {
 	logService *elasticsearch.LogService
 }
 
+// isESUnavailable 判断 Elasticsearch 是否不可用。
+// 本地演示时 ES 可能未启动，此时返回空数据比直接报 500 更利于页面展示。
 func isESUnavailable(err error) bool {
 	if err == nil {
 		return false
@@ -45,7 +49,8 @@ func NewLogHandler() *LogHandler {
 	}
 }
 
-// QueryLogs 查询日志
+// QueryLogs 查询操作日志。
+// 支持分页、服务名、用户、路径、操作类型、级别、关键词和时间范围筛选。
 func (h *LogHandler) QueryLogs(c *gin.Context) {
 	params := &elasticsearch.QueryParams{}
 
@@ -123,7 +128,8 @@ func (h *LogHandler) QueryLogs(c *gin.Context) {
 	})
 }
 
-// GetStats 获取统计信息
+// GetStats 获取日志统计信息。
+// 默认统计最近 24 小时，也支持前端传入起止时间做审计分析。
 func (h *LogHandler) GetStats(c *gin.Context) {
 	// 默认统计最近24小时
 	endTime := time.Now()
@@ -173,7 +179,7 @@ func (h *LogHandler) GetStats(c *gin.Context) {
 	})
 }
 
-// GetServices 获取服务列表
+// GetServices 返回可筛选的服务列表，供日志页面下拉框使用。
 func (h *LogHandler) GetServices(c *gin.Context) {
 	services := []string{
 		"user-service",
@@ -192,7 +198,7 @@ func (h *LogHandler) GetServices(c *gin.Context) {
 	})
 }
 
-// GetActions 获取操作类型列表
+// GetActions 返回可筛选的操作类型列表，供日志页面下拉框使用。
 func (h *LogHandler) GetActions(c *gin.Context) {
 	actions := []map[string]string{
 		{"value": "登录", "label": "登录"},
@@ -212,7 +218,8 @@ func (h *LogHandler) GetActions(c *gin.Context) {
 	})
 }
 
-// Cleanup 清理旧日志
+// Cleanup 清理旧日志。
+// 默认清理 30 天前的数据，避免 Elasticsearch 索引长期膨胀。
 func (h *LogHandler) Cleanup(c *gin.Context) {
 	// 默认清理30天前的日志
 	days := 30

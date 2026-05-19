@@ -21,25 +21,23 @@
 <script setup lang="ts">
 /**
  * MessageItem.vue - 消息项组件
- * Requirements: 8.3 (Display messages), 9.2 (Message display)
- * 
- * Displays a single chat message with different styles for sent vs received messages.
- * Shows message content, time, and read status.
+ *
+ * 展示单条聊天消息，并根据是否为当前用户发送显示不同样式、时间和已读状态。
  */
 import { Check, Clock } from '@element-plus/icons-vue'
 import type { ChatMessage } from '@/api/chat'
 
 defineProps<{
-  /** The chat message to display */
+  /** 需要展示的聊天消息 */
   message: ChatMessage
-  /** Whether this message was sent by the current user */
+  /** 该消息是否由当前用户发送 */
   isSelf: boolean
 }>()
 
 /**
- * Format timestamp to display time
- * @param timestamp - ISO timestamp string
- * @returns Formatted time string
+ * 格式化消息时间。
+ * @param timestamp ISO 时间字符串
+ * 返回：时间展示文本
  */
 const formatTime = (timestamp: string): string => {
   const date = new Date(timestamp)
@@ -55,14 +53,14 @@ const formatTime = (timestamp: string): string => {
     return timeStr
   }
   
-  // Check if yesterday
+  // 判断是否为昨天。
   const yesterday = new Date(now)
   yesterday.setDate(yesterday.getDate() - 1)
   if (date.toDateString() === yesterday.toDateString()) {
     return `昨天 ${timeStr}`
   }
   
-  // Show date for older messages
+  // 更早的消息显示日期。
   return date.toLocaleDateString('zh-CN', {
     month: '2-digit',
     day: '2-digit'

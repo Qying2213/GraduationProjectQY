@@ -653,7 +653,7 @@ const calendarDays = computed(() => {
     })
   }
 
-  // Current month days
+  // 当前月份日期。
   const today = new Date()
   for (let i = 1; i <= lastDay.getDate(); i++) {
     const date = new Date(year, month, i)

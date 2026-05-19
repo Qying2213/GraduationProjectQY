@@ -13,6 +13,8 @@ import (
 )
 
 func NewRouter(cfg *config.Config, log *logging.Logger, dtService *service.DingTalkService, authSvc *service.AuthService) http.Handler {
+	// evaluator-service 的路由独立于毕业设计主网关。
+	// 它面向独立评估后台，提供登录、候选人、岗位、批量评估、导出和钉钉配置等能力。
 	g := gin.New()
 	g.Use(middleware.RequestID())
 	g.Use(middleware.Recovery(log))
@@ -47,12 +49,12 @@ func NewRouter(cfg *config.Config, log *logging.Logger, dtService *service.DingT
 		api.POST("/evaluate/batch", h.EvaluateBatch)
 		api.POST("/evaluate/batch/graduate", h.EvaluateBatchGraduate) // 从毕业设计后台获取简历评估
 
-		// Position endpoints
+		// 岗位接口：用于独立评估后台维护 JD 模板和岗位来源。
 		positions := api.Group("/positions")
 		positions.GET("", h.GetPositions)
 		positions.POST("/sync", h.SyncPositions)
 
-		// Credentials endpoints
+		// 凭据接口：保存外部招聘系统账号，供批量抓取脚本使用。
 		creds := api.Group("/credentials")
 		creds.GET("/status", h.CredentialStatus)
 		creds.POST("", h.CredentialUpsert)
@@ -74,7 +76,7 @@ func NewRouter(cfg *config.Config, log *logging.Logger, dtService *service.DingT
 		cands.POST("/compare", h.CompareCandidates)
 		cands.POST("/compare/export", h.ExportCompareReport)
 
-		// DingTalk endpoints
+		// 钉钉接口：配置和触发评估结果推送。
 		dt := api.Group("/dingtalk")
 		dt.GET("/config", h.GetDingTalkConfig)            // 获取默认配置（兼容）
 		dt.GET("/configs", h.ListDingTalkConfigs)         // 获取所有配置

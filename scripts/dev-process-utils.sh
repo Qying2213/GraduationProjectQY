@@ -101,8 +101,10 @@ stop_project_port_listeners() {
       [[ -n "$pid" ]] || continue
       [[ "$pid" == "$$" ]] && continue
 
-      if contains_pid "$pid" "${skip_pids[@]}"; then
-        continue
+      if (( ${#skip_pids[@]} > 0 )); then
+        if contains_pid "$pid" "${skip_pids[@]}"; then
+          continue
+        fi
       fi
 
       echo "[PORT] $label: port $port is held by pid $pid"
