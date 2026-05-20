@@ -1,9 +1,133 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
+import fs from 'node:fs'
+import path from 'node:path'
+
+const projectRoot = fileURLToPath(new URL('..', import.meta.url))
+const devLogDir = path.join(projectRoot, 'logs/dev')
+const devPidDir = path.join(projectRoot, 'tmp/pids')
+
+const devServices = [
+    { name: 'user-service', port: 8081, url: 'http://localhost:8081' },
+    { name: 'job-service', port: 8082, url: 'http://localhost:8082' },
+    { name: 'interview-service', port: 8083, url: 'http://localhost:8083' },
+    { name: 'resume-service', port: 8084, url: 'http://localhost:8084' },
+    { name: 'message-service', port: 8085, url: 'http://localhost:8085' },
+    { name: 'talent-service', port: 8086, url: 'http://localhost:8086' },
+    { name: 'recommendation-service', port: 8087, url: 'http://localhost:8087' },
+    { name: 'log-service', port: 8088, url: 'http://localhost:8088' },
+    { name: 'evaluator-service', port: 8090, url: 'http://localhost:8090' },
+    { name: 'gateway', port: 8080, url: 'http://localhost:8080/health' },
+    { name: 'frontend', port: 5173, url: 'http://localhost:5173' }
+]
+
+const sendJson = (res: any, statusCode: number, body: unknown) => {
+    res.statusCode = statusCode
+    res.setHeader('content-type', 'application/json; charset=utf-8')
+    res.end(JSON.stringify(body, null, 2))
+}
+
+const fileStat = (filePath: string) => {
+    try {
+        return fs.statSync(filePath)
+    } catch {
+        return null
+    }
+}
+
+const readPid = (pidFile: string) => {
+    try {
+        const raw = fs.readFileSync(pidFile, 'utf-8').trim()
+        const pid = Number(raw)
+        return Number.isFinite(pid) ? pid : null
+    } catch {
+        return null
+    }
+}
+
+const isPidRunning = (pid: number | null) => {
+    if (!pid) return false
+    try {
+        process.kill(pid, 0)
+        return true
+    } catch {
+        return false
+    }
+}
+
+const readLastLines = (filePath: string, lineCount: number) => {
+    try {
+        const content = fs.readFileSync(filePath, 'utf-8')
+        return sanitizeLogContent(content.split(/\r?\n/).slice(-lineCount).join('\n'))
+    } catch {
+        return ''
+    }
+}
+
+const sanitizeLogContent = (content: string) => {
+    return content
+        .replace(/([?&]token=)[^"'\s&]+/gi, '$1<redacted>')
+        .replace(/(authorization:\s*bearer\s+)[^"'\s]+/gi, '$1<redacted>')
+        .replace(/("token"\s*:\s*")[^"]+(")/gi, '$1<redacted>$2')
+        .replace(/("password"\s*:\s*")[^"]+(")/gi, '$1<redacted>$2')
+}
+
+const buildServiceSummary = () => {
+    return devServices.map((service) => {
+        const logFile = path.join(devLogDir, `${service.name}.log`)
+        const pidFile = path.join(devPidDir, `${service.name}.pid`)
+        const pid = service.name === 'frontend' ? process.pid : readPid(pidFile)
+        const stat = fileStat(logFile)
+
+        return {
+            ...service,
+            pid,
+            running: isPidRunning(pid),
+            logFile,
+            pidFile,
+            logSize: stat?.size ?? 0,
+            updatedAt: stat?.mtime?.toISOString() ?? null
+        }
+    })
+}
+
+const devLogsPlugin = () => ({
+    name: 'local-dev-logs-api',
+    configureServer(server: any) {
+        server.middlewares.use('/__dev_logs/api/services', (_req: any, res: any) => {
+            sendJson(res, 200, {
+                generatedAt: new Date().toISOString(),
+                logDir: devLogDir,
+                pidDir: devPidDir,
+                services: buildServiceSummary()
+            })
+        })
+
+        server.middlewares.use('/__dev_logs/api/log', (req: any, res: any) => {
+            const requestUrl = new URL(req.url || '', 'http://localhost')
+            const name = requestUrl.searchParams.get('name') || ''
+            const lines = Math.min(Number(requestUrl.searchParams.get('lines') || 300), 2000)
+            const service = devServices.find((item) => item.name === name)
+
+            if (!service) {
+                sendJson(res, 404, { message: `unknown service: ${name}` })
+                return
+            }
+
+            const logFile = path.join(devLogDir, `${service.name}.log`)
+            sendJson(res, 200, {
+                service: service.name,
+                logFile,
+                lines,
+                content: readLastLines(logFile, lines)
+            })
+        })
+    }
+})
 
 export default defineConfig({
-    plugins: [vue()],
+    plugins: [vue(), devLogsPlugin()],
     resolve: {
         alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url))
@@ -96,12 +220,6 @@ export default defineConfig({
             '/api/v1/logs': {
                 target: 'http://localhost:8080',
                 changeOrigin: true
-            },
-            // 开发日志大屏（同源代理，避免 iframe 跨端口空白）
-            '/__dev_dashboard': {
-                target: 'http://localhost:8091',
-                changeOrigin: true,
-                rewrite: (path) => path.replace(/^\/__dev_dashboard/, '')
             },
             // 聊天会话服务 (message-service)
             '/api/v1/conversations': {
