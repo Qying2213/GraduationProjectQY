@@ -6,10 +6,12 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -69,11 +71,19 @@ type OCRStepTrace struct {
 // EmbeddingStepTrace 记录语义向量化是否真正执行。
 // 当没有配置 ARK_API_KEY 时会主动跳过这一步，保证本地演示仍能通过 Coze 完成评估。
 type EmbeddingStepTrace struct {
-	Enabled   bool   `json:"enabled"`
-	Success   bool   `json:"success"`
-	Model     string `json:"model"`
-	Dimension int    `json:"dimension"`
-	Error     string `json:"error"`
+	Enabled       bool      `json:"enabled"`
+	Success       bool      `json:"success"`
+	Model         string    `json:"model"`
+	Mode          string    `json:"mode"`
+	Dimension     int       `json:"dimension"`
+	InputLength   int       `json:"input_length"`
+	TextPreview   string    `json:"text_preview"`
+	VectorPreview []float64 `json:"vector_preview"`
+	Norm          float64   `json:"norm"`
+	Mean          float64   `json:"mean"`
+	Min           float64   `json:"min"`
+	Max           float64   `json:"max"`
+	Error         string    `json:"error"`
 }
 
 // RAGHit 是给前端展示的简化检索命中结果。
@@ -114,7 +124,7 @@ func NewAIEvaluateHandler(db *gorm.DB) *AIEvaluateHandler {
 		ModelID:  getEnvDefault("VOLC_MODEL_ID", "doubao-embedding-vision-251215"),
 	}
 
-	ragEnabled := embeddingClient.APIKey != ""
+	ragEnabled := strings.ToLower(getEnvDefault("ENABLE_RAG", "true")) != "false"
 
 	handler := &AIEvaluateHandler{
 		DB:              db,
@@ -563,6 +573,7 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 			resumeEmbedding = embedding
 			trace.Embedding.Success = true
 			trace.Embedding.Dimension = len(embedding)
+			h.fillEmbeddingTrace(&trace.Embedding, resumeText, embedding)
 			fmt.Printf("[Embedding] 成功生成向量，维度: %d\n", len(embedding))
 
 			// ========== 步骤3: RAG 检索相似人才 ==========
@@ -705,7 +716,10 @@ func (h *AIEvaluateHandler) EvaluateByResumeID(c *gin.Context) {
 // getEmbedding 调用 Volcengine Doubao 获取文本向量
 func (h *AIEvaluateHandler) getEmbedding(text string) ([]float64, error) {
 	if h.EmbeddingClient.APIKey == "" {
-		return nil, fmt.Errorf("ARK_API_KEY 未配置")
+		// 本地演示环境通常没有真实 ARK_API_KEY。这里使用确定性的 mock 向量，
+		// 保证 AI 流程页能展示 Embedding/RAG 步骤，推荐服务侧也使用同样的降级策略。
+		fmt.Println("[Embedding] ARK_API_KEY 未配置，使用本地 mock embedding")
+		return mockResumeEmbedding(text), nil
 	}
 
 	// 截断文本避免超长
@@ -766,6 +780,84 @@ func (h *AIEvaluateHandler) getEmbedding(text string) ([]float64, error) {
 	}
 
 	return result.Data.Embedding, nil
+}
+
+func mockResumeEmbedding(text string) []float64 {
+	const dim = 1024
+	embedding := make([]float64, dim)
+	hash := sha256.Sum256([]byte(text))
+	for i := 0; i < dim; i++ {
+		embedding[i] = float64(hash[i%len(hash)])/255.0*2 - 1
+	}
+	return normalizeEmbedding(embedding)
+}
+
+func normalizeEmbedding(embedding []float64) []float64 {
+	var norm float64
+	for _, v := range embedding {
+		norm += v * v
+	}
+	norm = math.Sqrt(norm)
+	if norm == 0 {
+		return embedding
+	}
+	normalized := make([]float64, len(embedding))
+	for i, v := range embedding {
+		normalized[i] = v / norm
+	}
+	return normalized
+}
+
+func (h *AIEvaluateHandler) fillEmbeddingTrace(trace *EmbeddingStepTrace, input string, embedding []float64) {
+	if trace == nil {
+		return
+	}
+	trace.Success = true
+	trace.Model = h.EmbeddingClient.ModelID
+	if h.EmbeddingClient.APIKey == "" {
+		trace.Mode = "mock-local"
+	} else {
+		trace.Mode = "ark-api"
+	}
+	trace.Dimension = len(embedding)
+	trace.InputLength = len(input)
+	trace.TextPreview = tracePreview(input, 220)
+
+	previewSize := 8
+	if len(embedding) < previewSize {
+		previewSize = len(embedding)
+	}
+	trace.VectorPreview = make([]float64, previewSize)
+
+	var sum, squareSum float64
+	for i, v := range embedding {
+		if i < previewSize {
+			trace.VectorPreview[i] = roundFloat(v, 6)
+		}
+		if i == 0 || v < trace.Min {
+			trace.Min = v
+		}
+		if i == 0 || v > trace.Max {
+			trace.Max = v
+		}
+		sum += v
+		squareSum += v * v
+	}
+
+	if len(embedding) > 0 {
+		trace.Mean = roundFloat(sum/float64(len(embedding)), 6)
+		trace.Min = roundFloat(trace.Min, 6)
+		trace.Max = roundFloat(trace.Max, 6)
+	}
+	trace.Norm = roundFloat(math.Sqrt(squareSum), 6)
+}
+
+func roundFloat(value float64, places int) float64 {
+	if places < 0 {
+		return value
+	}
+	factor := math.Pow(10, float64(places))
+	return math.Round(value*factor) / factor
 }
 
 // queryRAG 查询RAG获取相似人才信息
@@ -992,9 +1084,15 @@ func (h *AIEvaluateHandler) EvaluateUploadedFile(c *gin.Context) {
 
 	// 获取其他参数
 	jdText := c.PostForm("jd_text")
+	jobID, _ := strconv.Atoi(c.PostForm("job_id"))
 	candidateName := c.PostForm("candidate_name")
 	if candidateName == "" {
 		candidateName = header.Filename
+	}
+	if jdText == "" && jobID > 0 {
+		if builtJDText, err := h.buildJDTextFromJobID(uint(jobID)); err == nil {
+			jdText = builtJDText
+		}
 	}
 
 	// 保存临时文件用于OCR
@@ -1010,33 +1108,70 @@ func (h *AIEvaluateHandler) EvaluateUploadedFile(c *gin.Context) {
 	// ========== 步骤1: OCR 提取文本 ==========
 	fmt.Println("\n========== [AI评估-上传] 步骤1: OCR文本提取 ==========")
 	ocrResult, err := ocr.ExtractTextFromFile(tempFile.Name())
+	trace := &ProcessTrace{
+		GeneratedAt: time.Now(),
+		OCR: OCRStepTrace{
+			Enabled: true,
+		},
+		Embedding: EmbeddingStepTrace{
+			Enabled: h.RAGEnabled,
+			Model:   h.EmbeddingClient.ModelID,
+		},
+		RAG: RAGStepTrace{
+			Enabled: h.RAGEnabled,
+			TopK:    3,
+			Hits:    []RAGHit{},
+		},
+		LLM: LLMStepTrace{
+			Provider: "coze",
+		},
+	}
 	var resumeText string
 	if err != nil {
 		fmt.Printf("[OCR] 提取失败: %v\n", err)
+		trace.OCR.Success = false
+		trace.OCR.Error = err.Error()
 	} else {
 		resumeText = ocrResult.Text
+		trace.OCR.Success = true
+		trace.OCR.Pages = ocrResult.Pages
+		trace.OCR.Confidence = ocrResult.Confidence
+		trace.OCR.TextLength = len(resumeText)
+		trace.OCR.TextPreview = tracePreview(resumeText, 500)
 		fmt.Printf("[OCR] 成功提取文本，长度: %d 字符，页数: %d\n", len(resumeText), ocrResult.Pages)
 	}
 
 	// ========== 步骤2: Embedding 向量化 ==========
 	var ragContext string
+	var resumeEmbedding []float64
 	if h.RAGEnabled && resumeText != "" {
 		fmt.Println("\n========== [AI评估-上传] 步骤2: Embedding向量化 ==========")
 		embedding, err := h.getEmbedding(resumeText)
 		if err != nil {
 			fmt.Printf("[Embedding] 向量化失败: %v\n", err)
+			trace.Embedding.Success = false
+			trace.Embedding.Error = err.Error()
 		} else {
+			resumeEmbedding = embedding
+			h.fillEmbeddingTrace(&trace.Embedding, resumeText, embedding)
 			fmt.Printf("[Embedding] 成功生成向量，维度: %d\n", len(embedding))
 
 			// ========== 步骤3: RAG 检索 ==========
 			fmt.Println("\n========== [AI评估-上传] 步骤3: RAG检索 ==========")
-			ragResultContext, _, ragErr := h.queryRAG(resumeText, embedding)
+			ragResultContext, ragHits, ragErr := h.queryRAG(resumeText, embedding)
 			if ragErr != nil {
 				fmt.Printf("[RAG] 检索失败: %v\n", ragErr)
+				trace.RAG.Success = false
+				trace.RAG.Error = ragErr.Error()
 			} else {
 				ragContext = ragResultContext
+				trace.RAG.Success = len(ragHits) > 0
+				trace.RAG.Hits = ragHits
 			}
 		}
+	} else if h.RAGEnabled && resumeText == "" {
+		trace.Embedding.Error = "OCR未提取到可用文本"
+		trace.RAG.Error = "OCR未提取到可用文本"
 	}
 
 	// ========== 步骤4: Coze AI 评估 ==========
@@ -1054,12 +1189,66 @@ func (h *AIEvaluateHandler) EvaluateUploadedFile(c *gin.Context) {
 
 	result, err := h.Evaluator.EvaluateResume(ctx, candidateName, enhancedJD, resumeText, pdfBytes)
 	if err != nil {
+		trace.LLM.Success = false
+		trace.LLM.Error = err.Error()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "AI 评估失败: " + err.Error()})
 		return
 	}
+	trace.LLM.Success = true
 
 	parsedName, parsedSchool, parsedPhone, parsedEmail, parsedEducation, parsedExperience, parsedLocation :=
 		extractEvaluationBasicFields(result.ParsedReport, resumeText, candidateName)
+
+	// 将“直接上传评估”的结果也沉淀进业务数据，后续智能推荐、评估列表和 RAG 才能复用。
+	if UploadDir == "" {
+		wd, _ := os.Getwd()
+		UploadDir = filepath.Join(wd, "uploads")
+	}
+	if err := os.MkdirAll(UploadDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "创建上传目录失败: " + err.Error()})
+		return
+	}
+
+	savedFileName := fmt.Sprintf("%d_%s", time.Now().UnixNano(), filepath.Base(header.Filename))
+	savedFilePath := filepath.Join(UploadDir, savedFileName)
+	if err := os.WriteFile(savedFilePath, pdfBytes, 0644); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "保存评估简历失败: " + err.Error()})
+		return
+	}
+
+	resume := models.Resume{
+		FilePath:      savedFilePath,
+		FileName:      header.Filename,
+		FileURL:       "/api/v1/resumes/file/" + savedFileName,
+		FileSize:      int64(len(pdfBytes)),
+		FileType:      ext,
+		ExtractedText: resumeText,
+		MatchScore:    int(result.TotalScore),
+		Status:        "parsed",
+	}
+	if jobID > 0 {
+		jid := uint(jobID)
+		resume.JobID = &jid
+	}
+	if resultJSON, err := json.Marshal(result); err == nil {
+		resume.ParsedData = string(resultJSON)
+	}
+	if err := h.DB.Create(&resume).Error; err != nil {
+		_ = os.Remove(savedFilePath)
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 1, "message": "保存评估结果到简历库失败: " + err.Error()})
+		return
+	}
+
+	if syncedTalentID := h.ensureTalentForResume(&resume, result); syncedTalentID != nil {
+		resume.TalentID = syncedTalentID
+		h.DB.Save(&resume)
+	}
+	if len(resumeEmbedding) > 0 {
+		h.saveResumeEmbedding(&resume, resumeEmbedding)
+	}
+	evalResult := h.saveEvaluationResult(&resume, result, candidateName, "ai_upload")
+	h.saveResumeRAGIndex(resume.ID)
+	h.saveProcessLog(&evalResult.ID, resume.ID, "completed", trace, "")
 
 	fmt.Println("\n========== [AI评估-上传] 完成! ==========")
 
@@ -1068,6 +1257,9 @@ func (h *AIEvaluateHandler) EvaluateUploadedFile(c *gin.Context) {
 		"code":    0,
 		"message": "评估成功",
 		"data": gin.H{
+			"evaluation_id":     evalResult.ID,
+			"resume_id":         resume.ID,
+			"talent_id":         resume.TalentID,
 			"candidate_name":    candidateName,
 			"parsed_name":       parsedName,
 			"parsed_phone":      parsedPhone,
@@ -1191,6 +1383,7 @@ func (h *AIEvaluateHandler) BatchEvaluate(c *gin.Context) {
 				resumeEmbedding = embedding
 				trace.Embedding.Success = true
 				trace.Embedding.Dimension = len(embedding)
+				h.fillEmbeddingTrace(&trace.Embedding, resumeText, embedding)
 
 				ragResultContext, ragHits, ragErr := h.queryRAG(resumeText, resumeEmbedding)
 				ragContext = ragResultContext

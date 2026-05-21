@@ -368,6 +368,11 @@ import {
   Money, Tickets, Check, MagicStick, CircleCheck, Star,
   CircleCheckFilled
 } from '@element-plus/icons-vue'
+import { evaluationApi } from '@/api/resume'
+import { jobApi } from '@/api/job'
+import { talentApi } from '@/api/talent'
+import { recommendationApi } from '@/api/recommendation'
+import type { Job, Talent } from '@/types'
 
 // 类型定义
 interface Recommendation {
@@ -387,6 +392,7 @@ interface Recommendation {
   matchReasons: string[]
   status: string
   dimensions?: MatchDimension[]
+  createdAt?: string
 }
 
 interface MatchDimension {
@@ -394,9 +400,37 @@ interface MatchDimension {
   score: number
 }
 
+interface EvaluationRecord {
+  id?: number
+  resume_id?: number
+  talent_id?: number
+  created_at?: string
+  resume_name?: string
+  parsed_name?: string
+  parsed_location?: string
+  parsed_experience?: string
+  parsed_skills?: string[]
+  match_score?: number
+  match_details?: string[]
+  report_summary?: string
+  report_strengths?: string[]
+  report_recommendation?: string
+  report_dimensions?: Array<{ name?: string; score?: number; dimension?: string }>
+}
+
+interface BackendRecommendation {
+  id: number
+  name: string
+  score: number
+  reason: string
+  match_level: string
+  match_details?: string[]
+}
+
 interface TargetOption {
   id: number
   name: string
+  raw?: Job | Talent
 }
 
 // RecommendPage 是智能推荐演示页。
@@ -414,32 +448,91 @@ const pageSize = ref(6)
 const total = ref(0)
 const showDetailDrawer = ref(false)
 const currentDetail = ref<Recommendation | null>(null)
+const jobTargets = ref<TargetOption[]>([])
+const talentTargets = ref<TargetOption[]>([])
+
+const fallbackJobTargets: TargetOption[] = [
+  { id: 1, name: '高级前端工程师 - 技术部' },
+  { id: 2, name: '产品经理 - 产品部' },
+  { id: 3, name: 'Java后端开发 - 技术部' },
+  { id: 4, name: 'UI设计师 - 设计部' },
+  { id: 5, name: '数据分析师 - 数据部' }
+]
+
+const fallbackTalentTargets: TargetOption[] = [
+  { id: 1, name: '张伟 - 前端工程师' },
+  { id: 2, name: '李娜 - 产品经理' },
+  { id: 3, name: '王强 - 后端工程师' },
+  { id: 4, name: '刘芳 - UI设计师' },
+  { id: 5, name: '陈明 - 数据分析师' }
+]
 
 // 计算目标选项
 const targetOptions = computed<TargetOption[]>(() => {
   if (activeMode.value === 'talent') {
-    return [
-      { id: 1, name: '高级前端工程师 - 技术部' },
-      { id: 2, name: '产品经理 - 产品部' },
-      { id: 3, name: 'Java后端开发 - 技术部' },
-      { id: 4, name: 'UI设计师 - 设计部' },
-      { id: 5, name: '数据分析师 - 数据部' }
-    ]
-  } else {
-    return [
-      { id: 1, name: '张伟 - 前端工程师' },
-      { id: 2, name: '李娜 - 产品经理' },
-      { id: 3, name: '王强 - 后端工程师' },
-      { id: 4, name: '刘芳 - UI设计师' },
-      { id: 5, name: '陈明 - 数据分析师' }
-    ]
+    return jobTargets.value.length > 0 ? jobTargets.value : fallbackJobTargets
   }
+  return talentTargets.value.length > 0 ? talentTargets.value : fallbackTalentTargets
 })
+
+const normalizeTargetSkills = (skills: unknown): string[] => {
+  if (Array.isArray(skills)) {
+    return skills.filter(Boolean).map(String)
+  }
+  if (typeof skills === 'string') {
+    return skills.replace(/[{}]/g, '').split(',').map(item => item.trim()).filter(Boolean)
+  }
+  return []
+}
+
+const loadTargetOptions = async () => {
+  try {
+    const [jobsRes, talentsRes] = await Promise.all([
+      jobApi.list({ page: 1, page_size: 100, status: 'open' }),
+      talentApi.list({ page: 1, page_size: 100, status: 'active' })
+    ])
+
+    const jobs = (jobsRes.data?.data?.jobs || []) as Job[]
+    jobTargets.value = jobs.map(job => ({
+      id: job.id,
+      name: `${job.title}${job.department ? ` - ${job.department}` : ''}`,
+      raw: {
+        ...job,
+        skills: normalizeTargetSkills(job.skills)
+      }
+    }))
+
+    const talents = (talentsRes.data?.data?.talents || []) as Talent[]
+    talentTargets.value = talents.map(talent => {
+      const talentWithPosition = talent as Talent & { current_position?: string }
+      return {
+        id: talentWithPosition.id,
+        name: `${talentWithPosition.name}${talentWithPosition.current_position ? ` - ${talentWithPosition.current_position}` : ''}`,
+        raw: {
+          ...talentWithPosition,
+          skills: normalizeTargetSkills(talentWithPosition.skills)
+        }
+      }
+    })
+
+    if (!selectedTarget.value && targetOptions.value.length > 0) {
+      selectedTarget.value = targetOptions.value[0].id
+    }
+  } catch (error) {
+    console.error('[RecommendPage] 加载真实职位/人才失败，使用演示选项:', error)
+    if (!selectedTarget.value && targetOptions.value.length > 0) {
+      selectedTarget.value = targetOptions.value[0].id
+    }
+  }
+}
 
 // 监听模式切换
 watch(activeMode, () => {
-  selectedTarget.value = null
+  selectedTarget.value = targetOptions.value[0]?.id || null
   recommendations.value = []
+  if (selectedTarget.value) {
+    loadRecommendations()
+  }
 })
 
 // 监听筛选条件变化
@@ -723,12 +816,147 @@ const generateMockRecommendations = (): Recommendation[] => {
   }
 }
 
+const toNumber = (value: unknown, fallback = 0) => {
+  const num = Number(value)
+  return Number.isFinite(num) ? num : fallback
+}
+
+const parseExperienceYears = (value: unknown) => {
+  const matched = String(value || '').match(/\d+/)
+  return matched ? Number(matched[0]) : 0
+}
+
+const normalizeEvaluatedRecommendation = (item: EvaluationRecord): Recommendation => {
+  const skills = Array.isArray(item.parsed_skills) ? item.parsed_skills.filter(Boolean) : []
+  const reasons = [
+    ...(Array.isArray(item.match_details) ? item.match_details : []),
+    ...(Array.isArray(item.report_strengths) ? item.report_strengths : []),
+    item.report_summary,
+    item.report_recommendation
+  ].filter(Boolean) as string[]
+
+  const dimensions = Array.isArray(item.report_dimensions)
+    ? item.report_dimensions.map((dimension) => ({
+        name: dimension.name || dimension.dimension || '综合能力',
+        score: toNumber(dimension.score, toNumber(item.match_score, 0))
+      }))
+    : [{ name: 'AI评估分数', score: toNumber(item.match_score, 0) }]
+
+  return {
+    id: item.talent_id || 100000 + toNumber(item.id || item.resume_id),
+    name: item.parsed_name || item.resume_name || `评估简历 #${item.resume_id || item.id}`,
+    position: 'AI评估候选人',
+    location: item.parsed_location || '未提取',
+    experience: parseExperienceYears(item.parsed_experience),
+    skills,
+    matchedSkills: skills,
+    matchScore: Math.round(toNumber(item.match_score, 0) * 10) / 10,
+    matchReasons: reasons.length > 0 ? reasons.slice(0, 4) : ['来自 AI 简历评估结果，已同步进入智能推荐候选池'],
+    status: toNumber(item.match_score, 0) >= 75 ? 'active' : 'normal',
+    dimensions,
+    createdAt: item.created_at
+  }
+}
+
+const currentTarget = computed(() => {
+  return targetOptions.value.find(item => item.id === selectedTarget.value)
+})
+
+const normalizeBackendRecommendation = (item: BackendRecommendation): Recommendation => {
+  const rawTargetPool = activeMode.value === 'talent' ? talentTargets.value : jobTargets.value
+  const raw = rawTargetPool.find(target => target.id === item.id)?.raw as Partial<Job & Talent> | undefined
+  const rawRecord = raw as Partial<Job & Talent> & { current_position?: string }
+  const skills = normalizeTargetSkills(raw?.skills)
+
+  return {
+    id: item.id,
+    name: item.name,
+    position: activeMode.value === 'talent' ? rawRecord?.current_position || '推荐候选人' : item.name,
+    company: activeMode.value === 'job' ? raw?.department : undefined,
+    location: raw?.location || '未填写',
+    salary: activeMode.value === 'talent' ? raw?.salary : undefined,
+    salaryRange: activeMode.value === 'job' ? raw?.salary : undefined,
+    experience: typeof raw?.experience === 'number' ? raw.experience : undefined,
+    type: activeMode.value === 'job' ? raw?.type : undefined,
+    skills,
+    matchedSkills: skills.slice(0, 4),
+    matchScore: Math.round(toNumber(item.score) * 10) / 10,
+    matchReasons: item.match_details?.length ? item.match_details : [item.reason || '基于真实岗位/人才数据计算得到'],
+    status: item.match_level === 'high' ? 'active' : 'normal',
+    dimensions: [
+      { name: '综合匹配', score: toNumber(item.score) }
+    ]
+  }
+}
+
+const loadBackendRecommendations = async (): Promise<Recommendation[]> => {
+  const target = currentTarget.value
+  if (!target?.raw) {
+    return []
+  }
+
+  if (activeMode.value === 'talent') {
+    const job = target.raw as Job
+    const response = await recommendationApi.recommendTalentsForJob({
+      id: job.id,
+      title: job.title,
+      skills: normalizeTargetSkills(job.skills),
+      location: job.location,
+      requirements: normalizeTargetSkills(job.requirements),
+      level: job.level,
+      salary: job.salary,
+      department: job.department
+    })
+    return ((response.data?.data || []) as BackendRecommendation[]).map(normalizeBackendRecommendation)
+  }
+
+  const talent = target.raw as Talent
+  const response = await recommendationApi.recommendJobsForTalent({
+    id: talent.id,
+    name: talent.name,
+    skills: normalizeTargetSkills(talent.skills),
+    experience: talent.experience,
+    education: talent.education,
+    location: talent.location,
+    salary: talent.salary,
+    current_position: (talent as Talent & { current_position?: string }).current_position
+  })
+  return ((response.data?.data || []) as BackendRecommendation[]).map(normalizeBackendRecommendation)
+}
+
+const loadEvaluatedRecommendations = async (): Promise<Recommendation[]> => {
+  if (activeMode.value !== 'talent') {
+    return []
+  }
+
+  const response = await evaluationApi.list({
+    page: 1,
+    page_size: 50,
+    status: 'completed'
+  })
+  const payload = response.data?.data as { evaluations?: EvaluationRecord[] } | undefined
+  const evaluations = payload?.evaluations || []
+
+  return evaluations
+    .map(normalizeEvaluatedRecommendation)
+    .filter(item => item.matchScore > 0)
+}
+
 // 加载推荐数据
-const loadRecommendations = () => {
+const loadRecommendations = async () => {
   loading.value = true
 
-  setTimeout(() => {
-    let data = generateMockRecommendations()
+  try {
+    const backendData = await loadBackendRecommendations()
+    let data = backendData.length > 0 ? backendData : generateMockRecommendations()
+    const evaluatedData = await loadEvaluatedRecommendations()
+    if (evaluatedData.length > 0) {
+      const existingIds = new Set(data.map(item => item.id))
+      data = [
+        ...evaluatedData.filter(item => !existingIds.has(item.id)),
+        ...data
+      ]
+    }
 
     // 筛选最低匹配度
     data = data.filter(item => item.matchScore >= minMatchScore.value)
@@ -738,12 +966,19 @@ const loadRecommendations = () => {
       data.sort((a, b) => b.matchScore - a.matchScore)
     } else if (sortBy.value === 'experience' && activeMode.value === 'talent') {
       data.sort((a, b) => (b.experience || 0) - (a.experience || 0))
+    } else if (sortBy.value === 'latest') {
+      data.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
     }
 
     total.value = data.length
     recommendations.value = data
+  } catch (error) {
+    console.error('[RecommendPage] 加载已评估推荐失败:', error)
+    recommendations.value = generateMockRecommendations().filter(item => item.matchScore >= minMatchScore.value)
+    total.value = recommendations.value.length
+  } finally {
     loading.value = false
-  }, 800)
+  }
 }
 
 // 刷新推荐
@@ -783,10 +1018,10 @@ const handlePageChange = () => {
 }
 
 // 初始化
-onMounted(() => {
-  // 默认选择第一个选项
-  if (targetOptions.value.length > 0) {
-    selectedTarget.value = targetOptions.value[0].id
+onMounted(async () => {
+  await loadTargetOptions()
+  if (selectedTarget.value) {
+    loadRecommendations()
   }
 })
 </script>

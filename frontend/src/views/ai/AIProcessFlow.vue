@@ -195,8 +195,54 @@
               </el-tag>
               <el-tag type="info">模型: {{ processTrace?.embedding?.model || '-' }}</el-tag>
               <el-tag v-if="processTrace?.embedding?.dimension">向量维度: {{ processTrace.embedding.dimension }}</el-tag>
+              <el-tag v-if="processTrace?.embedding?.mode" type="info">
+                模式: {{ getEmbeddingModeText(processTrace.embedding.mode) }}
+              </el-tag>
+              <el-tag v-if="processTrace?.embedding?.input_length">输入长度: {{ processTrace.embedding.input_length }}</el-tag>
             </div>
             <p v-if="processTrace?.embedding?.error" class="error-text">错误: {{ processTrace.embedding.error }}</p>
+            <div v-if="processTrace?.embedding?.vector_preview?.length" class="embedding-result">
+              <div class="embedding-summary">
+                <div class="summary-card">
+                  <span class="summary-label">向量范数</span>
+                  <strong>{{ formatNumber(processTrace.embedding.norm) }}</strong>
+                </div>
+                <div class="summary-card">
+                  <span class="summary-label">均值</span>
+                  <strong>{{ formatNumber(processTrace.embedding.mean) }}</strong>
+                </div>
+                <div class="summary-card">
+                  <span class="summary-label">最小值</span>
+                  <strong>{{ formatNumber(processTrace.embedding.min) }}</strong>
+                </div>
+                <div class="summary-card">
+                  <span class="summary-label">最大值</span>
+                  <strong>{{ formatNumber(processTrace.embedding.max) }}</strong>
+                </div>
+              </div>
+
+              <div class="vector-preview">
+                <div class="vector-title">向量前 8 维预览</div>
+                <div class="vector-values">
+                  <span
+                    v-for="(value, idx) in processTrace.embedding.vector_preview"
+                    :key="idx"
+                    class="vector-value"
+                  >
+                    d{{ idx + 1 }}={{ formatNumber(value) }}
+                  </span>
+                </div>
+              </div>
+
+              <el-input
+                v-if="processTrace?.embedding?.text_preview"
+                :model-value="processTrace.embedding.text_preview"
+                type="textarea"
+                :rows="4"
+                readonly
+                class="trace-preview"
+              />
+            </div>
           </div>
 
           <!-- RAG检索结果 -->
@@ -364,6 +410,20 @@ const parseDimensions = (dimensionsStr: string) => {
   } catch {
     return []
   }
+}
+
+const formatNumber = (value: any) => {
+  const num = Number(value)
+  if (!Number.isFinite(num)) return '-'
+  return num.toFixed(6).replace(/0+$/, '').replace(/\.$/, '')
+}
+
+const getEmbeddingModeText = (mode: string) => {
+  const modeMap: Record<string, string> = {
+    'ark-api': '真实 API',
+    'mock-local': '本地演示向量'
+  }
+  return modeMap[mode] || mode
 }
 
 // 状态相关
@@ -588,6 +648,66 @@ onUnmounted(() => {
 
   .trace-preview {
     margin-top: 8px;
+  }
+
+  .embedding-result {
+    margin-top: 12px;
+  }
+
+  .embedding-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+
+    .summary-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 12px;
+
+      .summary-label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      strong {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        color: var(--text-primary);
+      }
+    }
+  }
+
+  .vector-preview {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+
+    .vector-title {
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .vector-values {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .vector-value {
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: #eef6ff;
+      color: #337ecc;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+    }
   }
 
   .rag-hits {

@@ -411,7 +411,11 @@ func (h *RecommendationHandler) RecommendTalentsForJob(c *gin.Context) {
 			Location   string `json:"location"`
 			Salary     string `json:"salary"`
 		}
-		h.DB.Table("talents").Where("status = ?", "active").Limit(20).Find(&dbTalents)
+		h.DB.Table("talents").
+			Where("status = ?", "active").
+			Order("updated_at DESC, id DESC").
+			Limit(100).
+			Find(&dbTalents)
 		for _, t := range dbTalents {
 			skills := []string{}
 			if t.Skills != "" {
