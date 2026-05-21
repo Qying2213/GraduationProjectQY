@@ -4,7 +4,7 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "基于 Go 微服务架构的智能人才运营平台 API。Swagger 注释文档以 API Gateway 对外暴露的接口为准。\n认证接口以外的大多数后台接口需要在请求头中携带 JWT：Authorization: Bearer \u003ctoken\u003e。",
+        "description": "基于 Go 微服务架构的智能人才运营平台 API。本文档以 API Gateway 对外暴露的核心业务接口为准，不包含独立运行的 evaluator-service 管理端接口。\n认证流程：先调用 /api/v1/login 获取 token，再在需要登录的接口中携带请求头 Authorization: Bearer \u003ctoken\u003e。\n主要模块：认证与用户、人才库、职位、简历与投递、AI 简历评估、智能推荐/RAG、消息会话、公告、面试、操作日志和统计看板。\n内部接口带有 InternalToken 标记，仅用于服务间调用或本地联调，不建议前端直接访问。",
         "title": "智能人才运营平台 API",
         "contact": {},
         "version": "1.1.0"
@@ -67,12 +67,12 @@
                 "summary": "根据简历 ID 发起 AI 评估",
                 "parameters": [
                     {
-                        "description": "评估参数",
+                        "description": "评估参数：简历 ID 和目标职位 ID",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.AIEvaluateRequest"
                         }
                     }
                 ],
@@ -107,12 +107,12 @@
                 "summary": "批量发起 AI 评估",
                 "parameters": [
                     {
-                        "description": "批量评估参数",
+                        "description": "批量评估参数：简历 ID 列表和目标职位 ID",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.BatchEvaluateRequest"
                         }
                     }
                 ],
@@ -214,12 +214,12 @@
                 "summary": "OCR 文本提取",
                 "parameters": [
                     {
-                        "description": "OCR 参数",
+                        "description": "OCR 参数：文件地址或待提取文本",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.OCRRequest"
                         }
                     }
                 ],
@@ -248,12 +248,12 @@
                 "summary": "AI 智能解析简历",
                 "parameters": [
                     {
-                        "description": "解析参数",
+                        "description": "AI 解析参数：简历文本",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.ResumeTextRequest"
                         }
                     }
                 ],
@@ -342,12 +342,12 @@
                 "summary": "创建职位投递",
                 "parameters": [
                     {
-                        "description": "投递参数",
+                        "description": "投递参数：职位、简历、人才和附言",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.ApplicationCreateRequest"
                         }
                     }
                 ],
@@ -388,12 +388,12 @@
                         "required": true
                     },
                     {
-                        "description": "状态参数",
+                        "description": "投递状态参数：目标状态和备注",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.StatusUpdateRequest"
                         }
                     }
                 ],
@@ -496,12 +496,12 @@
                 "summary": "创建或获取会话",
                 "parameters": [
                     {
-                        "description": "会话参数",
+                        "description": "会话参数：目标用户和关联职位",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.ConversationCreateRequest"
                         }
                     }
                 ],
@@ -611,12 +611,12 @@
                         "required": true
                     },
                     {
-                        "description": "聊天消息",
+                        "description": "聊天消息：文本内容和消息类型",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.ChatMessageRequest"
                         }
                     }
                 ],
@@ -914,12 +914,12 @@
                 "summary": "创建面试安排",
                 "parameters": [
                     {
-                        "description": "面试安排",
+                        "description": "面试安排：投递、人才、职位、面试官、时间和地点",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.InterviewUpsertRequest"
                         }
                     }
                 ],
@@ -1122,12 +1122,12 @@
                         "required": true
                     },
                     {
-                        "description": "面试信息",
+                        "description": "面试信息：面试官、时间、地点和备注",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.InterviewUpsertRequest"
                         }
                     }
                 ],
@@ -1234,11 +1234,11 @@
                         "required": true
                     },
                     {
-                        "description": "完成参数",
+                        "description": "完成参数：结果和备注",
                         "name": "request",
                         "in": "body",
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.CompleteInterviewRequest"
                         }
                     }
                 ],
@@ -1311,12 +1311,12 @@
                         "required": true
                     },
                     {
-                        "description": "面试反馈",
+                        "description": "面试反馈：评分、反馈、建议和结果",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.InterviewFeedbackRequest"
                         }
                     }
                 ],
@@ -1357,12 +1357,12 @@
                         "required": true
                     },
                     {
-                        "description": "改期参数",
+                        "description": "改期参数：新时间和改期原因",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RescheduleInterviewRequest"
                         }
                     }
                 ],
@@ -1488,12 +1488,12 @@
                 "summary": "创建职位",
                 "parameters": [
                     {
-                        "description": "职位信息",
+                        "description": "职位信息：标题、部门、薪资、技能、描述和要求",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.JobUpsertRequest"
                         }
                     }
                 ],
@@ -1601,12 +1601,12 @@
                         "required": true
                     },
                     {
-                        "description": "职位信息",
+                        "description": "职位信息：标题、部门、薪资、技能、描述和要求",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.JobUpsertRequest"
                         }
                     }
                 ],
@@ -1707,12 +1707,12 @@
                 "summary": "用户登录",
                 "parameters": [
                     {
-                        "description": "登录参数",
+                        "description": "登录参数：用户名/邮箱和密码",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.LoginRequest"
                         }
                     }
                 ],
@@ -2028,12 +2028,12 @@
                 "summary": "发送系统消息",
                 "parameters": [
                     {
-                        "description": "消息内容",
+                        "description": "消息内容：接收人、标题、内容和消息类型",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.MessageCreateRequest"
                         }
                     }
                 ],
@@ -2246,12 +2246,12 @@
                 "summary": "创建公告",
                 "parameters": [
                     {
-                        "description": "公告内容",
+                        "description": "公告内容：标题、正文、状态、置顶和优先级",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.NoticeUpsertRequest"
                         }
                     }
                 ],
@@ -2324,12 +2324,12 @@
                         "required": true
                     },
                     {
-                        "description": "公告内容",
+                        "description": "公告内容：标题、正文、状态、置顶和优先级",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.NoticeUpsertRequest"
                         }
                     }
                 ],
@@ -2483,12 +2483,12 @@
                 "summary": "更新当前用户资料",
                 "parameters": [
                     {
-                        "description": "用户资料",
+                        "description": "用户资料：姓名、手机号、头像和邮箱",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.ProfileUpdateRequest"
                         }
                     }
                 ],
@@ -2528,12 +2528,12 @@
                 "summary": "生成推荐归因报告",
                 "parameters": [
                     {
-                        "description": "归因参数",
+                        "description": "归因参数：人才 ID、职位 ID 和匹配文本",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RecommendationRequest"
                         }
                     }
                 ],
@@ -2567,12 +2567,12 @@
                 "summary": "批量推荐",
                 "parameters": [
                     {
-                        "description": "批量推荐参数",
+                        "description": "批量推荐参数：人才、职位或简历范围",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RecommendationRequest"
                         }
                     }
                 ],
@@ -2606,12 +2606,12 @@
                 "summary": "为人才推荐职位",
                 "parameters": [
                     {
-                        "description": "人才画像",
+                        "description": "人才画像：人才 ID、简历 ID、画像文本和返回数量",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RecommendationRequest"
                         }
                     }
                 ],
@@ -2670,12 +2670,12 @@
                 "summary": "索引单个职位",
                 "parameters": [
                     {
-                        "description": "职位索引参数",
+                        "description": "职位索引参数：职位 ID 和文本内容",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RAGIndexRequest"
                         }
                     }
                 ],
@@ -2709,12 +2709,12 @@
                 "summary": "索引单份简历",
                 "parameters": [
                     {
-                        "description": "简历索引参数",
+                        "description": "简历索引参数：简历 ID 和文本内容",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RAGIndexRequest"
                         }
                     }
                 ],
@@ -2748,12 +2748,12 @@
                 "summary": "索引单个人才",
                 "parameters": [
                     {
-                        "description": "人才索引参数",
+                        "description": "人才索引参数：人才 ID 和文本内容",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RAGIndexRequest"
                         }
                     }
                 ],
@@ -2787,12 +2787,12 @@
                 "summary": "RAG 人岗匹配",
                 "parameters": [
                     {
-                        "description": "匹配参数",
+                        "description": "RAG 匹配参数：人才、职位、简历或文本",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RecommendationRequest"
                         }
                     }
                 ],
@@ -2826,12 +2826,12 @@
                 "summary": "RAG 查询",
                 "parameters": [
                     {
-                        "description": "RAG 查询参数",
+                        "description": "RAG 查询参数：问题、TopK 和检索类型",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RAGQueryRequest"
                         }
                     }
                 ],
@@ -2865,12 +2865,12 @@
                 "summary": "语义相似度匹配",
                 "parameters": [
                     {
-                        "description": "文本参数",
+                        "description": "语义匹配参数：人才/职位文本和返回数量",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RecommendationRequest"
                         }
                     }
                 ],
@@ -2929,12 +2929,12 @@
                 "summary": "为职位推荐人才",
                 "parameters": [
                     {
-                        "description": "职位画像",
+                        "description": "职位画像：职位 ID、岗位文本和返回数量",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RecommendationRequest"
                         }
                     }
                 ],
@@ -2963,12 +2963,12 @@
                 "summary": "用户注册",
                 "parameters": [
                     {
-                        "description": "注册参数",
+                        "description": "注册参数：用户名、邮箱、密码、角色、姓名和手机号",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RegisterRequest"
                         }
                     }
                 ],
@@ -3165,12 +3165,12 @@
                 "summary": "简历职位匹配",
                 "parameters": [
                     {
-                        "description": "匹配参数",
+                        "description": "匹配参数：简历 ID、职位 ID 或待匹配文本",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.ResumeMatchRequest"
                         }
                     }
                 ],
@@ -3227,12 +3227,12 @@
                 "summary": "保存在线简历",
                 "parameters": [
                     {
-                        "description": "在线简历",
+                        "description": "在线简历：基础信息、教育经历、技能、项目经历和个人总结",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.OnlineResumeRequest"
                         }
                     }
                 ],
@@ -3261,12 +3261,12 @@
                 "summary": "解析简历文本",
                 "parameters": [
                     {
-                        "description": "简历文本",
+                        "description": "简历文本：用于解析结构化字段",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.ResumeTextRequest"
                         }
                     }
                 ],
@@ -3295,12 +3295,12 @@
                 "summary": "简历风险综合检查",
                 "parameters": [
                     {
-                        "description": "风险检查参数",
+                        "description": "风险检查参数：简历 ID、职位 ID 或简历文本",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.ResumeRiskCheckRequest"
                         }
                     }
                 ],
@@ -3329,12 +3329,12 @@
                 "summary": "教育经历风险检查",
                 "parameters": [
                     {
-                        "description": "风险检查参数",
+                        "description": "学历风险检查参数：简历 ID、职位 ID 或简历文本",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.ResumeRiskCheckRequest"
                         }
                     }
                 ],
@@ -3363,12 +3363,12 @@
                 "summary": "工作经历时间冲突检查",
                 "parameters": [
                     {
-                        "description": "风险检查参数",
+                        "description": "时间冲突检查参数：简历 ID、职位 ID 或简历文本",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.ResumeRiskCheckRequest"
                         }
                     }
                 ],
@@ -3543,12 +3543,12 @@
                         "required": true
                     },
                     {
-                        "description": "职位关联参数",
+                        "description": "职位关联参数：目标职位 ID",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.ResumeJobUpdateRequest"
                         }
                     }
                 ],
@@ -3589,12 +3589,12 @@
                         "required": true
                     },
                     {
-                        "description": "状态参数",
+                        "description": "状态参数：目标状态和备注",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.StatusUpdateRequest"
                         }
                     }
                 ],
@@ -3839,12 +3839,12 @@
                 "summary": "创建人才",
                 "parameters": [
                     {
-                        "description": "人才信息",
+                        "description": "人才信息：基础资料、技能、经验、来源和状态",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.TalentUpsertRequest"
                         }
                     }
                 ],
@@ -3987,12 +3987,12 @@
                         "required": true
                     },
                     {
-                        "description": "人才信息",
+                        "description": "人才信息：基础资料、技能、经验、来源和状态",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.TalentUpsertRequest"
                         }
                     }
                 ],
@@ -4145,12 +4145,12 @@
                 "summary": "内部发送消息",
                 "parameters": [
                     {
-                        "description": "消息内容",
+                        "description": "内部消息内容：接收人、标题、内容和消息类型",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.MessageCreateRequest"
                         }
                     }
                 ],
@@ -4209,12 +4209,12 @@
                 "summary": "内部索引职位",
                 "parameters": [
                     {
-                        "description": "职位索引参数",
+                        "description": "内部职位索引参数：职位 ID 和文本内容",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RAGIndexRequest"
                         }
                     }
                 ],
@@ -4248,12 +4248,12 @@
                 "summary": "内部索引简历",
                 "parameters": [
                     {
-                        "description": "简历索引参数",
+                        "description": "内部简历索引参数：简历 ID 和文本内容",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RAGIndexRequest"
                         }
                     }
                 ],
@@ -4287,12 +4287,12 @@
                 "summary": "内部索引人才",
                 "parameters": [
                     {
-                        "description": "人才索引参数",
+                        "description": "内部人才索引参数：人才 ID 和文本内容",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RAGIndexRequest"
                         }
                     }
                 ],
@@ -4326,12 +4326,12 @@
                 "summary": "内部 RAG 人岗匹配",
                 "parameters": [
                     {
-                        "description": "匹配参数",
+                        "description": "内部 RAG 匹配参数：人才、职位、简历或文本",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RecommendationRequest"
                         }
                     }
                 ],
@@ -4365,12 +4365,12 @@
                 "summary": "内部 RAG 查询",
                 "parameters": [
                     {
-                        "description": "RAG 查询参数",
+                        "description": "内部 RAG 查询参数：问题、TopK 和检索类型",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.SwaggerAny"
+                            "$ref": "#/definitions/main.RAGQueryRequest"
                         }
                     }
                 ],
@@ -4386,9 +4386,550 @@
         }
     },
     "definitions": {
-        "main.SwaggerAny": {
+        "main.AIEvaluateRequest": {
             "type": "object",
-            "additionalProperties": true
+            "properties": {
+                "job_id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "resume_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "main.ApplicationCreateRequest": {
+            "type": "object",
+            "properties": {
+                "cover_note": {
+                    "type": "string",
+                    "example": "我对该岗位非常感兴趣"
+                },
+                "job_id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "resume_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "talent_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "main.BatchEvaluateRequest": {
+            "type": "object",
+            "properties": {
+                "job_id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "resume_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1,
+                        2,
+                        3
+                    ]
+                }
+            }
+        },
+        "main.ChatMessageRequest": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "example": "您好，我想了解一下这个岗位。"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "text"
+                }
+            }
+        },
+        "main.CompleteInterviewRequest": {
+            "type": "object",
+            "properties": {
+                "remark": {
+                    "type": "string",
+                    "example": "候选人基础扎实，建议进入下一轮"
+                },
+                "result": {
+                    "type": "string",
+                    "example": "passed"
+                }
+            }
+        },
+        "main.ConversationCreateRequest": {
+            "type": "object",
+            "properties": {
+                "job_id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "target_user_id": {
+                    "type": "integer",
+                    "example": 2
+                }
+            }
+        },
+        "main.InterviewFeedbackRequest": {
+            "type": "object",
+            "properties": {
+                "feedback": {
+                    "type": "string",
+                    "example": "沟通能力良好，后端基础扎实"
+                },
+                "result": {
+                    "type": "string",
+                    "example": "passed"
+                },
+                "score": {
+                    "type": "integer",
+                    "example": 85
+                },
+                "suggestion": {
+                    "type": "string",
+                    "example": "建议进入二面"
+                }
+            }
+        },
+        "main.InterviewUpsertRequest": {
+            "type": "object",
+            "properties": {
+                "application_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "interviewer": {
+                    "type": "string",
+                    "example": "HR 张经理"
+                },
+                "interviewer_id": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "job_id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "location": {
+                    "type": "string",
+                    "example": "腾讯会议"
+                },
+                "remark": {
+                    "type": "string",
+                    "example": "请提前准备项目介绍"
+                },
+                "scheduled_at": {
+                    "type": "string",
+                    "example": "2026-05-21T15:00:00+08:00"
+                },
+                "talent_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "type": {
+                    "type": "string",
+                    "example": "technical"
+                }
+            }
+        },
+        "main.JobUpsertRequest": {
+            "type": "object",
+            "properties": {
+                "department": {
+                    "type": "string",
+                    "example": "研发部"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "负责招聘平台后端服务开发"
+                },
+                "education": {
+                    "type": "string",
+                    "example": "本科"
+                },
+                "experience": {
+                    "type": "string",
+                    "example": "3-5年"
+                },
+                "location": {
+                    "type": "string",
+                    "example": "成都"
+                },
+                "requirements": {
+                    "type": "string",
+                    "example": "熟悉微服务、数据库和缓存"
+                },
+                "salary_max": {
+                    "type": "integer",
+                    "example": 20000
+                },
+                "salary_min": {
+                    "type": "integer",
+                    "example": 12000
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "Go",
+                        "Redis",
+                        "PostgreSQL"
+                    ]
+                },
+                "status": {
+                    "type": "string",
+                    "example": "open"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "后端开发工程师"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "full-time"
+                }
+            }
+        },
+        "main.LoginRequest": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "admin123"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "admin"
+                }
+            }
+        },
+        "main.MessageCreateRequest": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "example": "请明天下午参加一面"
+                },
+                "receiver_id": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "title": {
+                    "type": "string",
+                    "example": "面试通知"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "interview"
+                }
+            }
+        },
+        "main.NoticeUpsertRequest": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "example": "本周五下午 3 点举行线上宣讲会。"
+                },
+                "is_pinned": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "priority": {
+                    "type": "string",
+                    "enum": [
+                        "normal",
+                        "high",
+                        "urgent"
+                    ],
+                    "example": "normal"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "draft",
+                        "published"
+                    ],
+                    "example": "published"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "校园招聘宣讲会通知"
+                }
+            }
+        },
+        "main.OCRRequest": {
+            "type": "object",
+            "properties": {
+                "file_url": {
+                    "type": "string",
+                    "example": "/uploads/resumes/resume.pdf"
+                },
+                "text": {
+                    "type": "string",
+                    "example": "可选，直接传入待提取文本"
+                }
+            }
+        },
+        "main.OnlineResumeRequest": {
+            "type": "object",
+            "properties": {
+                "education": {
+                    "type": "string",
+                    "example": "本科"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "wangwu@example.com"
+                },
+                "experience": {
+                    "type": "string",
+                    "example": "2年 Java 开发经验"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "王五"
+                },
+                "phone": {
+                    "type": "string",
+                    "example": "13700000000"
+                },
+                "projects": {
+                    "type": "string",
+                    "example": "智能招聘平台、在线简历系统"
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "Java",
+                        "Spring Boot",
+                        "MySQL"
+                    ]
+                },
+                "summary": {
+                    "type": "string",
+                    "example": "具备后端开发和项目协作经验"
+                }
+            }
+        },
+        "main.ProfileUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string",
+                    "example": "https://example.com/avatar.png"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "admin@example.com"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "管理员"
+                },
+                "phone": {
+                    "type": "string",
+                    "example": "13800000000"
+                }
+            }
+        },
+        "main.RAGIndexRequest": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "example": "待索引的人才、职位或简历文本"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "talent",
+                        "job",
+                        "resume"
+                    ],
+                    "example": "talent"
+                }
+            }
+        },
+        "main.RAGQueryRequest": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "example": "推荐适合 Go 后端工程师的岗位"
+                },
+                "top_k": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "job",
+                        "talent",
+                        "resume",
+                        "all"
+                    ],
+                    "example": "job"
+                }
+            }
+        },
+        "main.RecommendationRequest": {
+            "type": "object",
+            "properties": {
+                "job_id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "resume_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "talent_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "text": {
+                    "type": "string",
+                    "example": "候选人或职位画像文本"
+                }
+            }
+        },
+        "main.RegisterRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "candidate01@example.com"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "张三"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "phone": {
+                    "type": "string",
+                    "example": "13800000000"
+                },
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "admin",
+                        "hr",
+                        "hr_manager",
+                        "recruiter",
+                        "candidate"
+                    ],
+                    "example": "candidate"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "candidate01"
+                }
+            }
+        },
+        "main.RescheduleInterviewRequest": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string",
+                    "example": "候选人时间冲突，重新约定面试时间"
+                },
+                "scheduled_at": {
+                    "type": "string",
+                    "example": "2026-05-22T10:00:00+08:00"
+                }
+            }
+        },
+        "main.ResumeJobUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "job_id": {
+                    "type": "integer",
+                    "example": 10
+                }
+            }
+        },
+        "main.ResumeMatchRequest": {
+            "type": "object",
+            "properties": {
+                "job_id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "resume_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "text": {
+                    "type": "string",
+                    "example": "候选人简历文本，可选"
+                }
+            }
+        },
+        "main.ResumeRiskCheckRequest": {
+            "type": "object",
+            "properties": {
+                "job_id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "resume_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "text": {
+                    "type": "string",
+                    "example": "候选人简历文本"
+                }
+            }
+        },
+        "main.ResumeTextRequest": {
+            "type": "object",
+            "properties": {
+                "text": {
+                    "type": "string",
+                    "example": "张三，本科，熟悉 Go、Vue、PostgreSQL，有微服务项目经验。"
+                }
+            }
+        },
+        "main.StatusUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "remark": {
+                    "type": "string",
+                    "example": "进入初筛阶段"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "screening"
+                }
+            }
         },
         "main.SwaggerErrorResponse": {
             "type": "object",
@@ -4417,6 +4958,62 @@
                 "message": {
                     "type": "string",
                     "example": "success"
+                }
+            }
+        },
+        "main.TalentUpsertRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "具备后端开发和微服务项目经验"
+                },
+                "education": {
+                    "type": "string",
+                    "example": "本科"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "lisi@example.com"
+                },
+                "experience": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "location": {
+                    "type": "string",
+                    "example": "成都"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "李四"
+                },
+                "phone": {
+                    "type": "string",
+                    "example": "13900000000"
+                },
+                "position": {
+                    "type": "string",
+                    "example": "Java 后端工程师"
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "Go",
+                        "PostgreSQL",
+                        "Vue"
+                    ]
+                },
+                "source": {
+                    "type": "string",
+                    "example": "校园招聘"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "active"
                 }
             }
         }

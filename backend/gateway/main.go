@@ -474,8 +474,10 @@ func wsProxyHandler(c *gin.Context, targetHost string) {
 
 // @title 智能人才运营平台 API
 // @version 1.1.0
-// @description 基于 Go 微服务架构的智能人才运营平台 API。Swagger 注释文档以 API Gateway 对外暴露的接口为准。
-// @description 认证接口以外的大多数后台接口需要在请求头中携带 JWT：Authorization: Bearer <token>。
+// @description 基于 Go 微服务架构的智能人才运营平台 API。本文档以 API Gateway 对外暴露的核心业务接口为准，不包含独立运行的 evaluator-service 管理端接口。
+// @description 认证流程：先调用 /api/v1/login 获取 token，再在需要登录的接口中携带请求头 Authorization: Bearer <token>。
+// @description 主要模块：认证与用户、人才库、职位、简历与投递、AI 简历评估、智能推荐/RAG、消息会话、公告、面试、操作日志和统计看板。
+// @description 内部接口带有 InternalToken 标记，仅用于服务间调用或本地联调，不建议前端直接访问。
 // @host localhost:8080
 // @BasePath /
 // @schemes http

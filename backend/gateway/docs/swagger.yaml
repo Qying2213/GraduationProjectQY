@@ -1,7 +1,395 @@
 basePath: /
 definitions:
-  main.SwaggerAny:
-    additionalProperties: true
+  main.AIEvaluateRequest:
+    properties:
+      job_id:
+        example: 10
+        type: integer
+      resume_id:
+        example: 1
+        type: integer
+    type: object
+  main.ApplicationCreateRequest:
+    properties:
+      cover_note:
+        example: 我对该岗位非常感兴趣
+        type: string
+      job_id:
+        example: 10
+        type: integer
+      resume_id:
+        example: 1
+        type: integer
+      talent_id:
+        example: 1
+        type: integer
+    type: object
+  main.BatchEvaluateRequest:
+    properties:
+      job_id:
+        example: 10
+        type: integer
+      resume_ids:
+        example:
+        - 1
+        - 2
+        - 3
+        items:
+          type: integer
+        type: array
+    type: object
+  main.ChatMessageRequest:
+    properties:
+      content:
+        example: 您好，我想了解一下这个岗位。
+        type: string
+      type:
+        example: text
+        type: string
+    type: object
+  main.CompleteInterviewRequest:
+    properties:
+      remark:
+        example: 候选人基础扎实，建议进入下一轮
+        type: string
+      result:
+        example: passed
+        type: string
+    type: object
+  main.ConversationCreateRequest:
+    properties:
+      job_id:
+        example: 10
+        type: integer
+      target_user_id:
+        example: 2
+        type: integer
+    type: object
+  main.InterviewFeedbackRequest:
+    properties:
+      feedback:
+        example: 沟通能力良好，后端基础扎实
+        type: string
+      result:
+        example: passed
+        type: string
+      score:
+        example: 85
+        type: integer
+      suggestion:
+        example: 建议进入二面
+        type: string
+    type: object
+  main.InterviewUpsertRequest:
+    properties:
+      application_id:
+        example: 1
+        type: integer
+      interviewer:
+        example: HR 张经理
+        type: string
+      interviewer_id:
+        example: 3
+        type: integer
+      job_id:
+        example: 10
+        type: integer
+      location:
+        example: 腾讯会议
+        type: string
+      remark:
+        example: 请提前准备项目介绍
+        type: string
+      scheduled_at:
+        example: "2026-05-21T15:00:00+08:00"
+        type: string
+      talent_id:
+        example: 1
+        type: integer
+      type:
+        example: technical
+        type: string
+    type: object
+  main.JobUpsertRequest:
+    properties:
+      department:
+        example: 研发部
+        type: string
+      description:
+        example: 负责招聘平台后端服务开发
+        type: string
+      education:
+        example: 本科
+        type: string
+      experience:
+        example: 3-5年
+        type: string
+      location:
+        example: 成都
+        type: string
+      requirements:
+        example: 熟悉微服务、数据库和缓存
+        type: string
+      salary_max:
+        example: 20000
+        type: integer
+      salary_min:
+        example: 12000
+        type: integer
+      skills:
+        example:
+        - Go
+        - Redis
+        - PostgreSQL
+        items:
+          type: string
+        type: array
+      status:
+        example: open
+        type: string
+      title:
+        example: 后端开发工程师
+        type: string
+      type:
+        example: full-time
+        type: string
+    type: object
+  main.LoginRequest:
+    properties:
+      password:
+        example: admin123
+        type: string
+      username:
+        example: admin
+        type: string
+    type: object
+  main.MessageCreateRequest:
+    properties:
+      content:
+        example: 请明天下午参加一面
+        type: string
+      receiver_id:
+        example: 2
+        type: integer
+      title:
+        example: 面试通知
+        type: string
+      type:
+        example: interview
+        type: string
+    type: object
+  main.NoticeUpsertRequest:
+    properties:
+      content:
+        example: 本周五下午 3 点举行线上宣讲会。
+        type: string
+      is_pinned:
+        example: false
+        type: boolean
+      priority:
+        enum:
+        - normal
+        - high
+        - urgent
+        example: normal
+        type: string
+      status:
+        enum:
+        - draft
+        - published
+        example: published
+        type: string
+      title:
+        example: 校园招聘宣讲会通知
+        type: string
+    type: object
+  main.OCRRequest:
+    properties:
+      file_url:
+        example: /uploads/resumes/resume.pdf
+        type: string
+      text:
+        example: 可选，直接传入待提取文本
+        type: string
+    type: object
+  main.OnlineResumeRequest:
+    properties:
+      education:
+        example: 本科
+        type: string
+      email:
+        example: wangwu@example.com
+        type: string
+      experience:
+        example: 2年 Java 开发经验
+        type: string
+      name:
+        example: 王五
+        type: string
+      phone:
+        example: "13700000000"
+        type: string
+      projects:
+        example: 智能招聘平台、在线简历系统
+        type: string
+      skills:
+        example:
+        - Java
+        - Spring Boot
+        - MySQL
+        items:
+          type: string
+        type: array
+      summary:
+        example: 具备后端开发和项目协作经验
+        type: string
+    type: object
+  main.ProfileUpdateRequest:
+    properties:
+      avatar:
+        example: https://example.com/avatar.png
+        type: string
+      email:
+        example: admin@example.com
+        type: string
+      name:
+        example: 管理员
+        type: string
+      phone:
+        example: "13800000000"
+        type: string
+    type: object
+  main.RAGIndexRequest:
+    properties:
+      content:
+        example: 待索引的人才、职位或简历文本
+        type: string
+      id:
+        example: 1
+        type: integer
+      type:
+        enum:
+        - talent
+        - job
+        - resume
+        example: talent
+        type: string
+    type: object
+  main.RAGQueryRequest:
+    properties:
+      query:
+        example: 推荐适合 Go 后端工程师的岗位
+        type: string
+      top_k:
+        example: 5
+        type: integer
+      type:
+        enum:
+        - job
+        - talent
+        - resume
+        - all
+        example: job
+        type: string
+    type: object
+  main.RecommendationRequest:
+    properties:
+      job_id:
+        example: 10
+        type: integer
+      limit:
+        example: 10
+        type: integer
+      resume_id:
+        example: 1
+        type: integer
+      talent_id:
+        example: 1
+        type: integer
+      text:
+        example: 候选人或职位画像文本
+        type: string
+    type: object
+  main.RegisterRequest:
+    properties:
+      email:
+        example: candidate01@example.com
+        type: string
+      name:
+        example: 张三
+        type: string
+      password:
+        example: "123456"
+        type: string
+      phone:
+        example: "13800000000"
+        type: string
+      role:
+        enum:
+        - admin
+        - hr
+        - hr_manager
+        - recruiter
+        - candidate
+        example: candidate
+        type: string
+      username:
+        example: candidate01
+        type: string
+    type: object
+  main.RescheduleInterviewRequest:
+    properties:
+      reason:
+        example: 候选人时间冲突，重新约定面试时间
+        type: string
+      scheduled_at:
+        example: "2026-05-22T10:00:00+08:00"
+        type: string
+    type: object
+  main.ResumeJobUpdateRequest:
+    properties:
+      job_id:
+        example: 10
+        type: integer
+    type: object
+  main.ResumeMatchRequest:
+    properties:
+      job_id:
+        example: 10
+        type: integer
+      resume_id:
+        example: 1
+        type: integer
+      text:
+        example: 候选人简历文本，可选
+        type: string
+    type: object
+  main.ResumeRiskCheckRequest:
+    properties:
+      job_id:
+        example: 10
+        type: integer
+      resume_id:
+        example: 1
+        type: integer
+      text:
+        example: 候选人简历文本
+        type: string
+    type: object
+  main.ResumeTextRequest:
+    properties:
+      text:
+        example: 张三，本科，熟悉 Go、Vue、PostgreSQL，有微服务项目经验。
+        type: string
+    type: object
+  main.StatusUpdateRequest:
+    properties:
+      remark:
+        example: 进入初筛阶段
+        type: string
+      status:
+        example: screening
+        type: string
     type: object
   main.SwaggerErrorResponse:
     properties:
@@ -24,12 +412,55 @@ definitions:
         example: success
         type: string
     type: object
+  main.TalentUpsertRequest:
+    properties:
+      description:
+        example: 具备后端开发和微服务项目经验
+        type: string
+      education:
+        example: 本科
+        type: string
+      email:
+        example: lisi@example.com
+        type: string
+      experience:
+        example: 3
+        type: integer
+      location:
+        example: 成都
+        type: string
+      name:
+        example: 李四
+        type: string
+      phone:
+        example: "13900000000"
+        type: string
+      position:
+        example: Java 后端工程师
+        type: string
+      skills:
+        example:
+        - Go
+        - PostgreSQL
+        - Vue
+        items:
+          type: string
+        type: array
+      source:
+        example: 校园招聘
+        type: string
+      status:
+        example: active
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
   description: |-
-    基于 Go 微服务架构的智能人才运营平台 API。Swagger 注释文档以 API Gateway 对外暴露的接口为准。
-    认证接口以外的大多数后台接口需要在请求头中携带 JWT：Authorization: Bearer <token>。
+    基于 Go 微服务架构的智能人才运营平台 API。本文档以 API Gateway 对外暴露的核心业务接口为准，不包含独立运行的 evaluator-service 管理端接口。
+    认证流程：先调用 /api/v1/login 获取 token，再在需要登录的接口中携带请求头 Authorization: Bearer <token>。
+    主要模块：认证与用户、人才库、职位、简历与投递、AI 简历评估、智能推荐/RAG、消息会话、公告、面试、操作日志和统计看板。
+    内部接口带有 InternalToken 标记，仅用于服务间调用或本地联调，不建议前端直接访问。
   title: 智能人才运营平台 API
   version: 1.1.0
 paths:
@@ -65,12 +496,12 @@ paths:
       - application/json
       description: 基于简历 ID 和 JD 文本或职位 ID 发起 AI 评估。
       parameters:
-      - description: 评估参数
+      - description: 评估参数：简历 ID 和目标职位 ID
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.AIEvaluateRequest'
       produces:
       - application/json
       responses:
@@ -110,12 +541,12 @@ paths:
       - application/json
       description: 按简历 ID 列表批量发起 AI 评估。
       parameters:
-      - description: 批量评估参数
+      - description: 批量评估参数：简历 ID 列表和目标职位 ID
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.BatchEvaluateRequest'
       produces:
       - application/json
       responses:
@@ -161,12 +592,12 @@ paths:
       - application/json
       description: 从简历文件中提取文本。
       parameters:
-      - description: OCR 参数
+      - description: OCR 参数：文件地址或待提取文本
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.OCRRequest'
       produces:
       - application/json
       responses:
@@ -183,12 +614,12 @@ paths:
       - application/json
       description: 调用 AI 能力解析简历。
       parameters:
-      - description: 解析参数
+      - description: AI 解析参数：简历文本
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.ResumeTextRequest'
       produces:
       - application/json
       responses:
@@ -240,12 +671,12 @@ paths:
       - application/json
       description: 当前登录求职者投递职位。
       parameters:
-      - description: 投递参数
+      - description: 投递参数：职位、简历、人才和附言
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.ApplicationCreateRequest'
       produces:
       - application/json
       responses:
@@ -289,12 +720,12 @@ paths:
         name: id
         required: true
         type: integer
-      - description: 状态参数
+      - description: 投递状态参数：目标状态和备注
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.StatusUpdateRequest'
       produces:
       - application/json
       responses:
@@ -336,12 +767,12 @@ paths:
       - application/json
       description: 与指定用户创建或获取已有会话。
       parameters:
-      - description: 会话参数
+      - description: 会话参数：目标用户和关联职位
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.ConversationCreateRequest'
       produces:
       - application/json
       responses:
@@ -393,12 +824,12 @@ paths:
         name: id
         required: true
         type: integer
-      - description: 聊天消息
+      - description: 聊天消息：文本内容和消息类型
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.ChatMessageRequest'
       produces:
       - application/json
       responses:
@@ -603,12 +1034,12 @@ paths:
       - application/json
       description: 创建候选人面试安排。
       parameters:
-      - description: 面试安排
+      - description: 面试安排：投递、人才、职位、面试官、时间和地点
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.InterviewUpsertRequest'
       produces:
       - application/json
       responses:
@@ -672,12 +1103,12 @@ paths:
         name: id
         required: true
         type: integer
-      - description: 面试信息
+      - description: 面试信息：面试官、时间、地点和备注
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.InterviewUpsertRequest'
       produces:
       - application/json
       responses:
@@ -722,11 +1153,11 @@ paths:
         name: id
         required: true
         type: integer
-      - description: 完成参数
+      - description: 完成参数：结果和备注
         in: body
         name: request
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.CompleteInterviewRequest'
       produces:
       - application/json
       responses:
@@ -770,12 +1201,12 @@ paths:
         name: id
         required: true
         type: integer
-      - description: 面试反馈
+      - description: 面试反馈：评分、反馈、建议和结果
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.InterviewFeedbackRequest'
       produces:
       - application/json
       responses:
@@ -799,12 +1230,12 @@ paths:
         name: id
         required: true
         type: integer
-      - description: 改期参数
+      - description: 改期参数：新时间和改期原因
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RescheduleInterviewRequest'
       produces:
       - application/json
       responses:
@@ -964,12 +1395,12 @@ paths:
       - application/json
       description: 创建招聘职位，需要管理员或 HR 类角色。
       parameters:
-      - description: 职位信息
+      - description: 职位信息：标题、部门、薪资、技能、描述和要求
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.JobUpsertRequest'
       produces:
       - application/json
       responses:
@@ -1031,12 +1462,12 @@ paths:
         name: id
         required: true
         type: integer
-      - description: 职位信息
+      - description: 职位信息：标题、部门、薪资、技能、描述和要求
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.JobUpsertRequest'
       produces:
       - application/json
       responses:
@@ -1106,12 +1537,12 @@ paths:
       - application/json
       description: 使用用户名/邮箱和密码登录，返回 JWT Token。
       parameters:
-      - description: 登录参数
+      - description: 登录参数：用户名/邮箱和密码
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.LoginRequest'
       produces:
       - application/json
       responses:
@@ -1305,12 +1736,12 @@ paths:
       - application/json
       description: 发送站内系统消息。
       parameters:
-      - description: 消息内容
+      - description: 消息内容：接收人、标题、内容和消息类型
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.MessageCreateRequest'
       produces:
       - application/json
       responses:
@@ -1440,12 +1871,12 @@ paths:
       - application/json
       description: 创建系统公告。
       parameters:
-      - description: 公告内容
+      - description: 公告内容：标题、正文、状态、置顶和优先级
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.NoticeUpsertRequest'
       produces:
       - application/json
       responses:
@@ -1509,12 +1940,12 @@ paths:
         name: id
         required: true
         type: integer
-      - description: 公告内容
+      - description: 公告内容：标题、正文、状态、置顶和优先级
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.NoticeUpsertRequest'
       produces:
       - application/json
       responses:
@@ -1587,12 +2018,12 @@ paths:
       - application/json
       description: 更新当前登录用户的姓名、手机号、头像等资料。
       parameters:
-      - description: 用户资料
+      - description: 用户资料：姓名、手机号、头像和邮箱
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.ProfileUpdateRequest'
       produces:
       - application/json
       responses:
@@ -1615,12 +2046,12 @@ paths:
       - application/json
       description: 生成指定人才与职位的匹配归因报告。
       parameters:
-      - description: 归因参数
+      - description: 归因参数：人才 ID、职位 ID 和匹配文本
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RecommendationRequest'
       produces:
       - application/json
       responses:
@@ -1639,12 +2070,12 @@ paths:
       - application/json
       description: 批量计算人才与职位推荐。
       parameters:
-      - description: 批量推荐参数
+      - description: 批量推荐参数：人才、职位或简历范围
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RecommendationRequest'
       produces:
       - application/json
       responses:
@@ -1663,12 +2094,12 @@ paths:
       - application/json
       description: 根据人才画像推荐匹配职位。
       parameters:
-      - description: 人才画像
+      - description: 人才画像：人才 ID、简历 ID、画像文本和返回数量
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RecommendationRequest'
       produces:
       - application/json
       responses:
@@ -1702,12 +2133,12 @@ paths:
       - application/json
       description: 将指定职位写入 RAG 索引。
       parameters:
-      - description: 职位索引参数
+      - description: 职位索引参数：职位 ID 和文本内容
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RAGIndexRequest'
       produces:
       - application/json
       responses:
@@ -1726,12 +2157,12 @@ paths:
       - application/json
       description: 将指定简历写入 RAG 索引。
       parameters:
-      - description: 简历索引参数
+      - description: 简历索引参数：简历 ID 和文本内容
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RAGIndexRequest'
       produces:
       - application/json
       responses:
@@ -1750,12 +2181,12 @@ paths:
       - application/json
       description: 将指定人才写入 RAG 索引。
       parameters:
-      - description: 人才索引参数
+      - description: 人才索引参数：人才 ID 和文本内容
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RAGIndexRequest'
       produces:
       - application/json
       responses:
@@ -1774,12 +2205,12 @@ paths:
       - application/json
       description: 使用 RAG 能力对指定人才和职位进行匹配。
       parameters:
-      - description: 匹配参数
+      - description: RAG 匹配参数：人才、职位、简历或文本
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RecommendationRequest'
       produces:
       - application/json
       responses:
@@ -1798,12 +2229,12 @@ paths:
       - application/json
       description: 查询向量索引中的人才、职位或简历内容。
       parameters:
-      - description: RAG 查询参数
+      - description: RAG 查询参数：问题、TopK 和检索类型
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RAGQueryRequest'
       produces:
       - application/json
       responses:
@@ -1822,12 +2253,12 @@ paths:
       - application/json
       description: 计算两段文本的语义相似度。
       parameters:
-      - description: 文本参数
+      - description: 语义匹配参数：人才/职位文本和返回数量
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RecommendationRequest'
       produces:
       - application/json
       responses:
@@ -1861,12 +2292,12 @@ paths:
       - application/json
       description: 根据职位画像推荐匹配人才。
       parameters:
-      - description: 职位画像
+      - description: 职位画像：职位 ID、岗位文本和返回数量
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RecommendationRequest'
       produces:
       - application/json
       responses:
@@ -1885,12 +2316,12 @@ paths:
       - application/json
       description: 创建求职者或 HR 用户账号。
       parameters:
-      - description: 注册参数
+      - description: 注册参数：用户名、邮箱、密码、角色、姓名和手机号
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RegisterRequest'
       produces:
       - application/json
       responses:
@@ -2033,12 +2464,12 @@ paths:
         name: id
         required: true
         type: integer
-      - description: 职位关联参数
+      - description: 职位关联参数：目标职位 ID
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.ResumeJobUpdateRequest'
       produces:
       - application/json
       responses:
@@ -2062,12 +2493,12 @@ paths:
         name: id
         required: true
         type: integer
-      - description: 状态参数
+      - description: 状态参数：目标状态和备注
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.StatusUpdateRequest'
       produces:
       - application/json
       responses:
@@ -2131,12 +2562,12 @@ paths:
       - application/json
       description: 根据简历文本和职位要求计算匹配度。
       parameters:
-      - description: 匹配参数
+      - description: 匹配参数：简历 ID、职位 ID 或待匹配文本
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.ResumeMatchRequest'
       produces:
       - application/json
       responses:
@@ -2167,12 +2598,12 @@ paths:
       - application/json
       description: 保存当前登录用户在线编辑的简历。
       parameters:
-      - description: 在线简历
+      - description: 在线简历：基础信息、教育经历、技能、项目经历和个人总结
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.OnlineResumeRequest'
       produces:
       - application/json
       responses:
@@ -2191,12 +2622,12 @@ paths:
       - application/json
       description: 根据传入的纯文本解析简历结构化信息。
       parameters:
-      - description: 简历文本
+      - description: 简历文本：用于解析结构化字段
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.ResumeTextRequest'
       produces:
       - application/json
       responses:
@@ -2213,12 +2644,12 @@ paths:
       - application/json
       description: 检查简历内容中的潜在风险。
       parameters:
-      - description: 风险检查参数
+      - description: 风险检查参数：简历 ID、职位 ID 或简历文本
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.ResumeRiskCheckRequest'
       produces:
       - application/json
       responses:
@@ -2235,12 +2666,12 @@ paths:
       - application/json
       description: 检查简历教育经历真实性风险。
       parameters:
-      - description: 风险检查参数
+      - description: 学历风险检查参数：简历 ID、职位 ID 或简历文本
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.ResumeRiskCheckRequest'
       produces:
       - application/json
       responses:
@@ -2257,12 +2688,12 @@ paths:
       - application/json
       description: 检查简历工作经历是否存在时间冲突。
       parameters:
-      - description: 风险检查参数
+      - description: 时间冲突检查参数：简历 ID、职位 ID 或简历文本
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.ResumeRiskCheckRequest'
       produces:
       - application/json
       responses:
@@ -2447,12 +2878,12 @@ paths:
       - application/json
       description: 创建人才库候选人记录。
       parameters:
-      - description: 人才信息
+      - description: 人才信息：基础资料、技能、经验、来源和状态
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.TalentUpsertRequest'
       produces:
       - application/json
       responses:
@@ -2516,12 +2947,12 @@ paths:
         name: id
         required: true
         type: integer
-      - description: 人才信息
+      - description: 人才信息：基础资料、技能、经验、来源和状态
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.TalentUpsertRequest'
       produces:
       - application/json
       responses:
@@ -2637,12 +3068,12 @@ paths:
       - application/json
       description: 服务间调用的消息发送接口，可使用 X-Internal-Token。
       parameters:
-      - description: 消息内容
+      - description: 内部消息内容：接收人、标题、内容和消息类型
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.MessageCreateRequest'
       produces:
       - application/json
       responses:
@@ -2676,12 +3107,12 @@ paths:
       - application/json
       description: 服务间调用的职位索引接口。
       parameters:
-      - description: 职位索引参数
+      - description: 内部职位索引参数：职位 ID 和文本内容
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RAGIndexRequest'
       produces:
       - application/json
       responses:
@@ -2700,12 +3131,12 @@ paths:
       - application/json
       description: 服务间调用的简历索引接口。
       parameters:
-      - description: 简历索引参数
+      - description: 内部简历索引参数：简历 ID 和文本内容
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RAGIndexRequest'
       produces:
       - application/json
       responses:
@@ -2724,12 +3155,12 @@ paths:
       - application/json
       description: 服务间调用的人才索引接口。
       parameters:
-      - description: 人才索引参数
+      - description: 内部人才索引参数：人才 ID 和文本内容
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RAGIndexRequest'
       produces:
       - application/json
       responses:
@@ -2748,12 +3179,12 @@ paths:
       - application/json
       description: 服务间调用的人岗匹配接口。
       parameters:
-      - description: 匹配参数
+      - description: 内部 RAG 匹配参数：人才、职位、简历或文本
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RecommendationRequest'
       produces:
       - application/json
       responses:
@@ -2772,12 +3203,12 @@ paths:
       - application/json
       description: 服务间调用的 RAG 查询接口。
       parameters:
-      - description: RAG 查询参数
+      - description: 内部 RAG 查询参数：问题、TopK 和检索类型
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/main.SwaggerAny'
+          $ref: '#/definitions/main.RAGQueryRequest'
       produces:
       - application/json
       responses:

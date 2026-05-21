@@ -17,6 +17,214 @@ type SwaggerErrorResponse struct {
 	Error   string `json:"error,omitempty"`
 }
 
+// RegisterRequest 是用户注册请求。
+type RegisterRequest struct {
+	Username string `json:"username" example:"candidate01"`
+	Email    string `json:"email" example:"candidate01@example.com"`
+	Password string `json:"password" example:"123456"`
+	Role     string `json:"role" example:"candidate" enums:"admin,hr,hr_manager,recruiter,candidate"`
+	Name     string `json:"name" example:"张三"`
+	Phone    string `json:"phone" example:"13800000000"`
+}
+
+// LoginRequest 是用户登录请求。
+type LoginRequest struct {
+	Username string `json:"username" example:"admin"`
+	Password string `json:"password" example:"admin123"`
+}
+
+// ProfileUpdateRequest 是当前用户资料更新请求。
+type ProfileUpdateRequest struct {
+	Name   string `json:"name" example:"管理员"`
+	Phone  string `json:"phone" example:"13800000000"`
+	Avatar string `json:"avatar" example:"https://example.com/avatar.png"`
+	Email  string `json:"email" example:"admin@example.com"`
+}
+
+// TalentUpsertRequest 是人才库新增或更新请求。
+type TalentUpsertRequest struct {
+	Name        string   `json:"name" example:"李四"`
+	Email       string   `json:"email" example:"lisi@example.com"`
+	Phone       string   `json:"phone" example:"13900000000"`
+	Position    string   `json:"position" example:"Java 后端工程师"`
+	Skills      []string `json:"skills" example:"Go,PostgreSQL,Vue"`
+	Experience  int      `json:"experience" example:"3"`
+	Education   string   `json:"education" example:"本科"`
+	Location    string   `json:"location" example:"成都"`
+	Status      string   `json:"status" example:"active"`
+	Source      string   `json:"source" example:"校园招聘"`
+	Description string   `json:"description" example:"具备后端开发和微服务项目经验"`
+}
+
+// JobUpsertRequest 是职位新增或更新请求。
+type JobUpsertRequest struct {
+	Title        string   `json:"title" example:"后端开发工程师"`
+	Department   string   `json:"department" example:"研发部"`
+	Location     string   `json:"location" example:"成都"`
+	Type         string   `json:"type" example:"full-time"`
+	Status       string   `json:"status" example:"open"`
+	SalaryMin    int      `json:"salary_min" example:"12000"`
+	SalaryMax    int      `json:"salary_max" example:"20000"`
+	Experience   string   `json:"experience" example:"3-5年"`
+	Education    string   `json:"education" example:"本科"`
+	Skills       []string `json:"skills" example:"Go,Redis,PostgreSQL"`
+	Description  string   `json:"description" example:"负责招聘平台后端服务开发"`
+	Requirements string   `json:"requirements" example:"熟悉微服务、数据库和缓存"`
+}
+
+// OnlineResumeRequest 是在线简历保存请求。
+type OnlineResumeRequest struct {
+	Name       string   `json:"name" example:"王五"`
+	Phone      string   `json:"phone" example:"13700000000"`
+	Email      string   `json:"email" example:"wangwu@example.com"`
+	Education  string   `json:"education" example:"本科"`
+	Experience string   `json:"experience" example:"2年 Java 开发经验"`
+	Skills     []string `json:"skills" example:"Java,Spring Boot,MySQL"`
+	Projects   string   `json:"projects" example:"智能招聘平台、在线简历系统"`
+	Summary    string   `json:"summary" example:"具备后端开发和项目协作经验"`
+}
+
+// ResumeTextRequest 是简历文本解析请求。
+type ResumeTextRequest struct {
+	Text string `json:"text" example:"张三，本科，熟悉 Go、Vue、PostgreSQL，有微服务项目经验。"`
+}
+
+// ResumeMatchRequest 是简历岗位匹配请求。
+type ResumeMatchRequest struct {
+	ResumeID uint   `json:"resume_id" example:"1"`
+	JobID    uint   `json:"job_id" example:"10"`
+	Text     string `json:"text" example:"候选人简历文本，可选"`
+}
+
+// ResumeRiskCheckRequest 是简历风险检查请求。
+type ResumeRiskCheckRequest struct {
+	ResumeID uint   `json:"resume_id" example:"1"`
+	Text     string `json:"text" example:"候选人简历文本"`
+	JobID    uint   `json:"job_id" example:"10"`
+}
+
+// ResumeJobUpdateRequest 是简历关联职位请求。
+type ResumeJobUpdateRequest struct {
+	JobID uint `json:"job_id" example:"10"`
+}
+
+// StatusUpdateRequest 是通用状态更新请求。
+type StatusUpdateRequest struct {
+	Status string `json:"status" example:"screening"`
+	Remark string `json:"remark" example:"进入初筛阶段"`
+}
+
+// ApplicationCreateRequest 是职位投递创建请求。
+type ApplicationCreateRequest struct {
+	JobID     uint   `json:"job_id" example:"10"`
+	ResumeID  uint   `json:"resume_id" example:"1"`
+	TalentID  uint   `json:"talent_id" example:"1"`
+	CoverNote string `json:"cover_note" example:"我对该岗位非常感兴趣"`
+}
+
+// AIEvaluateRequest 是 AI 简历评估请求。
+type AIEvaluateRequest struct {
+	ResumeID uint `json:"resume_id" example:"1"`
+	JobID    uint `json:"job_id" example:"10"`
+}
+
+// BatchEvaluateRequest 是 AI 批量评估请求。
+type BatchEvaluateRequest struct {
+	ResumeIDs []uint `json:"resume_ids" example:"1,2,3"`
+	JobID     uint   `json:"job_id" example:"10"`
+}
+
+// OCRRequest 是 OCR 文本提取请求。
+type OCRRequest struct {
+	FileURL string `json:"file_url" example:"/uploads/resumes/resume.pdf"`
+	Text    string `json:"text" example:"可选，直接传入待提取文本"`
+}
+
+// RecommendationRequest 是推荐相关请求。
+type RecommendationRequest struct {
+	TalentID uint   `json:"talent_id" example:"1"`
+	JobID    uint   `json:"job_id" example:"10"`
+	ResumeID uint   `json:"resume_id" example:"1"`
+	Text     string `json:"text" example:"候选人或职位画像文本"`
+	Limit    int    `json:"limit" example:"10"`
+}
+
+// RAGQueryRequest 是 RAG 查询请求。
+type RAGQueryRequest struct {
+	Query string `json:"query" example:"推荐适合 Go 后端工程师的岗位"`
+	TopK  int    `json:"top_k" example:"5"`
+	Type  string `json:"type" example:"job" enums:"job,talent,resume,all"`
+}
+
+// RAGIndexRequest 是 RAG 索引请求。
+type RAGIndexRequest struct {
+	ID      uint   `json:"id" example:"1"`
+	Type    string `json:"type" example:"talent" enums:"talent,job,resume"`
+	Content string `json:"content" example:"待索引的人才、职位或简历文本"`
+}
+
+// MessageCreateRequest 是站内信发送请求。
+type MessageCreateRequest struct {
+	ReceiverID uint   `json:"receiver_id" example:"2"`
+	Title      string `json:"title" example:"面试通知"`
+	Content    string `json:"content" example:"请明天下午参加一面"`
+	Type       string `json:"type" example:"interview"`
+}
+
+// ConversationCreateRequest 是创建或获取会话请求。
+type ConversationCreateRequest struct {
+	TargetUserID uint `json:"target_user_id" example:"2"`
+	JobID        uint `json:"job_id" example:"10"`
+}
+
+// ChatMessageRequest 是聊天消息发送请求。
+type ChatMessageRequest struct {
+	Content string `json:"content" example:"您好，我想了解一下这个岗位。"`
+	Type    string `json:"type" example:"text"`
+}
+
+// NoticeUpsertRequest 是公告新增或更新请求。
+type NoticeUpsertRequest struct {
+	Title    string `json:"title" example:"校园招聘宣讲会通知"`
+	Content  string `json:"content" example:"本周五下午 3 点举行线上宣讲会。"`
+	Status   string `json:"status" example:"published" enums:"draft,published"`
+	IsPinned bool   `json:"is_pinned" example:"false"`
+	Priority string `json:"priority" example:"normal" enums:"normal,high,urgent"`
+}
+
+// InterviewUpsertRequest 是面试安排新增或更新请求。
+type InterviewUpsertRequest struct {
+	ApplicationID uint   `json:"application_id" example:"1"`
+	TalentID      uint   `json:"talent_id" example:"1"`
+	JobID         uint   `json:"job_id" example:"10"`
+	InterviewerID uint   `json:"interviewer_id" example:"3"`
+	Interviewer   string `json:"interviewer" example:"HR 张经理"`
+	Type          string `json:"type" example:"technical"`
+	ScheduledAt   string `json:"scheduled_at" example:"2026-05-21T15:00:00+08:00"`
+	Location      string `json:"location" example:"腾讯会议"`
+	Remark        string `json:"remark" example:"请提前准备项目介绍"`
+}
+
+// CompleteInterviewRequest 是面试完成请求。
+type CompleteInterviewRequest struct {
+	Result string `json:"result" example:"passed"`
+	Remark string `json:"remark" example:"候选人基础扎实，建议进入下一轮"`
+}
+
+// InterviewFeedbackRequest 是面试反馈请求。
+type InterviewFeedbackRequest struct {
+	Score      int    `json:"score" example:"85"`
+	Feedback   string `json:"feedback" example:"沟通能力良好，后端基础扎实"`
+	Suggestion string `json:"suggestion" example:"建议进入二面"`
+	Result     string `json:"result" example:"passed"`
+}
+
+// RescheduleInterviewRequest 是面试改期请求。
+type RescheduleInterviewRequest struct {
+	ScheduledAt string `json:"scheduled_at" example:"2026-05-22T10:00:00+08:00"`
+	Reason      string `json:"reason" example:"候选人时间冲突，重新约定面试时间"`
+}
+
 // swaggerHealth godoc
 // @Summary Gateway 健康检查
 // @Description 返回 Gateway 状态和当前服务注册表。
@@ -32,7 +240,7 @@ func swaggerHealth() {}
 // @Tags 认证
 // @Accept json
 // @Produce json
-// @Param request body SwaggerAny true "注册参数"
+// @Param request body RegisterRequest true "注册参数：用户名、邮箱、密码、角色、姓名和手机号"
 // @Success 201 {object} SwaggerResponse
 // @Failure 400 {object} SwaggerErrorResponse
 // @Router /api/v1/register [post]
@@ -44,7 +252,7 @@ func swaggerRegister() {}
 // @Tags 认证
 // @Accept json
 // @Produce json
-// @Param request body SwaggerAny true "登录参数"
+// @Param request body LoginRequest true "登录参数：用户名/邮箱和密码"
 // @Success 200 {object} SwaggerResponse
 // @Failure 401 {object} SwaggerErrorResponse
 // @Router /api/v1/login [post]
@@ -68,7 +276,7 @@ func swaggerGetProfile() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "用户资料"
+// @Param request body ProfileUpdateRequest true "用户资料：姓名、手机号、头像和邮箱"
 // @Success 200 {object} SwaggerResponse
 // @Failure 401 {object} SwaggerErrorResponse
 // @Router /api/v1/profile [put]
@@ -111,7 +319,7 @@ func swaggerListTalents() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "人才信息"
+// @Param request body TalentUpsertRequest true "人才信息：基础资料、技能、经验、来源和状态"
 // @Success 201 {object} SwaggerResponse
 // @Router /api/v1/talents [post]
 func swaggerCreateTalent() {}
@@ -158,7 +366,7 @@ func swaggerGetTalent() {}
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "人才 ID"
-// @Param request body SwaggerAny true "人才信息"
+// @Param request body TalentUpsertRequest true "人才信息：基础资料、技能、经验、来源和状态"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/talents/{id} [put]
 func swaggerUpdateTalent() {}
@@ -202,7 +410,7 @@ func swaggerListJobs() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "职位信息"
+// @Param request body JobUpsertRequest true "职位信息：标题、部门、薪资、技能、描述和要求"
 // @Success 201 {object} SwaggerResponse
 // @Router /api/v1/jobs [post]
 func swaggerCreateJob() {}
@@ -243,7 +451,7 @@ func swaggerGetJob() {}
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "职位 ID"
-// @Param request body SwaggerAny true "职位信息"
+// @Param request body JobUpsertRequest true "职位信息：标题、部门、薪资、技能、描述和要求"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/jobs/{id} [put]
 func swaggerUpdateJob() {}
@@ -351,7 +559,7 @@ func swaggerGetOnlineResume() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "在线简历"
+// @Param request body OnlineResumeRequest true "在线简历：基础信息、教育经历、技能、项目经历和个人总结"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/resumes/online [put]
 func swaggerSaveOnlineResume() {}
@@ -362,7 +570,7 @@ func swaggerSaveOnlineResume() {}
 // @Tags 简历
 // @Accept json
 // @Produce json
-// @Param request body SwaggerAny true "简历文本"
+// @Param request body ResumeTextRequest true "简历文本：用于解析结构化字段"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/resumes/parse [post]
 func swaggerParseResume() {}
@@ -373,7 +581,7 @@ func swaggerParseResume() {}
 // @Tags 简历
 // @Accept json
 // @Produce json
-// @Param request body SwaggerAny true "匹配参数"
+// @Param request body ResumeMatchRequest true "匹配参数：简历 ID、职位 ID 或待匹配文本"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/resumes/match [post]
 func swaggerMatchResume() {}
@@ -384,7 +592,7 @@ func swaggerMatchResume() {}
 // @Tags 简历
 // @Accept json
 // @Produce json
-// @Param request body SwaggerAny true "风险检查参数"
+// @Param request body ResumeRiskCheckRequest true "风险检查参数：简历 ID、职位 ID 或简历文本"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/resumes/risk-check [post]
 func swaggerResumeRiskCheck() {}
@@ -395,7 +603,7 @@ func swaggerResumeRiskCheck() {}
 // @Tags 简历
 // @Accept json
 // @Produce json
-// @Param request body SwaggerAny true "风险检查参数"
+// @Param request body ResumeRiskCheckRequest true "时间冲突检查参数：简历 ID、职位 ID 或简历文本"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/resumes/risk-check/time-conflict [post]
 func swaggerResumeTimeConflict() {}
@@ -406,7 +614,7 @@ func swaggerResumeTimeConflict() {}
 // @Tags 简历
 // @Accept json
 // @Produce json
-// @Param request body SwaggerAny true "风险检查参数"
+// @Param request body ResumeRiskCheckRequest true "学历风险检查参数：简历 ID、职位 ID 或简历文本"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/resumes/risk-check/education [post]
 func swaggerResumeEducationRisk() {}
@@ -449,7 +657,7 @@ func swaggerDownloadResume() {}
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "简历 ID"
-// @Param request body SwaggerAny true "职位关联参数"
+// @Param request body ResumeJobUpdateRequest true "职位关联参数：目标职位 ID"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/resumes/{id}/job [put]
 func swaggerUpdateResumeJob() {}
@@ -462,7 +670,7 @@ func swaggerUpdateResumeJob() {}
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "简历 ID"
-// @Param request body SwaggerAny true "状态参数"
+// @Param request body StatusUpdateRequest true "状态参数：目标状态和备注"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/resumes/{id}/status [put]
 func swaggerUpdateResumeStatus() {}
@@ -489,7 +697,7 @@ func swaggerListApplications() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "投递参数"
+// @Param request body ApplicationCreateRequest true "投递参数：职位、简历、人才和附言"
 // @Success 201 {object} SwaggerResponse
 // @Router /api/v1/applications [post]
 func swaggerCreateApplication() {}
@@ -502,7 +710,7 @@ func swaggerCreateApplication() {}
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "投递 ID"
-// @Param request body SwaggerAny true "状态参数"
+// @Param request body StatusUpdateRequest true "投递状态参数：目标状态和备注"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/applications/{id} [put]
 func swaggerUpdateApplication() {}
@@ -542,7 +750,7 @@ func swaggerAICurrentTask() {}
 // @Tags AI
 // @Accept json
 // @Produce json
-// @Param request body SwaggerAny true "评估参数"
+// @Param request body AIEvaluateRequest true "评估参数：简历 ID 和目标职位 ID"
 // @Success 200 {object} SwaggerResponse
 // @Failure 503 {object} SwaggerErrorResponse
 // @Router /api/v1/ai/evaluate [post]
@@ -567,7 +775,7 @@ func swaggerAIEvaluateUpload() {}
 // @Tags AI
 // @Accept json
 // @Produce json
-// @Param request body SwaggerAny true "批量评估参数"
+// @Param request body BatchEvaluateRequest true "批量评估参数：简历 ID 列表和目标职位 ID"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/ai/evaluate/batch [post]
 func swaggerAIEvaluateBatch() {}
@@ -588,7 +796,7 @@ func swaggerAIEvaluateResult() {}
 // @Tags AI
 // @Accept json
 // @Produce json
-// @Param request body SwaggerAny true "解析参数"
+// @Param request body ResumeTextRequest true "AI 解析参数：简历文本"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/ai/parse [post]
 func swaggerAIParse() {}
@@ -599,7 +807,7 @@ func swaggerAIParse() {}
 // @Tags AI
 // @Accept json
 // @Produce json
-// @Param request body SwaggerAny true "OCR 参数"
+// @Param request body OCRRequest true "OCR 参数：文件地址或待提取文本"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/ai/ocr [post]
 func swaggerAIOCR() {}
@@ -664,7 +872,7 @@ func swaggerEvaluationProcess() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "人才画像"
+// @Param request body RecommendationRequest true "人才画像：人才 ID、简历 ID、画像文本和返回数量"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/recommendations/jobs-for-talent [post]
 func swaggerRecommendJobsForTalent() {}
@@ -676,7 +884,7 @@ func swaggerRecommendJobsForTalent() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "职位画像"
+// @Param request body RecommendationRequest true "职位画像：职位 ID、岗位文本和返回数量"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/recommendations/talents-for-job [post]
 func swaggerRecommendTalentsForJob() {}
@@ -698,7 +906,7 @@ func swaggerRecommendationStats() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "批量推荐参数"
+// @Param request body RecommendationRequest true "批量推荐参数：人才、职位或简历范围"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/recommendations/batch [post]
 func swaggerRecommendationBatch() {}
@@ -710,7 +918,7 @@ func swaggerRecommendationBatch() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "归因参数"
+// @Param request body RecommendationRequest true "归因参数：人才 ID、职位 ID 和匹配文本"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/recommendations/attribution-report [post]
 func swaggerAttributionReport() {}
@@ -722,7 +930,7 @@ func swaggerAttributionReport() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "文本参数"
+// @Param request body RecommendationRequest true "语义匹配参数：人才/职位文本和返回数量"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/recommendations/semantic-match [post]
 func swaggerSemanticMatch() {}
@@ -734,7 +942,7 @@ func swaggerSemanticMatch() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "RAG 查询参数"
+// @Param request body RAGQueryRequest true "RAG 查询参数：问题、TopK 和检索类型"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/recommendations/rag/query [post]
 func swaggerRAGQuery() {}
@@ -746,7 +954,7 @@ func swaggerRAGQuery() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "人才索引参数"
+// @Param request body RAGIndexRequest true "人才索引参数：人才 ID 和文本内容"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/recommendations/rag/index-talent [post]
 func swaggerRAGIndexTalent() {}
@@ -758,7 +966,7 @@ func swaggerRAGIndexTalent() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "职位索引参数"
+// @Param request body RAGIndexRequest true "职位索引参数：职位 ID 和文本内容"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/recommendations/rag/index-job [post]
 func swaggerRAGIndexJob() {}
@@ -770,7 +978,7 @@ func swaggerRAGIndexJob() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "简历索引参数"
+// @Param request body RAGIndexRequest true "简历索引参数：简历 ID 和文本内容"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/recommendations/rag/index-resume [post]
 func swaggerRAGIndexResume() {}
@@ -792,7 +1000,7 @@ func swaggerRAGIndexAll() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "匹配参数"
+// @Param request body RecommendationRequest true "RAG 匹配参数：人才、职位、简历或文本"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/recommendations/rag/match [post]
 func swaggerRAGMatch() {}
@@ -818,7 +1026,7 @@ func swaggerListMessages() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "消息内容"
+// @Param request body MessageCreateRequest true "消息内容：接收人、标题、内容和消息类型"
 // @Success 201 {object} SwaggerResponse
 // @Router /api/v1/messages [post]
 func swaggerSendMessage() {}
@@ -884,7 +1092,7 @@ func swaggerConversations() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "会话参数"
+// @Param request body ConversationCreateRequest true "会话参数：目标用户和关联职位"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/conversations [post]
 func swaggerCreateConversation() {}
@@ -920,7 +1128,7 @@ func swaggerConversationMessages() {}
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "会话 ID"
-// @Param request body SwaggerAny true "聊天消息"
+// @Param request body ChatMessageRequest true "聊天消息：文本内容和消息类型"
 // @Success 201 {object} SwaggerResponse
 // @Router /api/v1/conversations/{id}/messages [post]
 func swaggerSendConversationMessage() {}
@@ -989,7 +1197,7 @@ func swaggerListNotices() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "公告内容"
+// @Param request body NoticeUpsertRequest true "公告内容：标题、正文、状态、置顶和优先级"
 // @Success 201 {object} SwaggerResponse
 // @Router /api/v1/notices [post]
 func swaggerCreateNotice() {}
@@ -1013,7 +1221,7 @@ func swaggerGetNotice() {}
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "公告 ID"
-// @Param request body SwaggerAny true "公告内容"
+// @Param request body NoticeUpsertRequest true "公告内容：标题、正文、状态、置顶和优先级"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/notices/{id} [put]
 func swaggerUpdateNotice() {}
@@ -1054,7 +1262,7 @@ func swaggerListInterviews() {}
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body SwaggerAny true "面试安排"
+// @Param request body InterviewUpsertRequest true "面试安排：投递、人才、职位、面试官、时间和地点"
 // @Success 201 {object} SwaggerResponse
 // @Router /api/v1/interviews [post]
 func swaggerCreateInterview() {}
@@ -1122,7 +1330,7 @@ func swaggerGetInterview() {}
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "面试 ID"
-// @Param request body SwaggerAny true "面试信息"
+// @Param request body InterviewUpsertRequest true "面试信息：面试官、时间、地点和备注"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/interviews/{id} [put]
 func swaggerUpdateInterview() {}
@@ -1157,7 +1365,7 @@ func swaggerCancelInterview() {}
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "面试 ID"
-// @Param request body SwaggerAny false "完成参数"
+// @Param request body CompleteInterviewRequest false "完成参数：结果和备注"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/interviews/{id}/complete [post]
 func swaggerCompleteInterview() {}
@@ -1181,7 +1389,7 @@ func swaggerGetInterviewFeedback() {}
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "面试 ID"
-// @Param request body SwaggerAny true "面试反馈"
+// @Param request body InterviewFeedbackRequest true "面试反馈：评分、反馈、建议和结果"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/interviews/{id}/feedback [post]
 func swaggerSubmitInterviewFeedback() {}
@@ -1194,7 +1402,7 @@ func swaggerSubmitInterviewFeedback() {}
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "面试 ID"
-// @Param request body SwaggerAny true "改期参数"
+// @Param request body RescheduleInterviewRequest true "改期参数：新时间和改期原因"
 // @Success 200 {object} SwaggerResponse
 // @Router /api/v1/interviews/{id}/reschedule [post]
 func swaggerRescheduleInterview() {}
@@ -1335,7 +1543,7 @@ func swaggerStatsJobRank() {}
 // @Accept json
 // @Produce json
 // @Security InternalToken
-// @Param request body SwaggerAny true "消息内容"
+// @Param request body MessageCreateRequest true "内部消息内容：接收人、标题、内容和消息类型"
 // @Success 201 {object} SwaggerResponse
 // @Router /internal/messages [post]
 func swaggerInternalMessage() {}
@@ -1347,7 +1555,7 @@ func swaggerInternalMessage() {}
 // @Accept json
 // @Produce json
 // @Security InternalToken
-// @Param request body SwaggerAny true "RAG 查询参数"
+// @Param request body RAGQueryRequest true "内部 RAG 查询参数：问题、TopK 和检索类型"
 // @Success 200 {object} SwaggerResponse
 // @Router /internal/recommendations/rag/query [post]
 func swaggerInternalRAGQuery() {}
@@ -1359,7 +1567,7 @@ func swaggerInternalRAGQuery() {}
 // @Accept json
 // @Produce json
 // @Security InternalToken
-// @Param request body SwaggerAny true "人才索引参数"
+// @Param request body RAGIndexRequest true "内部人才索引参数：人才 ID 和文本内容"
 // @Success 200 {object} SwaggerResponse
 // @Router /internal/recommendations/rag/index-talent [post]
 func swaggerInternalRAGIndexTalent() {}
@@ -1371,7 +1579,7 @@ func swaggerInternalRAGIndexTalent() {}
 // @Accept json
 // @Produce json
 // @Security InternalToken
-// @Param request body SwaggerAny true "职位索引参数"
+// @Param request body RAGIndexRequest true "内部职位索引参数：职位 ID 和文本内容"
 // @Success 200 {object} SwaggerResponse
 // @Router /internal/recommendations/rag/index-job [post]
 func swaggerInternalRAGIndexJob() {}
@@ -1383,7 +1591,7 @@ func swaggerInternalRAGIndexJob() {}
 // @Accept json
 // @Produce json
 // @Security InternalToken
-// @Param request body SwaggerAny true "简历索引参数"
+// @Param request body RAGIndexRequest true "内部简历索引参数：简历 ID 和文本内容"
 // @Success 200 {object} SwaggerResponse
 // @Router /internal/recommendations/rag/index-resume [post]
 func swaggerInternalRAGIndexResume() {}
@@ -1405,7 +1613,7 @@ func swaggerInternalRAGIndexAll() {}
 // @Accept json
 // @Produce json
 // @Security InternalToken
-// @Param request body SwaggerAny true "匹配参数"
+// @Param request body RecommendationRequest true "内部 RAG 匹配参数：人才、职位、简历或文本"
 // @Success 200 {object} SwaggerResponse
 // @Router /internal/recommendations/rag/match [post]
 func swaggerInternalRAGMatch() {}
